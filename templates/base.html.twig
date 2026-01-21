@@ -1,9 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}OpsTracker{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🎯</text></svg>">
+
+        {# Tailwind CSS via CDN (dev) - will be replaced by build in prod #}
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            // CPAM brand colors
+                            'cpam-blue': '#0055A4',
+                            'cpam-blue-dark': '#003D7A',
+                            'cpam-green': '#00A65A',
+                            'cpam-orange': '#F39C12',
+                            'cpam-red': '#E74C3C',
+                        }
+                    }
+                }
+            }
+        </script>
+
         {% block stylesheets %}
         {% endblock %}
 
@@ -11,7 +32,7 @@
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
     </head>
-    <body>
+    <body class="bg-gray-50 min-h-screen">
         {% block body %}{% endblock %}
     </body>
 </html>
