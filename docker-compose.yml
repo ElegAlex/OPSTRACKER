@@ -1,0 +1,57 @@
+services:
+  php:
+    build:
+      context: .
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - database
+      - redis
+    environment:
+      - APP_ENV=dev
+      - DATABASE_URL=postgresql://opstracker:opstracker@database:5432/opstracker?serverVersion=17&charset=utf8
+      - REDIS_URL=redis://redis:6379
+    networks:
+      - opstracker
+
+  database:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: opstracker
+      POSTGRES_PASSWORD: opstracker
+      POSTGRES_DB: opstracker
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - opstracker
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6381:6379"
+    networks:
+      - opstracker
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8081:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - opstracker
+
+volumes:
+  db_data:
+
+networks:
+  opstracker:
+    driver: bridge
