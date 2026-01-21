@@ -18,3 +18,14 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+###> docker ###
+.docker/
+###< docker ###
+
+###> IDE ###
+.idea/
+.vscode/
+*.swp
+*.swo
+###< IDE ###
