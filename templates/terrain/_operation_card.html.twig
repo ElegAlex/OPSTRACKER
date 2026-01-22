@@ -1,0 +1,38 @@
+{#
+    Card d'operation pour la vue terrain
+    RG-082 : Boutons 56px tactiles
+
+    Usage: {% include 'terrain/_operation_card.html.twig' with {operation: op, highlight: 'success'} %}
+#}
+{% set highlight = highlight|default(null) %}
+
+<div class="bg-white border-2 border-ink p-4 mb-2 {% if highlight %}border-{{ highlight }}{% endif %}">
+    <div class="flex items-start justify-between mb-3">
+        <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-lg font-bold text-ink">{{ operation.matricule }}</span>
+                {% include 'terrain/_status_badge.html.twig' with {statut: operation.statut} %}
+            </div>
+            <p class="text-sm text-ink font-medium">{{ operation.nom }}</p>
+            <p class="text-xs text-muted">
+                {{ operation.getDonneePersonnalisee('bureau') ?? '' }}
+                {% if operation.getDonneePersonnalisee('batiment') %}
+                    &bull; {{ operation.getDonneePersonnalisee('batiment') }}
+                {% endif %}
+            </p>
+        </div>
+        {% if operation.checklistInstance %}
+            <div class="text-right">
+                <p class="text-xs text-muted">Checklist</p>
+                <p class="text-sm font-bold text-ink">
+                    {{ operation.checklistInstance.progression.completed|default(0) }}/{{ operation.checklistInstance.progression.total|default(0) }}
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+    <a href="{{ path('terrain_show', {id: operation.id}) }}" class="btn-action w-full bg-white border-2 border-ink text-ink font-bold flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
+        <i data-feather="eye" class="w-5 h-5"></i>
+        VOIR DETAIL
+    </a>
+</div>

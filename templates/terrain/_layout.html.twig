@@ -1,0 +1,108 @@
+{#
+    Layout mobile pour l'interface terrain (Karim)
+
+    Design System:
+    - RG-082: Touch targets 44x44px minimum (56px pour boutons action)
+    - Mobile-first responsive
+    - Pas de border-radius (Bauhaus)
+#}
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Numeric tabular pour les chiffres */
+        .num { font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+
+        /* Mobile-first: pas de scrollbar visible */
+        ::-webkit-scrollbar { display: none; }
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+
+        /* Boutons tactiles 56px minimum (RG-082) */
+        .btn-action { min-height: 56px; }
+
+        /* Checkbox 48x48 minimum (RGAA) */
+        .checkbox-large {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+        }
+
+        /* Animation feedback check */
+        @keyframes checkPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .check-animation { animation: checkPop 0.3s ease-out; }
+
+        /* Card prochaine intervention mise en avant */
+        .card-next {
+            border-left: 6px solid #2563eb;
+            background: linear-gradient(90deg, rgba(37,99,235,0.05) 0%, white 20%);
+        }
+
+        /* Ligne cochee (checklist) */
+        .step-done {
+            background-color: rgba(5, 150, 105, 0.05);
+        }
+        .step-done .step-text {
+            text-decoration: line-through;
+            color: #6b6b6b;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {# Header mobile simplifie #}
+    <header class="bg-white border-b-2 border-ink px-4 py-3 sticky top-0 z-50">
+        <div class="flex items-center justify-between">
+            {% block header_left %}
+                {# Logo compact + Titre #}
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-ink flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">O</span>
+                    </div>
+                    <span class="font-bold text-lg text-ink">{% block header_title %}Mes interventions{% endblock %}</span>
+                </div>
+            {% endblock %}
+
+            {% block header_right %}
+                {# User info #}
+                {% if app.user %}
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-muted hidden sm:block">{{ app.user.prenom }} {{ app.user.nom|slice(0, 1) }}.</span>
+                        <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                            {{ app.user.prenom|slice(0, 1)|upper }}{{ app.user.nom|slice(0, 1)|upper }}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endblock %}
+        </div>
+    </header>
+
+    {% block subheader %}{% endblock %}
+
+    {# Contenu principal #}
+    <main class="px-4 py-4 pb-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    {# Barre d'actions fixe en bas (optionnelle) #}
+    {% block footer_actions %}{% endblock %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Utilitaire pour les transitions de statut avec Turbo
+        document.addEventListener('turbo:submit-end', function(event) {
+            // Si success et redirection demandee, rien a faire (Turbo gere)
+            // Si erreur, afficher feedback
+            if (event.detail.success === false) {
+                console.error('Erreur lors de la soumission');
+            }
+        });
+    </script>
+{% endblock %}

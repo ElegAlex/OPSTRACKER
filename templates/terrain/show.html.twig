@@ -1,0 +1,333 @@
+{#
+    Page detail d'une intervention pour Karim (Technicien IT)
+
+    US-402 : Voir le detail d'une operation
+    US-403 : Changer le statut en 1 clic (boutons 56px)
+    US-404 : Retour automatique apres action
+    RG-017 : Transitions de statut
+    RG-021 : Motif de report optionnel
+    RG-080 : Triple signalisation
+    RG-082 : Touch targets 56px
+#}
+{% extends 'terrain/_layout.html.twig' %}
+
+{% block title %}{{ operation.matricule }} - OpsTracker{% endblock %}
+
+{% block header_left %}
+    <div class="flex items-center gap-3">
+        {# Bouton retour (44x44 minimum) #}
+        <a href="{{ path('terrain_index') }}" class="w-10 h-10 flex items-center justify-center border-2 border-ink hover:bg-ink hover:text-white transition-colors text-ink">
+            <i data-feather="arrow-left" class="w-6 h-6"></i>
+        </a>
+
+        {# Titre #}
+        <div class="flex-1">
+            <p class="text-xs text-muted">Intervention</p>
+            <p class="font-bold text-lg text-ink">{{ operation.matricule }}</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block header_right %}
+    {# Statut actuel #}
+    <div class="flex items-center gap-2 px-3 py-1.5 bg-{{ operation.statutCouleur }} text-white">
+        {% set icones = {
+            'a_planifier': 'clock',
+            'planifie': 'clock',
+            'en_cours': 'zap',
+            'realise': 'check-circle',
+            'reporte': 'pause-circle',
+            'a_remedier': 'alert-triangle'
+        } %}
+        <i data-feather="{{ icones[operation.statut] ?? 'circle' }}" class="w-4 h-4"></i>
+        <span class="text-sm font-bold">{{ operation.statutLabel }}</span>
+    </div>
+{% endblock %}
+
+{% block subheader %}
+    {# Infos intervention #}
+    <div class="bg-white border-b-2 border-ink px-4 py-4">
+        <div class="flex items-start justify-between mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-ink mb-1">{{ operation.nom }}</h1>
+                <p class="text-sm text-muted">
+                    {{ operation.getDonneePersonnalisee('bureau') ?? '' }}
+                    {% if operation.getDonneePersonnalisee('batiment') %}
+                        &bull; {{ operation.getDonneePersonnalisee('batiment') }}
+                    {% endif %}
+                    {% if operation.getDonneePersonnalisee('etage') %}
+                        &bull; Etage {{ operation.getDonneePersonnalisee('etage') }}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="w-12 h-12 bg-ink flex items-center justify-center">
+                {% if operation.typeOperation %}
+                    <i data-feather="{{ operation.typeOperation.icone ?? 'monitor' }}" class="w-6 h-6 text-white"></i>
+                {% else %}
+                    <i data-feather="monitor" class="w-6 h-6 text-white"></i>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Metadonnees #}
+        <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="bg-paper p-3">
+                <p class="text-xs text-muted uppercase font-semibold mb-1">Matricule</p>
+                <p class="font-bold text-ink">{{ operation.getDonneePersonnalisee('matricule_agent') ?? operation.matricule }}</p>
+            </div>
+            <div class="bg-paper p-3">
+                <p class="text-xs text-muted uppercase font-semibold mb-1">Equipement</p>
+                <p class="font-bold text-ink">{{ operation.getDonneePersonnalisee('equipement') ?? 'Non specifie' }}</p>
+            </div>
+            <div class="bg-paper p-3">
+                <p class="text-xs text-muted uppercase font-semibold mb-1">Contact</p>
+                <p class="font-bold text-ink">{{ operation.getDonneePersonnalisee('telephone') ?? 'Non specifie' }}</p>
+            </div>
+            <div class="bg-paper p-3">
+                <p class="text-xs text-muted uppercase font-semibold mb-1">Type</p>
+                <p class="font-bold text-ink">{{ operation.typeOperation.nom ?? 'Standard' }}</p>
+            </div>
+        </div>
+    </div>
+
+    {# Barre de progression checklist (si existe) #}
+    {% if operation.checklistInstance %}
+        {% set progress = operation.checklistInstance.progression %}
+        {% set completed = progress.completed|default(0) %}
+        {% set total = progress.total|default(0) %}
+        {% set pct = total > 0 ? (completed / total * 100)|round : 0 %}
+
+        <div class="bg-white border-b-2 border-ink px-4 py-3">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="font-bold text-ink flex items-center gap-2">
+                    <i data-feather="check-square" class="w-5 h-5"></i>
+                    Checklist
+                </h2>
+                <span class="text-lg font-bold text-ink num">{{ completed }}/{{ total }} etapes</span>
+            </div>
+
+            {# Barre de progression segmentee #}
+            <div class="h-3 bg-paper border border-ink flex overflow-hidden">
+                {% for i in 1..total %}
+                    <div class="h-full {% if i <= completed %}bg-success{% else %}bg-paper{% endif %}" style="width: {{ (100 / total)|round(2) }}%"></div>
+                {% endfor %}
+            </div>
+            <p class="text-xs text-muted mt-1">{{ pct }}% complete</p>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {# Messages flash #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="mb-4 p-3 border-2 border-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'danger' ? 'danger' : 'ink')) }} bg-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'danger' ? 'danger' : 'primary')) }}/10">
+                <p class="text-sm font-medium text-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'danger' ? 'danger' : 'ink')) }}">
+                    {{ message }}
+                </p>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {# Notes sur l'operation #}
+    {% if operation.notes %}
+        <div class="mb-6 p-4 bg-white border-2 border-ink">
+            <h3 class="font-bold text-ink mb-2 flex items-center gap-2">
+                <i data-feather="file-text" class="w-4 h-4"></i>
+                Notes
+            </h3>
+            <p class="text-sm text-muted">{{ operation.notes }}</p>
+        </div>
+    {% endif %}
+
+    {# Motif de report (si reporte) #}
+    {% if operation.statut == 'reporte' and operation.motifReport %}
+        <div class="mb-6 p-4 bg-warning/10 border-2 border-warning">
+            <h3 class="font-bold text-warning mb-2 flex items-center gap-2">
+                <i data-feather="pause-circle" class="w-4 h-4"></i>
+                Motif de report
+            </h3>
+            <p class="text-sm text-warning">{{ operation.motifReport }}</p>
+        </div>
+    {% endif %}
+
+    {# Checklist (si existe) - Placeholder pour Sprint 6 #}
+    {% if operation.checklistInstance %}
+        <div class="mb-6">
+            <div class="p-4 bg-ink/5 border-2 border-ink/20">
+                <p class="text-sm text-muted text-center">
+                    <i data-feather="check-square" class="w-4 h-4 inline"></i>
+                    Checklist disponible - Fonctionnalite complete au Sprint 6
+                </p>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Informations campagne #}
+    <div class="mb-6">
+        <h3 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+            <i data-feather="folder" class="w-4 h-4"></i>
+            Campagne
+        </h3>
+        <div class="bg-white border-2 border-ink p-4">
+            <p class="font-bold text-ink">{{ operation.campagne.nom }}</p>
+            {% if operation.segment %}
+                <p class="text-sm text-muted">Segment : {{ operation.segment.nom }}</p>
+            {% endif %}
+            {% if operation.datePlanifiee %}
+                <p class="text-xs text-muted mt-2">
+                    <i data-feather="calendar" class="w-3 h-3 inline"></i>
+                    Planifie le {{ operation.datePlanifiee|format_datetime('long', 'none', locale='fr') }}
+                </p>
+            {% endif %}
+            {% if operation.dateRealisation %}
+                <p class="text-xs text-success mt-1">
+                    <i data-feather="check-circle" class="w-3 h-3 inline"></i>
+                    Realise le {{ operation.dateRealisation|format_datetime('long', 'short', locale='fr') }}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Espace pour les boutons fixes en bas #}
+    <div class="h-40"></div>
+{% endblock %}
+
+{% block footer_actions %}
+    {# Barre d'actions fixe (56px min) - RG-082 #}
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-ink p-4 space-y-2">
+        {% if operation.statut == 'planifie' %}
+            {# Planifie -> Demarrer #}
+            <form action="{{ path('terrain_demarrer', {id: operation.id}) }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('demarrer_' ~ operation.id) }}">
+                <button type="submit" class="btn-action w-full bg-primary text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors">
+                    <i data-feather="play" class="w-6 h-6"></i>
+                    COMMENCER L'INTERVENTION
+                </button>
+            </form>
+
+        {% elseif operation.statut == 'en_cours' %}
+            {# En cours -> Terminer / Reporter / Probleme #}
+            <form action="{{ path('terrain_terminer', {id: operation.id}) }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('terminer_' ~ operation.id) }}">
+                <button type="submit" class="btn-action w-full bg-success text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-success/90 transition-colors">
+                    <i data-feather="check-circle" class="w-6 h-6"></i>
+                    TERMINER L'INTERVENTION
+                </button>
+            </form>
+
+            {# Actions secondaires #}
+            <div class="grid grid-cols-2 gap-2">
+                {# Reporter #}
+                <button type="button" onclick="openReportModal()" class="btn-action bg-warning/10 border-2 border-warning text-warning font-bold flex items-center justify-center gap-2 hover:bg-warning hover:text-white transition-colors">
+                    <i data-feather="pause-circle" class="w-5 h-5"></i>
+                    REPORTER
+                </button>
+
+                {# Probleme #}
+                <button type="button" onclick="openProblemeModal()" class="btn-action bg-danger/10 border-2 border-danger text-danger font-bold flex items-center justify-center gap-2 hover:bg-danger hover:text-white transition-colors">
+                    <i data-feather="alert-triangle" class="w-5 h-5"></i>
+                    PROBLEME
+                </button>
+            </div>
+
+        {% elseif operation.statut == 'realise' %}
+            {# Realise -> Retour liste #}
+            <a href="{{ path('terrain_index') }}" class="btn-action w-full bg-success/10 border-2 border-success text-success font-bold text-lg flex items-center justify-center gap-3 hover:bg-success hover:text-white transition-colors">
+                <i data-feather="check-circle" class="w-6 h-6"></i>
+                INTERVENTION TERMINEE
+            </a>
+
+        {% elseif operation.statut == 'reporte' or operation.statut == 'a_remedier' %}
+            {# Reporte/A remedier -> Retour liste #}
+            <a href="{{ path('terrain_index') }}" class="btn-action w-full bg-ink/10 border-2 border-ink text-ink font-bold text-lg flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="arrow-left" class="w-6 h-6"></i>
+                RETOUR A LA LISTE
+            </a>
+
+        {% else %}
+            {# A planifier - pas encore assignee -> Retour liste #}
+            <a href="{{ path('terrain_index') }}" class="btn-action w-full bg-ink/10 border-2 border-ink text-ink font-bold text-lg flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="arrow-left" class="w-6 h-6"></i>
+                RETOUR A LA LISTE
+            </a>
+        {% endif %}
+    </div>
+
+    {# Modal Report #}
+    <div id="reportModal" class="fixed inset-0 bg-ink/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white border-2 border-ink w-full max-w-md p-6">
+            <h3 class="text-lg font-bold text-ink mb-4 flex items-center gap-2">
+                <i data-feather="pause-circle" class="w-5 h-5 text-warning"></i>
+                Reporter l'intervention
+            </h3>
+            <form action="{{ path('terrain_reporter', {id: operation.id}) }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('reporter_' ~ operation.id) }}">
+                <div class="mb-4">
+                    <label for="motif" class="block text-sm font-semibold text-ink mb-2">Motif du report (optionnel)</label>
+                    <textarea name="motif" id="motif" rows="3" class="w-full border-2 border-ink p-3 text-sm focus:border-warning focus:outline-none" placeholder="Ex: Agent absent, materiel manquant..."></textarea>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeReportModal()" class="flex-1 btn-action bg-white border-2 border-ink text-ink font-bold hover:bg-ink hover:text-white transition-colors">
+                        ANNULER
+                    </button>
+                    <button type="submit" class="flex-1 btn-action bg-warning text-white font-bold hover:bg-warning/90 transition-colors">
+                        REPORTER
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Modal Probleme #}
+    <div id="problemeModal" class="fixed inset-0 bg-ink/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white border-2 border-ink w-full max-w-md p-6">
+            <h3 class="text-lg font-bold text-ink mb-4 flex items-center gap-2">
+                <i data-feather="alert-triangle" class="w-5 h-5 text-danger"></i>
+                Signaler un probleme
+            </h3>
+            <form action="{{ path('terrain_probleme', {id: operation.id}) }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('probleme_' ~ operation.id) }}">
+                <div class="mb-4">
+                    <label for="motif_probleme" class="block text-sm font-semibold text-ink mb-2">Description du probleme</label>
+                    <textarea name="motif" id="motif_probleme" rows="3" class="w-full border-2 border-ink p-3 text-sm focus:border-danger focus:outline-none" placeholder="Decrivez le probleme rencontre..." required></textarea>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="closeProblemeModal()" class="flex-1 btn-action bg-white border-2 border-ink text-ink font-bold hover:bg-ink hover:text-white transition-colors">
+                        ANNULER
+                    </button>
+                    <button type="submit" class="flex-1 btn-action bg-danger text-white font-bold hover:bg-danger/90 transition-colors">
+                        SIGNALER
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openReportModal() {
+            document.getElementById('reportModal').classList.remove('hidden');
+            document.getElementById('reportModal').classList.add('flex');
+        }
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.add('hidden');
+            document.getElementById('reportModal').classList.remove('flex');
+        }
+        function openProblemeModal() {
+            document.getElementById('problemeModal').classList.remove('hidden');
+            document.getElementById('problemeModal').classList.add('flex');
+        }
+        function closeProblemeModal() {
+            document.getElementById('problemeModal').classList.add('hidden');
+            document.getElementById('problemeModal').classList.remove('flex');
+        }
+
+        // Fermer les modales en cliquant a l'exterieur
+        document.getElementById('reportModal').addEventListener('click', function(e) {
+            if (e.target === this) closeReportModal();
+        });
+        document.getElementById('problemeModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProblemeModal();
+        });
+    </script>
+{% endblock %}

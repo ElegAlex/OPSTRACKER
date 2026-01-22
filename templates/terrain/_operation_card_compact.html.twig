@@ -1,0 +1,25 @@
+{#
+    Card compacte d'operation (pour les realisees)
+    RG-080 : Triple signalisation
+
+    Usage: {% include 'terrain/_operation_card_compact.html.twig' with {operation: op} %}
+#}
+<div class="bg-success/5 border border-success/30 p-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-success/20 flex items-center justify-center">
+            <i data-feather="check" class="w-5 h-5 text-success"></i>
+        </div>
+        <div>
+            <p class="font-bold text-ink">{{ operation.matricule }}</p>
+            <p class="text-xs text-muted">{{ operation.nom }}</p>
+        </div>
+    </div>
+    <div class="text-right">
+        {% include 'terrain/_status_badge.html.twig' with {statut: operation.statut} %}
+        {% if operation.checklistInstance %}
+            <p class="text-xs text-muted mt-1">
+                {{ operation.checklistInstance.progression.completed|default(0) }}/{{ operation.checklistInstance.progression.total|default(0) }} ✓
+            </p>
+        {% endif %}
+    </div>
+</div>

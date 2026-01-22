@@ -1,0 +1,271 @@
+{#
+    Vue "Mes interventions" pour Karim (Technicien IT)
+
+    US-401 : Voir mes interventions du jour
+    RG-020 : Vue filtree sur les operations assignees
+    RG-080 : Triple signalisation (icone + couleur + texte)
+    RG-082 : Touch targets 44x44px minimum
+#}
+{% extends 'terrain/_layout.html.twig' %}
+
+{% block title %}Mes interventions - OpsTracker{% endblock %}
+
+{% block header_title %}Mes interventions{% endblock %}
+
+{% block subheader %}
+    {# Barre de statut journee #}
+    <div class="bg-white border-b-2 border-ink px-4 py-4">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <p class="text-xs text-muted uppercase tracking-wider font-semibold">Aujourd'hui</p>
+                <p class="text-2xl font-bold text-ink">{{ today|format_datetime('full', 'none', locale='fr') }}</p>
+            </div>
+            {% if grouped_operations.next %}
+                <div class="text-right">
+                    <p class="text-xs text-muted">{{ grouped_operations.next.campagne.nom ?? 'Campagne' }}</p>
+                    <p class="text-sm font-semibold text-ink">{{ grouped_operations.next.segment.nom ?? 'Non segmente' }}</p>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Compteurs du jour #}
+        <div class="grid grid-cols-4 gap-2">
+            {# Realisees #}
+            <div class="bg-success/10 p-3 text-center">
+                <div class="flex items-center justify-center gap-1 mb-1">
+                    <i data-feather="check-circle" class="w-4 h-4 text-success"></i>
+                </div>
+                <p class="text-2xl font-bold text-success num">{{ stats.realise }}</p>
+                <p class="text-[10px] text-success font-medium uppercase">Faites</p>
+            </div>
+
+            {# Planifiees #}
+            <div class="bg-primary/10 p-3 text-center">
+                <div class="flex items-center justify-center gap-1 mb-1">
+                    <i data-feather="clock" class="w-4 h-4 text-primary"></i>
+                </div>
+                <p class="text-2xl font-bold text-primary num">{{ stats.planifie + stats.en_cours }}</p>
+                <p class="text-[10px] text-primary font-medium uppercase">A faire</p>
+            </div>
+
+            {# Reportees #}
+            <div class="bg-warning/10 p-3 text-center">
+                <div class="flex items-center justify-center gap-1 mb-1">
+                    <i data-feather="pause-circle" class="w-4 h-4 text-warning"></i>
+                </div>
+                <p class="text-2xl font-bold text-warning num">{{ stats.reporte }}</p>
+                <p class="text-[10px] text-warning font-medium uppercase">Report</p>
+            </div>
+
+            {# Total #}
+            <div class="bg-ink/5 p-3 text-center">
+                <div class="flex items-center justify-center gap-1 mb-1">
+                    <i data-feather="list" class="w-4 h-4 text-ink"></i>
+                </div>
+                <p class="text-2xl font-bold text-ink num">{{ stats.total }}</p>
+                <p class="text-[10px] text-muted font-medium uppercase">Total</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    {# Messages flash #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="mb-4 p-3 border-2 border-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'danger' ? 'danger' : 'ink')) }} bg-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'danger' ? 'danger' : 'primary')) }}/10">
+                <p class="text-sm font-medium text-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'danger' ? 'danger' : 'ink')) }}">
+                    {{ message }}
+                </p>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {% if operations is empty %}
+        {# Etat vide #}
+        <div class="text-center py-12">
+            <div class="w-16 h-16 bg-muted/20 mx-auto mb-4 flex items-center justify-center">
+                <i data-feather="inbox" class="w-8 h-8 text-muted"></i>
+            </div>
+            <p class="text-lg font-semibold text-ink mb-1">Aucune intervention</p>
+            <p class="text-sm text-muted">Vous n'avez pas d'intervention assignee pour le moment.</p>
+        </div>
+    {% else %}
+
+        {# Section: Prochaine intervention / En cours #}
+        {% if grouped_operations.next %}
+            <div class="mb-6">
+                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                    <i data-feather="arrow-right" class="w-4 h-4"></i>
+                    {% if grouped_operations.next.statut == 'en_cours' %}
+                        Intervention en cours
+                    {% else %}
+                        Prochaine intervention
+                    {% endif %}
+                </h2>
+
+                {% set op = grouped_operations.next %}
+                {# Card mise en avant #}
+                <div class="bg-white border-2 border-ink card-next p-4 mb-2">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-lg font-bold text-ink">{{ op.matricule }}</span>
+                                {# Badge statut RGAA: icone + couleur + texte #}
+                                {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
+                            </div>
+                            <p class="text-sm text-ink font-medium">{{ op.nom }}</p>
+                            <p class="text-xs text-muted">
+                                {{ op.getDonneePersonnalisee('bureau') ?? '' }}
+                                {% if op.getDonneePersonnalisee('batiment') %}
+                                    &bull; {{ op.getDonneePersonnalisee('batiment') }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% if op.checklistInstance %}
+                            <div class="text-right">
+                                <p class="text-xs text-muted">Checklist</p>
+                                <p class="text-sm font-bold text-ink">
+                                    {{ op.checklistInstance.progression.completed|default(0) }}/{{ op.checklistInstance.progression.total|default(0) }}
+                                </p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {# Bouton d'action principal 56px #}
+                    {% if op.statut == 'planifie' %}
+                        <form action="{{ path('terrain_demarrer', {id: op.id}) }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('demarrer_' ~ op.id) }}">
+                            <button type="submit" class="btn-action w-full bg-primary text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors">
+                                <i data-feather="play" class="w-6 h-6"></i>
+                                COMMENCER
+                            </button>
+                        </form>
+                    {% elseif op.statut == 'en_cours' %}
+                        <a href="{{ path('terrain_show', {id: op.id}) }}" class="btn-action w-full bg-success text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-success/90 transition-colors">
+                            <i data-feather="zap" class="w-6 h-6"></i>
+                            CONTINUER
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+
+        {# Section: A faire aujourd'hui (planifiees restantes) #}
+        {% if grouped_operations.planifie|length > 0 %}
+            <div class="mb-6">
+                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                    <i data-feather="clock" class="w-4 h-4"></i>
+                    A faire aujourd'hui
+                    <span class="bg-primary/10 text-primary px-2 py-0.5 text-xs font-bold">{{ grouped_operations.planifie|length }}</span>
+                </h2>
+
+                {% for op in grouped_operations.planifie %}
+                    {% include 'terrain/_operation_card.html.twig' with {operation: op} %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# Section: En cours (autres que la principale) #}
+        {% if grouped_operations.en_cours|length > 0 %}
+            <div class="mb-6">
+                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                    <i data-feather="zap" class="w-4 h-4 text-success"></i>
+                    En cours
+                    <span class="bg-success/10 text-success px-2 py-0.5 text-xs font-bold">{{ grouped_operations.en_cours|length }}</span>
+                </h2>
+
+                {% for op in grouped_operations.en_cours %}
+                    {% include 'terrain/_operation_card.html.twig' with {operation: op, highlight: 'success'} %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# Section: Realisees aujourd'hui #}
+        {% if grouped_operations.realise|length > 0 %}
+            <div class="mb-6">
+                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                    <i data-feather="check-circle" class="w-4 h-4 text-success"></i>
+                    Realisees aujourd'hui
+                    <span class="bg-success/10 text-success px-2 py-0.5 text-xs font-bold">{{ grouped_operations.realise|length }}</span>
+                </h2>
+
+                <div class="space-y-2">
+                    {% for op in grouped_operations.realise %}
+                        {% include 'terrain/_operation_card_compact.html.twig' with {operation: op} %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        {# Section: Reportees #}
+        {% if grouped_operations.reporte|length > 0 %}
+            <div class="mb-6">
+                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                    <i data-feather="pause-circle" class="w-4 h-4 text-warning"></i>
+                    Reportees
+                    <span class="bg-warning/10 text-warning px-2 py-0.5 text-xs font-bold">{{ grouped_operations.reporte|length }}</span>
+                </h2>
+
+                {% for op in grouped_operations.reporte %}
+                    <div class="bg-warning/5 border-2 border-warning/50 p-4 mb-2">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-lg font-bold text-ink">{{ op.matricule }}</span>
+                                    {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
+                                </div>
+                                <p class="text-sm text-ink font-medium">{{ op.nom }}</p>
+                                <p class="text-xs text-muted">
+                                    {{ op.getDonneePersonnalisee('bureau') ?? '' }}
+                                </p>
+                            </div>
+                        </div>
+                        {% if op.motifReport %}
+                            <div class="bg-warning/10 p-2 mt-2">
+                                <p class="text-xs text-warning font-medium">
+                                    <i data-feather="info" class="w-3 h-3 inline"></i>
+                                    Motif : {{ op.motifReport }}
+                                </p>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# Section: A remedier #}
+        {% if grouped_operations.a_remedier|length > 0 %}
+            <div class="mb-6">
+                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                    <i data-feather="alert-triangle" class="w-4 h-4 text-danger"></i>
+                    A remedier
+                    <span class="bg-danger/10 text-danger px-2 py-0.5 text-xs font-bold">{{ grouped_operations.a_remedier|length }}</span>
+                </h2>
+
+                {% for op in grouped_operations.a_remedier %}
+                    <div class="bg-danger/5 border-2 border-danger/50 p-4 mb-2">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-lg font-bold text-ink">{{ op.matricule }}</span>
+                                    {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
+                                </div>
+                                <p class="text-sm text-ink font-medium">{{ op.nom }}</p>
+                            </div>
+                        </div>
+                        {% if op.notes %}
+                            <div class="bg-danger/10 p-2 mt-2">
+                                <p class="text-xs text-danger font-medium">
+                                    <i data-feather="alert-circle" class="w-3 h-3 inline"></i>
+                                    {{ op.notes }}
+                                </p>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+    {% endif %}
+{% endblock %}
