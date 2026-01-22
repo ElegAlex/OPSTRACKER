@@ -4,26 +4,40 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}OpsTracker{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🎯</text></svg>">
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>&#9632;</text></svg>">
 
-        {# Tailwind CSS via CDN (dev) - will be replaced by build in prod #}
+        {# Google Font - Space Grotesk #}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+        {# Tailwind CSS via CDN (dev) #}
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
             tailwind.config = {
                 theme: {
                     extend: {
+                        fontFamily: {
+                            'grotesk': ['Space Grotesk', 'system-ui', 'sans-serif'],
+                        },
                         colors: {
-                            // CPAM brand colors
-                            'cpam-blue': '#0055A4',
-                            'cpam-blue-dark': '#003D7A',
-                            'cpam-green': '#00A65A',
-                            'cpam-orange': '#F39C12',
-                            'cpam-red': '#E74C3C',
+                            'ink': '#0a0a0a',
+                            'paper': '#f5f5f0',
+                            'cream': '#fafaf5',
+                            'primary': '#2563eb',
+                            'success': '#059669',
+                            'warning': '#d97706',
+                            'danger': '#dc2626',
+                            'complete': '#0d9488',
+                            'muted': '#6b6b6b',
                         }
                     }
                 }
             }
         </script>
+
+        {# Feather Icons #}
+        <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 
         {% block stylesheets %}
         {% endblock %}
@@ -32,7 +46,20 @@
             {% block importmap %}{{ importmap('app') }}{% endblock %}
         {% endblock %}
     </head>
-    <body class="bg-gray-50 min-h-screen">
+    <body class="font-grotesk bg-paper min-h-screen text-ink antialiased">
         {% block body %}{% endblock %}
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            });
+            document.addEventListener('turbo:render', function() {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            });
+        </script>
     </body>
 </html>

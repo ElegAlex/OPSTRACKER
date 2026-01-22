@@ -1,0 +1,112 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion - OpsTracker{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex">
+    {# Panel gauche - Branding #}
+    <div class="hidden lg:flex lg:w-1/2 bg-ink text-white flex-col justify-between p-12">
+        <div>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white flex items-center justify-center">
+                    <div class="w-5 h-5 bg-ink"></div>
+                </div>
+                <span class="text-xl font-bold">OpsTracker</span>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <h1 class="text-5xl font-bold leading-tight">
+                Pilotez vos<br>
+                <span class="text-primary">operations IT</span><br>
+                en temps reel
+            </h1>
+            <p class="text-white/70 text-lg max-w-md">
+                Suivi des campagnes de migration et deploiement pour les CPAM.
+                Tableaux de bord, checklists terrain, progression en direct.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-8 text-sm text-white/50">
+            <span>CPAM 92 Nanterre</span>
+            <span>v1.0 MVP</span>
+        </div>
+    </div>
+
+    {# Panel droit - Formulaire #}
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div class="w-full max-w-md">
+            {# Logo mobile #}
+            <div class="lg:hidden flex items-center gap-3 mb-12">
+                <div class="w-10 h-10 bg-ink flex items-center justify-center">
+                    <div class="w-5 h-5 bg-white"></div>
+                </div>
+                <span class="text-xl font-bold">OpsTracker</span>
+            </div>
+
+            <h2 class="text-3xl font-bold mb-2">Connexion</h2>
+            <p class="text-muted mb-8">Entrez vos identifiants pour acceder a votre espace.</p>
+
+            {# Messages d'erreur #}
+            {% if error %}
+            <div class="mb-6 p-4 bg-danger/10 border-2 border-danger text-danger flex items-start gap-3">
+                <i data-feather="alert-circle" class="w-5 h-5 flex-shrink-0 mt-0.5"></i>
+                <div>
+                    <p class="font-semibold">Erreur de connexion</p>
+                    <p class="text-sm">{{ error.messageKey|trans(error.messageData, 'security') }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Formulaire #}
+            <form method="post" class="space-y-6">
+                <div>
+                    <label for="username" class="block text-sm font-semibold mb-2">
+                        Adresse email
+                    </label>
+                    <input
+                        type="email"
+                        id="username"
+                        name="_username"
+                        value="{{ last_username }}"
+                        required
+                        autofocus
+                        autocomplete="email"
+                        class="w-full px-4 py-3 border-2 border-ink/20 bg-white text-ink placeholder-muted focus:border-ink focus:outline-none transition-colors"
+                        placeholder="exemple@assurance-maladie.fr"
+                    >
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-semibold mb-2">
+                        Mot de passe
+                    </label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="_password"
+                        required
+                        autocomplete="current-password"
+                        class="w-full px-4 py-3 border-2 border-ink/20 bg-white text-ink placeholder-muted focus:border-ink focus:outline-none transition-colors"
+                        placeholder="Votre mot de passe"
+                    >
+                </div>
+
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <button
+                    type="submit"
+                    class="w-full flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors"
+                >
+                    <i data-feather="log-in" class="w-4 h-4"></i>
+                    Se connecter
+                </button>
+            </form>
+
+            <p class="mt-8 text-center text-sm text-muted">
+                Mot de passe oublie ? Contactez votre administrateur.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

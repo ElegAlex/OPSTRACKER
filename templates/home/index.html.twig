@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - OpsTracker{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex">
+    {# Sidebar #}
+    <aside class="w-80 bg-white border-r-4 border-ink flex flex-col">
+        {# Logo #}
+        <div class="p-8">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-ink flex items-center justify-center">
+                    <div class="w-5 h-5 bg-white"></div>
+                </div>
+                <div>
+                    <span class="text-lg font-bold block">OpsTracker</span>
+                    <span class="text-xs text-muted">CPAM Nanterre</span>
+                </div>
+            </div>
+        </div>
+
+        {# Navigation #}
+        <nav class="flex-1 px-6 py-4">
+            <a href="#" class="flex items-center gap-4 px-4 py-3 bg-primary/5 text-ink font-medium relative mb-2">
+                <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+                <div class="w-8 h-8 bg-primary/10 flex items-center justify-center">
+                    <i data-feather="layers" class="w-4 h-4 text-primary"></i>
+                </div>
+                Campagnes
+            </a>
+
+            <a href="#" class="flex items-center gap-4 px-4 py-3 text-muted hover:text-ink hover:bg-paper transition-colors mb-2">
+                <div class="w-8 h-8 border-2 border-ink/10 flex items-center justify-center">
+                    <i data-feather="users" class="w-4 h-4"></i>
+                </div>
+                Equipe
+            </a>
+
+            {% if is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('admin') }}" class="flex items-center gap-4 px-4 py-3 text-muted hover:text-ink hover:bg-paper transition-colors mb-2">
+                <div class="w-8 h-8 border-2 border-ink/10 flex items-center justify-center">
+                    <i data-feather="settings" class="w-4 h-4"></i>
+                </div>
+                Administration
+            </a>
+            {% endif %}
+        </nav>
+
+        {# User section #}
+        <div class="p-6 border-t-2 border-ink/10">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary/10 flex items-center justify-center text-primary font-bold">
+                    {{ app.user.prenom|slice(0,1)|upper }}{{ app.user.nom|slice(0,1)|upper }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-sm truncate">{{ app.user.nomComplet }}</p>
+                    <p class="text-xs text-muted">
+                        {% if app.user.isAdmin %}Administrateur
+                        {% elseif app.user.isGestionnaire %}Gestionnaire
+                        {% else %}Technicien{% endif %}
+                    </p>
+                </div>
+                <a href="{{ path('app_logout') }}" class="w-8 h-8 border-2 border-ink/10 flex items-center justify-center text-muted hover:bg-danger hover:text-white hover:border-danger transition-colors" title="Deconnexion">
+                    <i data-feather="log-out" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    {# Main content #}
+    <main class="flex-1 flex flex-col">
+        {# Header #}
+        <header class="bg-white border-b-4 border-ink px-10 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-muted mb-1">Bienvenue,</p>
+                    <h1 class="text-3xl font-bold">{{ app.user.prenom }}</h1>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-muted">{{ 'now'|date('d/m/Y') }}</span>
+                </div>
+            </div>
+        </header>
+
+        {# Content #}
+        <div class="flex-1 overflow-auto bg-cream px-10 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                {# KPI Card #}
+                <div class="bg-white border-2 border-ink p-6 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-success"></div>
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-4xl font-bold tabular-nums tracking-tight">0</p>
+                            <p class="text-sm text-muted mt-1">Campagnes actives</p>
+                        </div>
+                        <div class="w-10 h-10 bg-success/10 flex items-center justify-center">
+                            <i data-feather="layers" class="w-5 h-5 text-success"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border-2 border-ink p-6 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-4xl font-bold tabular-nums tracking-tight">0</p>
+                            <p class="text-sm text-muted mt-1">Operations en cours</p>
+                        </div>
+                        <div class="w-10 h-10 bg-primary/10 flex items-center justify-center">
+                            <i data-feather="activity" class="w-5 h-5 text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white border-2 border-ink p-6 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-complete"></div>
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-4xl font-bold tabular-nums tracking-tight">0%</p>
+                            <p class="text-sm text-muted mt-1">Taux de completion</p>
+                        </div>
+                        <div class="w-10 h-10 bg-complete/10 flex items-center justify-center">
+                            <i data-feather="check-circle" class="w-5 h-5 text-complete"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Getting started #}
+            <div class="bg-white border-2 border-ink p-8">
+                <h2 class="text-xl font-bold mb-4">Bienvenue sur OpsTracker</h2>
+                <p class="text-muted mb-6">
+                    Votre espace de pilotage des operations IT terrain est pret.
+                    Commencez par creer votre premiere campagne.
+                </p>
+                <div class="flex gap-4">
+                    <button class="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                        <i data-feather="plus" class="w-4 h-4"></i>
+                        Nouvelle campagne
+                    </button>
+                    <button class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                        <i data-feather="book-open" class="w-4 h-4"></i>
+                        Guide de demarrage
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
