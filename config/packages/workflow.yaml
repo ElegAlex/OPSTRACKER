@@ -1,2 +1,96 @@
+# Workflows Symfony pour OpsTracker
+# RG-010 : Workflow Campagne (5 statuts)
+# RG-017 : Workflow Operation (6 statuts)
+
 framework:
-    workflows: null
+    workflows:
+        # =========================================
+        # WORKFLOW CAMPAGNE (RG-010)
+        # =========================================
+        campagne:
+            type: 'state_machine'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type: 'method'
+                property: 'statut'
+            supports:
+                - App\Entity\Campagne
+            initial_marking: preparation
+            places:
+                - preparation
+                - a_venir
+                - en_cours
+                - terminee
+                - archivee
+            transitions:
+                # Wizard de creation termine
+                valider:
+                    from: preparation
+                    to: a_venir
+                # Date debut atteinte OU 1ere operation demarree
+                demarrer:
+                    from: a_venir
+                    to: en_cours
+                # 100% operations finales
+                terminer:
+                    from: en_cours
+                    to: terminee
+                # Action manuelle Sophie
+                archiver:
+                    from: terminee
+                    to: archivee
+                # Restauration possible
+                restaurer:
+                    from: archivee
+                    to: terminee
+
+        # =========================================
+        # WORKFLOW OPERATION (RG-017)
+        # =========================================
+        operation:
+            type: 'state_machine'
+            audit_trail:
+                enabled: true
+            marking_store:
+                type: 'method'
+                property: 'statut'
+            supports:
+                - App\Entity\Operation
+            initial_marking: a_planifier
+            places:
+                - a_planifier
+                - planifie
+                - en_cours
+                - realise
+                - reporte
+                - a_remedier
+            transitions:
+                # Planifier une operation
+                planifier:
+                    from: a_planifier
+                    to: planifie
+                # Demarrer l'intervention
+                demarrer:
+                    from: planifie
+                    to: en_cours
+                # Terminer avec succes
+                realiser:
+                    from: en_cours
+                    to: realise
+                # Reporter l'intervention
+                reporter:
+                    from:
+                        - planifie
+                        - en_cours
+                    to: reporte
+                # Marquer a remedier (probleme)
+                remedier:
+                    from: en_cours
+                    to: a_remedier
+                # Replanifier apres report
+                replanifier:
+                    from:
+                        - reporte
+                        - a_remedier
+                    to: planifie

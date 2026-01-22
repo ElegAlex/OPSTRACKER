@@ -1,92 +1,54 @@
-# CURRENT_TASK.md — Tâche en Cours
+# CURRENT_TASK.md — Tache en Cours
 
-> **Assignée le** : 2026-01-22  
-> **Session** : #1
-
----
-
-## 🎯 Tâche : T-001 — Créer le projet Symfony 7.4
-
-**Sprint** : 0 - Setup & Infrastructure  
-**Priorité** : 🔴 MVP — Bloquant pour tout le reste  
-**Estimation** : 30 min
+> **Assignee le** : 2026-01-22
+> **Session** : #4 (a venir)
 
 ---
 
-## 📋 Description
+## Tache : Sprint 3 — Campagnes CRUD (EPIC-02 MVP)
 
-Initialiser le projet Symfony avec la configuration de base pour OpsTracker.
-
----
-
-## ✅ Critères de Done
-
-- [ ] Projet créé avec `symfony new opstracker --version=7.4`
-- [ ] Dépendances de base installées :
-  - [ ] `doctrine/orm`
-  - [ ] `doctrine/doctrine-bundle`
-  - [ ] `symfony/security-bundle`
-  - [ ] `symfony/twig-bundle`
-  - [ ] `symfony/asset-mapper`
-  - [ ] `symfony/stimulus-bundle`
-  - [ ] `symfony/ux-turbo`
-  - [ ] `symfony/workflow`
-  - [ ] `symfony/messenger`
-- [ ] `.env` configuré pour PostgreSQL
-- [ ] `config/packages/doctrine.yaml` avec driver pdo_pgsql
-- [ ] Vérification : `php bin/console about` fonctionne
-- [ ] Premier commit effectué
+**Sprint** : 3 - Campagnes CRUD
+**Priorite** : MVP
 
 ---
 
-## 🔧 Commandes à exécuter
+## Taches a realiser
 
-```bash
-# ⚠️ NE PAS faire symfony new directement ici — ça écraserait .claude/ et design-reference/
-
-# Créer dans un dossier temporaire
-symfony new temp-sf --version=7.4 --webapp
-
-# Déplacer le contenu (sauf .git du temp)
-mv temp-sf/* .
-mv temp-sf/.env .
-rm -rf temp-sf
-
-# Vérifier que .claude/ et design-reference/ sont toujours là
-ls -la .claude/
-ls -la design-reference/
-
-# Vérifier l'installation
-php bin/console about
-```
+| ID    | US     | Titre                                              | Statut | RG             | Priorite |
+| ----- | ------ | -------------------------------------------------- | ------ | -------------- | -------- |
+| T-301 | US-201 | Voir la liste des campagnes (groupee par statut)   | ⏳      | RG-010         | MVP      |
+| T-302 | US-202 | Creer campagne — Etape 1/4 (Infos generales)       | ⏳      | RG-011         | MVP      |
+| T-303 | US-205 | Creer campagne — Etape 4/4 (Workflow & Template)   | ⏳      | RG-014         | MVP      |
+| T-304 | US-206 | Ajouter une operation manuellement                 | ⏳      | RG-014, RG-015 | MVP      |
+| T-305 | US-801 | Creer un type d'operation (config EasyAdmin)       | ⏳      | RG-060         | MVP      |
+| T-306 | -      | CRUD Campagne EasyAdmin                            | ⏳      | -              | MVP      |
+| T-307 | -      | Tests CampagneService                              | ⏳      | -              | MVP      |
 
 ---
 
-## 📁 Configuration .env
+## Prerequis
 
-```env
-DATABASE_URL="postgresql://opstracker:opstracker@127.0.0.1:5432/opstracker?serverVersion=17&charset=utf8"
-```
-
----
-
-## ⚠️ Points d'attention
-
-- Utiliser `--webapp` pour avoir Twig, Security, etc. pré-installés
-- Ne PAS utiliser SQLite même pour les tests (PostgreSQL partout)
-- Vérifier que AssetMapper est bien installé (pas webpack)
+Sprint 2 complete :
+- [x] Entite Campagne avec 5 statuts (RG-010)
+- [x] Entite TypeOperation (RG-060)
+- [x] Entite Segment
+- [x] Entite Operation (RG-014, RG-015, RG-017)
+- [x] Entite ChecklistTemplate (RG-030)
+- [x] Entite ChecklistInstance (RG-031)
+- [x] Workflows Campagne et Operation
 
 ---
 
-## 🔗 Tâche suivante
+## References
 
-Après T-001 → **T-002** : Configurer Docker (PHP + PostgreSQL + Redis)
+- Mockup portfolio : `design-reference/mockups/portfolio.html`
+- Design System : `design-reference/DESIGN_SYSTEM.md`
 
 ---
 
-## 📝 Notes de progression
+## Notes de progression
 
-_À remplir pendant la session :_
+_A remplir pendant la session :_
 
 ```
 [Heure] - Note

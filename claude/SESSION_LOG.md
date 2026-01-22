@@ -31,6 +31,40 @@
 
 ## Sessions
 
+### Session #3 — 2026-01-22
+
+**Duree** : ~25 min
+**Tache(s)** : T-201 a T-209 (Sprint 2 complet)
+**Statut** : ✅ Termine
+
+### Realise
+- Entite Campagne avec 5 statuts (RG-010) et champs obligatoires (RG-011)
+- Entite TypeOperation avec icone, couleur et champs JSONB (RG-060)
+- Entite Segment avec relation Campagne
+- Entite Operation avec 6 statuts (RG-017) et donnees JSONB (RG-015)
+- Entite ChecklistTemplate avec structure JSON phases/etapes (RG-030)
+- Entite ChecklistInstance avec snapshot pattern (RG-031)
+- Migration PostgreSQL pour toutes les tables
+- Workflow Campagne (5 etats, 5 transitions)
+- Workflow Operation (6 etats, 6 transitions)
+- Tous les repositories avec methodes de recherche
+
+### Entites creees
+- Campagne + CampagneRepository
+- TypeOperation + TypeOperationRepository
+- Segment + SegmentRepository
+- Operation + OperationRepository
+- ChecklistTemplate + ChecklistTemplateRepository
+- ChecklistInstance + ChecklistInstanceRepository
+
+### Tests
+- 34 tests passants, 79 assertions
+
+### Commits
+- A venir apres validation
+
+---
+
 ### Session #2 — 2026-01-22
 
 **Duree** : ~30 min

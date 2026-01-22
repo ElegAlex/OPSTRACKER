@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #2 - Sprint 1 Complete)
+> **Dernière mise à jour** : 2026-01-22 (Session #3 - Sprint 2 Complete)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels  
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -44,19 +44,19 @@
 
 ---
 
-### Sprint 2 — Modèle de Données Core
+### Sprint 2 — Modèle de Données Core ✅
 
 |ID|Tâche|Statut|Entité|RG|
 |---|---|---|---|---|
-|T-201|Entité `Campagne` (nom, dates, description, statut)|⏳|Campagne|RG-010, RG-011|
-|T-202|Entité `TypeOperation` (nom, icône, couleur)|⏳|TypeOperation|RG-060|
-|T-203|Entité `Segment` (nom, couleur, campagne)|⏳|Segment|-|
-|T-204|Entité `Operation` (matricule, nom, statut, données JSONB)|⏳|Operation|RG-014, RG-015|
-|T-205|Entité `ChecklistTemplate` (nom, version, étapes JSON)|⏳|ChecklistTemplate|RG-030|
-|T-206|Entité `ChecklistInstance` (snapshot, progression)|⏳|ChecklistInstance|RG-031|
-|T-207|Relations + Migrations|⏳|-|-|
-|T-208|Workflow Campagne (5 statuts)|⏳|-|RG-010|
-|T-209|Workflow Opération (6 statuts)|⏳|-|RG-017|
+|T-201|Entité `Campagne` (nom, dates, description, statut)|✅|Campagne|RG-010, RG-011|
+|T-202|Entité `TypeOperation` (nom, icône, couleur)|✅|TypeOperation|RG-060|
+|T-203|Entité `Segment` (nom, couleur, campagne)|✅|Segment|-|
+|T-204|Entité `Operation` (matricule, nom, statut, données JSONB)|✅|Operation|RG-014, RG-015|
+|T-205|Entité `ChecklistTemplate` (nom, version, étapes JSON)|✅|ChecklistTemplate|RG-030|
+|T-206|Entité `ChecklistInstance` (snapshot, progression)|✅|ChecklistInstance|RG-031|
+|T-207|Relations + Migrations|✅|-|-|
+|T-208|Workflow Campagne (5 statuts)|✅|-|RG-010|
+|T-209|Workflow Opération (6 statuts)|✅|-|RG-017|
 
 ---
 
