@@ -2,7 +2,9 @@
 
 namespace App\Service;
 
+use App\Entity\Operation;
 use App\Entity\Utilisateur;
+use App\Repository\OperationRepository;
 use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -21,6 +23,7 @@ class UtilisateurService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private UtilisateurRepository $utilisateurRepository,
+        private OperationRepository $operationRepository,
         private UserPasswordHasherInterface $passwordHasher,
         private ValidatorInterface $validator,
     ) {
@@ -194,5 +197,104 @@ class UtilisateurService
         if (!empty($errors)) {
             throw new \InvalidArgumentException(implode(' ', $errors));
         }
+    }
+
+    /**
+     * T-1003 : Recupere les statistiques d'un utilisateur
+     *
+     * @return array{
+     *     total_operations: int,
+     *     operations_par_statut: array<string, int>,
+     *     taux_realisation: float,
+     *     activite_recente: array,
+     *     derniere_connexion: ?\DateTimeImmutable,
+     *     compte_cree_le: ?\DateTimeImmutable
+     * }
+     */
+    public function getStatistiques(Utilisateur $utilisateur): array
+    {
+        // Statistiques operations seulement pour les techniciens
+        $totalOperations = 0;
+        $operationsParStatut = [];
+        $tauxRealisation = 0.0;
+        $activiteRecente = [];
+
+        if ($utilisateur->isTechnicien()) {
+            $totalOperations = $this->operationRepository->countByTechnicien($utilisateur->getId());
+            $operationsParStatut = $this->operationRepository->countByStatutForTechnicien($utilisateur->getId());
+            $activiteRecente = $this->operationRepository->findRecentActivityByTechnicien($utilisateur->getId(), 5);
+
+            // Calculer le taux de realisation
+            $realisees = $operationsParStatut[Operation::STATUT_REALISE] ?? 0;
+            if ($totalOperations > 0) {
+                $tauxRealisation = round(($realisees / $totalOperations) * 100, 1);
+            }
+        }
+
+        return [
+            'total_operations' => $totalOperations,
+            'operations_par_statut' => $operationsParStatut,
+            'taux_realisation' => $tauxRealisation,
+            'activite_recente' => $activiteRecente,
+            'derniere_connexion' => null, // Pas de tracking pour l'instant
+            'compte_cree_le' => $utilisateur->getCreatedAt(),
+        ];
+    }
+
+    /**
+     * Met a jour le profil d'un utilisateur (nom, prenom, email)
+     * RG-002 : Verifie l'unicite de l'email
+     */
+    public function updateProfile(
+        Utilisateur $utilisateur,
+        string $nom,
+        string $prenom,
+        string $email
+    ): void {
+        // Verifier si l'email a change et s'il est deja utilise
+        if ($utilisateur->getEmail() !== strtolower(trim($email))) {
+            $existing = $this->utilisateurRepository->findByEmail($email);
+            if ($existing !== null && $existing->getId() !== $utilisateur->getId()) {
+                throw new \InvalidArgumentException('Un utilisateur existe deja avec cet email.');
+            }
+        }
+
+        $utilisateur->setNom($nom);
+        $utilisateur->setPrenom($prenom);
+        $utilisateur->setEmail($email);
+
+        $errors = $this->validator->validate($utilisateur);
+        if (count($errors) > 0) {
+            $messages = [];
+            foreach ($errors as $error) {
+                $messages[] = $error->getMessage();
+            }
+            throw new \InvalidArgumentException(implode(' ', $messages));
+        }
+
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Met a jour les roles d'un utilisateur
+     * RG-003 : Roles valides uniquement
+     * RG-004 : Un admin ne peut pas se retrograder lui-meme (verifie dans le controller)
+     */
+    public function updateRoles(Utilisateur $utilisateur, array $roles): void
+    {
+        $validRoles = [
+            Utilisateur::ROLE_ADMIN,
+            Utilisateur::ROLE_GESTIONNAIRE,
+            Utilisateur::ROLE_TECHNICIEN,
+        ];
+
+        foreach ($roles as $role) {
+            if (!in_array($role, $validRoles, true)) {
+                throw new \InvalidArgumentException(sprintf('Role invalide : %s', $role));
+            }
+        }
+
+        $utilisateur->setRoles($roles);
+        $this->entityManager->flush();
     }
 }

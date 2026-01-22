@@ -268,4 +268,60 @@ class OperationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * Compte les operations par statut pour un technicien (T-1003)
+     *
+     * @return array<string, int>
+     */
+    public function countByStatutForTechnicien(int $technicienId): array
+    {
+        $result = $this->createQueryBuilder('o')
+            ->select('o.statut, COUNT(o.id) as total')
+            ->andWhere('o.technicienAssigne = :technicien')
+            ->setParameter('technicien', $technicienId)
+            ->groupBy('o.statut')
+            ->getQuery()
+            ->getResult();
+
+        $counts = [];
+        foreach (Operation::STATUTS as $statut => $label) {
+            $counts[$statut] = 0;
+        }
+        foreach ($result as $row) {
+            $counts[$row['statut']] = (int) $row['total'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * Compte le nombre total d'operations assignees a un technicien
+     */
+    public function countByTechnicien(int $technicienId): int
+    {
+        return (int) $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->andWhere('o.technicienAssigne = :technicien')
+            ->setParameter('technicien', $technicienId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Recupere l'activite recente d'un technicien (operations modifiees recemment)
+     *
+     * @return Operation[]
+     */
+    public function findRecentActivityByTechnicien(int $technicienId, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('o')
+            ->leftJoin('o.campagne', 'c')
+            ->andWhere('o.technicienAssigne = :technicien')
+            ->setParameter('technicien', $technicienId)
+            ->orderBy('COALESCE(o.updatedAt, o.createdAt)', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

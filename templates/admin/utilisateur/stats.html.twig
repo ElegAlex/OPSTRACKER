@@ -1,0 +1,158 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Statistiques - {{ utilisateur.nomComplet }}{% endblock %}
+
+{% block main %}
+<div class="flex-1 overflow-y-auto p-8">
+    {# Header #}
+    <div class="mb-8">
+        <a href="{{ path('admin') }}?routeName=app_admin_utilisateur_index" class="inline-flex items-center gap-2 text-muted hover:text-ink mb-4">
+            <i data-feather="arrow-left" class="w-4 h-4"></i>
+            Retour aux utilisateurs
+        </a>
+        <div class="flex items-center gap-6">
+            <div class="relative">
+                <div class="w-20 h-20 bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
+                    {{ utilisateur.prenom|first|upper }}{{ utilisateur.nom|first|upper }}
+                </div>
+                {% if utilisateur.actif %}
+                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-success"></div>
+                {% else %}
+                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-danger"></div>
+                {% endif %}
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold text-ink">{{ utilisateur.nomComplet }}</h1>
+                <p class="text-muted">{{ utilisateur.email }}</p>
+                <div class="flex items-center gap-3 mt-2">
+                    {% for role in utilisateur.roles %}
+                        {% if role != 'ROLE_USER' %}
+                        <span class="px-3 py-1 text-xs font-medium bg-primary/10 text-primary">
+                            {{ role|replace({'ROLE_': ''})|lower|capitalize }}
+                        </span>
+                        {% endif %}
+                    {% endfor %}
+                    {% if not utilisateur.actif %}
+                    <span class="px-3 py-1 text-xs font-medium bg-danger/10 text-danger">
+                        Desactive
+                    </span>
+                    {% endif %}
+                    {% if utilisateur.locked %}
+                    <span class="px-3 py-1 text-xs font-medium bg-warning/10 text-warning">
+                        Verrouille
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Informations compte #}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white border-2 border-ink p-6">
+            <div class="text-sm text-muted uppercase tracking-wider mb-2">Compte cree le</div>
+            <div class="text-xl font-bold text-ink">
+                {{ stats.compte_cree_le ? stats.compte_cree_le|date('d/m/Y') : 'N/A' }}
+            </div>
+        </div>
+        <div class="bg-white border-2 border-ink p-6">
+            <div class="text-sm text-muted uppercase tracking-wider mb-2">Echecs connexion</div>
+            <div class="text-xl font-bold {{ utilisateur.failedLoginAttempts >= 3 ? 'text-warning' : 'text-ink' }}">
+                {{ utilisateur.failedLoginAttempts }} / 5
+            </div>
+        </div>
+        <div class="bg-white border-2 border-ink p-6">
+            <div class="text-sm text-muted uppercase tracking-wider mb-2">Statut</div>
+            <div class="text-xl font-bold {{ utilisateur.actif ? 'text-success' : 'text-danger' }}">
+                {{ utilisateur.actif ? 'Actif' : 'Desactive' }}
+            </div>
+        </div>
+    </div>
+
+    {% if utilisateur.technicien %}
+    {# Statistiques operations (technicien uniquement) #}
+    <div class="mb-8">
+        <h2 class="text-xl font-bold text-ink mb-4">Operations assignees</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white border-2 border-ink p-4 geo-accent geo-accent-primary">
+                <div class="text-3xl font-bold text-ink num pt-2">{{ stats.total_operations }}</div>
+                <div class="text-sm text-muted">Total</div>
+            </div>
+            <div class="bg-white border-2 border-ink p-4 geo-accent geo-accent-success">
+                <div class="text-3xl font-bold text-success num pt-2">{{ stats.operations_par_statut.realise|default(0) }}</div>
+                <div class="text-sm text-muted">Realisees</div>
+            </div>
+            <div class="bg-white border-2 border-ink p-4 geo-accent geo-accent-warning">
+                <div class="text-3xl font-bold text-warning num pt-2">{{ stats.operations_par_statut.reporte|default(0) }}</div>
+                <div class="text-sm text-muted">Reportees</div>
+            </div>
+            <div class="bg-white border-2 border-ink p-4 geo-accent geo-accent-danger">
+                <div class="text-3xl font-bold text-danger num pt-2">{{ stats.operations_par_statut.a_remedier|default(0) }}</div>
+                <div class="text-sm text-muted">A remedier</div>
+            </div>
+        </div>
+
+        {# Taux de realisation #}
+        <div class="bg-white border-2 border-ink p-6 mb-6">
+            <div class="flex items-center justify-between mb-3">
+                <span class="text-sm text-muted uppercase tracking-wider">Taux de realisation</span>
+                <span class="text-2xl font-bold text-ink">{{ stats.taux_realisation }}%</span>
+            </div>
+            <div class="w-full bg-paper h-3">
+                <div class="bg-success h-3" style="width: {{ stats.taux_realisation }}%"></div>
+            </div>
+        </div>
+
+        {# Repartition par statut #}
+        <div class="bg-white border-2 border-ink p-6 mb-6">
+            <h3 class="text-lg font-bold text-ink mb-4">Repartition par statut</h3>
+            <div class="space-y-3">
+                {% set statuts = {
+                    'a_planifier': {'label': 'A planifier', 'color': 'muted'},
+                    'planifie': {'label': 'Planifie', 'color': 'primary'},
+                    'en_cours': {'label': 'En cours', 'color': 'primary'},
+                    'realise': {'label': 'Realise', 'color': 'success'},
+                    'reporte': {'label': 'Reporte', 'color': 'warning'},
+                    'a_remedier': {'label': 'A remedier', 'color': 'danger'}
+                } %}
+                {% for code, info in statuts %}
+                    {% set count = stats.operations_par_statut[code]|default(0) %}
+                    {% set percent = stats.total_operations > 0 ? (count / stats.total_operations * 100)|round(1) : 0 %}
+                    <div class="flex items-center gap-4">
+                        <div class="w-32 text-sm text-{{ info.color }}">{{ info.label }}</div>
+                        <div class="flex-1 bg-paper h-2">
+                            <div class="bg-{{ info.color }} h-2" style="width: {{ percent }}%"></div>
+                        </div>
+                        <div class="w-16 text-right text-sm font-medium text-ink">{{ count }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Activite recente #}
+        {% if stats.activite_recente|length > 0 %}
+        <div class="bg-white border-2 border-ink p-6">
+            <h3 class="text-lg font-bold text-ink mb-4">Activite recente</h3>
+            <div class="space-y-3">
+                {% for operation in stats.activite_recente %}
+                <div class="flex items-center gap-4 p-3 bg-paper">
+                    <div class="w-3 h-3 bg-{{ operation.statutCouleur }}"></div>
+                    <div class="flex-1">
+                        <div class="font-medium text-ink">{{ operation.matricule }} - {{ operation.nom }}</div>
+                        <div class="text-sm text-muted">{{ operation.campagne.nom }}</div>
+                    </div>
+                    <div class="text-sm text-muted">{{ operation.statutLabel }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="bg-white border-2 border-ink p-8 text-center">
+        <i data-feather="info" class="w-12 h-12 text-muted mx-auto mb-4"></i>
+        <p class="text-muted">Les statistiques d'operations ne sont disponibles que pour les techniciens.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

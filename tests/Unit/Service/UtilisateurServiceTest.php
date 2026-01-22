@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service;
 
 use App\Entity\Utilisateur;
+use App\Repository\OperationRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\UtilisateurService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,6 +19,7 @@ class UtilisateurServiceTest extends TestCase
 {
     private EntityManagerInterface&MockObject $entityManager;
     private UtilisateurRepository&MockObject $utilisateurRepository;
+    private OperationRepository&MockObject $operationRepository;
     private UserPasswordHasherInterface&MockObject $passwordHasher;
     private ValidatorInterface&MockObject $validator;
     private UtilisateurService $service;
@@ -26,12 +28,14 @@ class UtilisateurServiceTest extends TestCase
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->utilisateurRepository = $this->createMock(UtilisateurRepository::class);
+        $this->operationRepository = $this->createMock(OperationRepository::class);
         $this->passwordHasher = $this->createMock(UserPasswordHasherInterface::class);
         $this->validator = $this->createMock(ValidatorInterface::class);
 
         $this->service = new UtilisateurService(
             $this->entityManager,
             $this->utilisateurRepository,
+            $this->operationRepository,
             $this->passwordHasher,
             $this->validator,
         );

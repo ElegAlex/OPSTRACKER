@@ -31,6 +31,86 @@
 
 ## Sessions
 
+### Session #11 — 2026-01-22
+
+**Duree** : ~40 min
+**Tache(s)** : T-1001 a T-1008 (Sprint 10 complet - Gestion Utilisateurs V1 + Documents)
+**Statut** : ✅ Termine
+
+### Realise
+- **T-1001** : Modifier un utilisateur (Admin) avec RG-004
+  - Protection auto-retrogradation admin dans UtilisateurCrudController
+  - Message flash si tentative de retirer son propre role admin
+- **T-1002** : Desactiver un utilisateur (Admin) avec RG-005
+  - Action toggleActif dans EasyAdmin
+  - Conservation historique (pas de suppression)
+  - Protection contre auto-desactivation
+- **T-1003** : Voir les statistiques utilisateur
+  - Methode getStatistiques dans UtilisateurService
+  - Template stats.html.twig avec KPIs et activite recente
+  - Statistiques operations pour techniciens
+- **T-1004** : Modifier son propre mot de passe (RG-001)
+  - ProfileController avec routes /profil et /profil/mot-de-passe
+  - ChangePasswordType avec validation RG-001
+  - Templates profile/index.html.twig et profile/password.html.twig
+- **T-1005** : Voir la liste des documents
+  - Entite Document avec types et extensions autorisees
+  - DocumentRepository avec methodes de recherche
+  - DocumentController avec route /campagnes/{id}/documents
+  - Template document/index.html.twig avec statistiques
+- **T-1006** : Uploader un document (50Mo max) avec RG-050
+  - DocumentService avec upload, validation extension/taille
+  - DocumentUploadType avec contraintes Symfony
+  - Warning pour fichiers executables (ps1, bat, exe)
+- **T-1007** : Lier un document a une campagne (RG-051)
+  - Relation ManyToOne Document->Campagne obligatoire
+  - Ajout collection documents dans Campagne
+  - Lien documents dans page campagne
+- **T-1008** : Supprimer un document
+  - Action delete avec confirmation CSRF
+  - Suppression fichier physique + entite
+
+### Fichiers crees
+- `src/Entity/Document.php`
+- `src/Repository/DocumentRepository.php`
+- `src/Service/DocumentService.php`
+- `src/Controller/DocumentController.php`
+- `src/Controller/ProfileController.php`
+- `src/Form/DocumentUploadType.php`
+- `src/Form/ChangePasswordType.php`
+- `templates/document/index.html.twig`
+- `templates/document/upload.html.twig`
+- `templates/profile/index.html.twig`
+- `templates/profile/password.html.twig`
+- `templates/admin/utilisateur/stats.html.twig`
+- `tests/Unit/Service/DocumentServiceTest.php`
+
+### Fichiers modifies
+- `src/Entity/Campagne.php` - ajout relation documents
+- `src/Service/UtilisateurService.php` - ajout getStatistiques, updateProfile, updateRoles
+- `src/Repository/OperationRepository.php` - ajout methodes stats technicien
+- `src/Controller/Admin/UtilisateurCrudController.php` - actions toggle, unlock, stats
+- `templates/campagne/show.html.twig` - lien documents
+- `templates/campagne/_layout.html.twig` - lien profil utilisateur
+- `config/services.yaml` - parametre upload_directory
+- `tests/Unit/Service/UtilisateurServiceTest.php` - ajout mock OperationRepository
+
+### Regles metier implementees
+- RG-001 : Mot de passe securise
+- RG-004 : Auto-protection admin
+- RG-005 : Conservation historique
+- RG-050 : Formats documents (PDF, DOCX, PS1, BAT, ZIP, EXE), max 50 Mo
+- RG-051 : Document lie a une campagne
+
+### Tests
+- Total : 167 tests passants (+19 nouveaux)
+- Couverture DocumentService : 100%
+
+### Commits
+- A venir avec tag Sprint 10
+
+---
+
 ### Session #10 — 2026-01-22
 
 **Duree** : ~45 min

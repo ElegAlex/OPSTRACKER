@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Utilisateur;
+use App\Service\UtilisateurService;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -18,8 +19,10 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -27,6 +30,8 @@ class UtilisateurCrudController extends AbstractCrudController
 {
     public function __construct(
         private UserPasswordHasherInterface $passwordHasher,
+        private Security $security,
+        private UtilisateurService $utilisateurService,
     ) {
     }
 
@@ -65,12 +70,44 @@ class UtilisateurCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
+        // Action pour desactiver/activer un utilisateur (T-1002, RG-005)
+        $toggleActif = Action::new('toggleActif', 'Activer/Desactiver')
+            ->linkToCrudAction('toggleActif')
+            ->setIcon('fa fa-toggle-on')
+            ->displayIf(fn (Utilisateur $u) => $this->canToggleActif($u));
+
+        // Action pour deverrouiller un compte (RG-006)
+        $unlock = Action::new('unlock', 'Deverrouiller')
+            ->linkToCrudAction('unlock')
+            ->setIcon('fa fa-unlock')
+            ->displayIf(fn (Utilisateur $u) => $u->isLocked());
+
+        // Action pour voir les statistiques (T-1003)
+        $stats = Action::new('viewStats', 'Statistiques')
+            ->linkToCrudAction('viewStats')
+            ->setIcon('fa fa-chart-bar');
+
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->add(Crud::PAGE_INDEX, $toggleActif)
+            ->add(Crud::PAGE_INDEX, $unlock)
+            ->add(Crud::PAGE_DETAIL, $toggleActif)
+            ->add(Crud::PAGE_DETAIL, $unlock)
+            ->add(Crud::PAGE_DETAIL, $stats)
             ->update(Crud::PAGE_INDEX, Action::NEW, function (Action $action) {
                 return $action->setLabel('Nouvel utilisateur');
             })
         ;
+    }
+
+    private function canToggleActif(Utilisateur $utilisateur): bool
+    {
+        $currentUser = $this->security->getUser();
+        // Un admin ne peut pas se desactiver lui-meme
+        if ($currentUser instanceof Utilisateur && $currentUser->getId() === $utilisateur->getId()) {
+            return false;
+        }
+        return true;
     }
 
     public function configureFields(string $pageName): iterable
@@ -169,6 +206,17 @@ class UtilisateurCrudController extends AbstractCrudController
      */
     public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
+        // RG-004 : Un admin ne peut pas retrograder son propre role
+        $currentUser = $this->security->getUser();
+        if ($currentUser instanceof Utilisateur
+            && $currentUser->getId() === $entityInstance->getId()
+            && $currentUser->isAdmin()
+            && !$entityInstance->isAdmin()
+        ) {
+            $this->addFlash('danger', 'RG-004 : Vous ne pouvez pas retirer votre propre role administrateur.');
+            return;
+        }
+
         $this->handlePassword($entityInstance);
         parent::updateEntity($entityManager, $entityInstance);
     }
@@ -182,5 +230,81 @@ class UtilisateurCrudController extends AbstractCrudController
             $hashedPassword = $this->passwordHasher->hashPassword($utilisateur, $plainPassword);
             $utilisateur->setPassword($hashedPassword);
         }
+    }
+
+    /**
+     * T-1002 : Desactiver/Activer un utilisateur (RG-005 : conservation historique)
+     */
+    public function toggleActif(): Response
+    {
+        $context = $this->getContext();
+        $entityId = $context->getRequest()->query->get('entityId');
+
+        $entityManager = $this->container->get('doctrine')->getManager();
+        $utilisateur = $entityManager->getRepository(Utilisateur::class)->find($entityId);
+
+        if (!$utilisateur) {
+            throw $this->createNotFoundException('Utilisateur non trouve');
+        }
+
+        // RG-004 : Un admin ne peut pas se desactiver lui-meme
+        $currentUser = $this->security->getUser();
+        if ($currentUser instanceof Utilisateur && $currentUser->getId() === $utilisateur->getId()) {
+            $this->addFlash('danger', 'Vous ne pouvez pas vous desactiver vous-meme.');
+            return $this->redirect($context->getReferrer());
+        }
+
+        // RG-005 : Conservation historique - on desactive seulement, pas de suppression
+        $this->utilisateurService->setActif($utilisateur, !$utilisateur->isActif());
+
+        $status = $utilisateur->isActif() ? 'active' : 'desactive';
+        $this->addFlash('success', sprintf('Utilisateur %s %s avec succes.', $utilisateur->getNomComplet(), $status));
+
+        return $this->redirect($context->getReferrer());
+    }
+
+    /**
+     * Deverrouiller un compte (RG-006)
+     */
+    public function unlock(): Response
+    {
+        $context = $this->getContext();
+        $entityId = $context->getRequest()->query->get('entityId');
+
+        $entityManager = $this->container->get('doctrine')->getManager();
+        $utilisateur = $entityManager->getRepository(Utilisateur::class)->find($entityId);
+
+        if (!$utilisateur) {
+            throw $this->createNotFoundException('Utilisateur non trouve');
+        }
+
+        $this->utilisateurService->unlock($utilisateur);
+        $this->addFlash('success', sprintf('Compte de %s deverrouille avec succes.', $utilisateur->getNomComplet()));
+
+        return $this->redirect($context->getReferrer());
+    }
+
+    /**
+     * T-1003 : Voir les statistiques utilisateur
+     */
+    public function viewStats(): Response
+    {
+        $context = $this->getContext();
+        $entityId = $context->getRequest()->query->get('entityId');
+
+        $entityManager = $this->container->get('doctrine')->getManager();
+        $utilisateur = $entityManager->getRepository(Utilisateur::class)->find($entityId);
+
+        if (!$utilisateur) {
+            throw $this->createNotFoundException('Utilisateur non trouve');
+        }
+
+        // Recuperer les statistiques via le service
+        $stats = $this->utilisateurService->getStatistiques($utilisateur);
+
+        return $this->render('admin/utilisateur/stats.html.twig', [
+            'utilisateur' => $utilisateur,
+            'stats' => $stats,
+        ]);
     }
 }

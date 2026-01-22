@@ -95,7 +95,7 @@
         </div>
 
         {# Quick actions #}
-        <div class="grid grid-cols-3 gap-6 mb-8">
+        <div class="grid grid-cols-4 gap-6 mb-8">
             <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
@@ -115,6 +115,17 @@
                     <div>
                         <p class="font-bold text-ink">Segments</p>
                         <p class="text-sm text-muted">Progression par segment</p>
+                    </div>
+                </div>
+            </a>
+            <a href="{{ path('app_document_index', {campagneId: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-warning/10 flex items-center justify-center group-hover:bg-warning group-hover:text-white transition-colors">
+                        <i data-feather="file" class="w-6 h-6 text-warning group-hover:text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-ink">Documents</p>
+                        <p class="text-sm text-muted">{{ campagne.nombreDocuments }} document{{ campagne.nombreDocuments > 1 ? 's' : '' }}</p>
                     </div>
                 </div>
             </a>

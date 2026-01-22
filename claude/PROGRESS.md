@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #10 - Sprint 9 Complete - Import CSV & Export)
+> **Dernière mise à jour** : 2026-01-22 (Session #11 - Sprint 10 Complete - Gestion Utilisateurs V1 + Documents)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels  
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -158,18 +158,18 @@
 
 ---
 
-### Sprint 10 — Gestion Utilisateurs V1 + Documents (EPIC-01 + EPIC-07)
+### Sprint 10 — Gestion Utilisateurs V1 + Documents (EPIC-01 + EPIC-07) ✅
 
 |ID|US|Titre|Statut|RG|Priorité|
 |---|---|---|---|---|---|
-|T-1001|US-104|Modifier un utilisateur (Admin)|⏳|RG-004|🟡 V1|
-|T-1002|US-105|Désactiver un utilisateur (Admin)|⏳|RG-005|🟡 V1|
-|T-1003|US-106|Voir les statistiques utilisateur|⏳|-|🟡 V1|
-|T-1004|US-107|Modifier son propre mot de passe|⏳|RG-001|🟡 V1|
-|T-1005|US-701|Voir la liste des documents|⏳|-|🟡 V1|
-|T-1006|US-702|Uploader un document (50Mo max)|⏳|RG-050|🟡 V1|
-|T-1007|US-703|Lier un document à une campagne|⏳|RG-051|🟡 V1|
-|T-1008|US-704|Supprimer un document|⏳|-|🟡 V1|
+|T-1001|US-104|Modifier un utilisateur (Admin)|✅|RG-004|🟡 V1|
+|T-1002|US-105|Désactiver un utilisateur (Admin)|✅|RG-005|🟡 V1|
+|T-1003|US-106|Voir les statistiques utilisateur|✅|-|🟡 V1|
+|T-1004|US-107|Modifier son propre mot de passe|✅|RG-001|🟡 V1|
+|T-1005|US-701|Voir la liste des documents|✅|-|🟡 V1|
+|T-1006|US-702|Uploader un document (50Mo max)|✅|RG-050|🟡 V1|
+|T-1007|US-703|Lier un document à une campagne|✅|RG-051|🟡 V1|
+|T-1008|US-704|Supprimer un document|✅|-|🟡 V1|
 
 ---
 
@@ -292,11 +292,11 @@ _* MVP = MVP du module Réservation, pas du MVP OpsTracker core_
 
 |Métrique|Actuel|Cible MVP|Cible V1|
 |---|---|---|---|
-|Tâches terminées|70|65|110|
-|User Stories done|28/85|47/85|76/85|
-|Entités créées|7|6|8|
-|Tests passants|148|60+|100+|
-|Couverture code|~75%|70%|80%|
+|Tâches terminées|78|65|110|
+|User Stories done|36/85|47/85|76/85|
+|Entités créées|8|6|8|
+|Tests passants|167|60+|100+|
+|Couverture code|~78%|70%|80%|
 
 ---
 

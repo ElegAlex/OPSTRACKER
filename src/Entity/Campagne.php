@@ -94,6 +94,10 @@ class Campagne
     #[ORM\OneToMany(targetEntity: Operation::class, mappedBy: 'campagne', cascade: ['persist'], orphanRemoval: true)]
     private Collection $operations;
 
+    /** @var Collection<int, Document> */
+    #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'campagne', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $documents;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -104,6 +108,7 @@ class Campagne
     {
         $this->segments = new ArrayCollection();
         $this->operations = new ArrayCollection();
+        $this->documents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -337,6 +342,43 @@ class Campagne
     public function getNombreOperations(): int
     {
         return $this->operations->count();
+    }
+
+    /**
+     * @return Collection<int, Document>
+     */
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+    public function addDocument(Document $document): static
+    {
+        if (!$this->documents->contains($document)) {
+            $this->documents->add($document);
+            $document->setCampagne($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocument(Document $document): static
+    {
+        if ($this->documents->removeElement($document)) {
+            if ($document->getCampagne() === $this) {
+                $document->setCampagne(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Compte le nombre de documents
+     */
+    public function getNombreDocuments(): int
+    {
+        return $this->documents->count();
     }
 
     public function __toString(): string

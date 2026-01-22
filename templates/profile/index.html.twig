@@ -1,0 +1,136 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Mon profil{% endblock %}
+
+{% block main %}
+<div class="flex-1 overflow-y-auto p-8">
+    {# Header #}
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-ink mb-2">Mon profil</h1>
+        <p class="text-muted">Gerez vos informations personnelles et votre mot de passe</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {# Informations personnelles #}
+        <div class="lg:col-span-2">
+            <div class="bg-white border-2 border-ink p-6 mb-6">
+                <h2 class="text-xl font-bold text-ink mb-6 flex items-center gap-3">
+                    <div class="w-8 h-8 bg-primary flex items-center justify-center">
+                        <i data-feather="user" class="w-4 h-4 text-white"></i>
+                    </div>
+                    Informations personnelles
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm text-muted uppercase tracking-wider mb-2">Prenom</label>
+                        <div class="text-lg font-medium text-ink">{{ user.prenom }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-muted uppercase tracking-wider mb-2">Nom</label>
+                        <div class="text-lg font-medium text-ink">{{ user.nom }}</div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm text-muted uppercase tracking-wider mb-2">Email</label>
+                        <div class="text-lg font-medium text-ink">{{ user.email }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-muted uppercase tracking-wider mb-2">Role</label>
+                        <div class="flex items-center gap-2">
+                            {% for role in user.roles %}
+                                {% if role != 'ROLE_USER' %}
+                                <span class="px-3 py-1 text-sm font-medium bg-primary/10 text-primary">
+                                    {{ role|replace({'ROLE_': ''})|lower|capitalize }}
+                                </span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-muted uppercase tracking-wider mb-2">Compte cree le</label>
+                        <div class="text-lg font-medium text-ink">
+                            {{ user.createdAt ? user.createdAt|date('d/m/Y') : 'N/A' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Securite #}
+            <div class="bg-white border-2 border-ink p-6">
+                <h2 class="text-xl font-bold text-ink mb-6 flex items-center gap-3">
+                    <div class="w-8 h-8 bg-warning flex items-center justify-center">
+                        <i data-feather="lock" class="w-4 h-4 text-white"></i>
+                    </div>
+                    Securite
+                </h2>
+
+                <div class="flex items-center justify-between p-4 bg-paper mb-4">
+                    <div>
+                        <div class="font-medium text-ink">Mot de passe</div>
+                        <div class="text-sm text-muted">Modifiez votre mot de passe regulierement</div>
+                    </div>
+                    <a href="{{ path('app_profile_password') }}" class="px-4 py-2 bg-ink text-white font-medium hover:bg-ink/80 transition-colors">
+                        Modifier
+                    </a>
+                </div>
+
+                <div class="text-sm text-muted">
+                    <i data-feather="info" class="w-4 h-4 inline mr-1"></i>
+                    RG-001 : Le mot de passe doit contenir au moins 8 caracteres, 1 majuscule, 1 chiffre et 1 caractere special.
+                </div>
+            </div>
+        </div>
+
+        {# Sidebar stats (technicien uniquement) #}
+        <div>
+            {% if user.technicien and stats %}
+            <div class="bg-white border-2 border-ink p-6 mb-6">
+                <h2 class="text-xl font-bold text-ink mb-4">Mes statistiques</h2>
+
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-muted">Total operations</span>
+                        <span class="text-2xl font-bold text-ink">{{ stats.total_operations }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-muted">Realisees</span>
+                        <span class="text-xl font-bold text-success">{{ stats.operations_par_statut.realise|default(0) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-muted">En cours</span>
+                        <span class="text-xl font-bold text-primary">{{ stats.operations_par_statut.en_cours|default(0) }}</span>
+                    </div>
+
+                    <div class="pt-4 border-t border-ink/10">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm text-muted">Taux de realisation</span>
+                            <span class="font-bold text-ink">{{ stats.taux_realisation }}%</span>
+                        </div>
+                        <div class="w-full bg-paper h-2">
+                            <div class="bg-success h-2" style="width: {{ stats.taux_realisation }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Actions rapides #}
+            <div class="bg-white border-2 border-ink p-6">
+                <h2 class="text-xl font-bold text-ink mb-4">Actions rapides</h2>
+                <div class="space-y-3">
+                    {% if user.technicien %}
+                    <a href="{{ path('app_terrain_index') }}" class="block w-full px-4 py-3 bg-primary text-white font-medium text-center hover:bg-primary/80 transition-colors">
+                        <i data-feather="clipboard" class="w-4 h-4 inline mr-2"></i>
+                        Mes interventions
+                    </a>
+                    {% endif %}
+                    <a href="{{ path('app_campagne_index') }}" class="block w-full px-4 py-3 border-2 border-ink text-ink font-medium text-center hover:bg-ink hover:text-white transition-colors">
+                        <i data-feather="layers" class="w-4 h-4 inline mr-2"></i>
+                        Campagnes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
