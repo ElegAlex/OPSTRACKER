@@ -1,13 +1,13 @@
 # CURRENT_TASK.md — Tache en Cours
 
 > **Assigne le** : 2026-01-22
-> **Session** : #14 (terminee)
+> **Session** : #15 (terminee)
 
 ---
 
-## Tache : Sprint 13 — Prerequis & Dashboard V1 (EPIC-09 + EPIC-06) ✅ COMPLETE
+## Tache : Sprint 14 — Polish V1 & Tag ✅ COMPLETE
 
-**Sprint** : 13 - Prerequis & Dashboard V1
+**Sprint** : 14 - Polish V1 & Tag
 **Priorite** : V1
 **Statut** : ✅ TERMINE
 
@@ -15,88 +15,67 @@
 
 ## Taches realisees
 
-| ID     | US     | Titre                                       | Statut | RG     |
-| ------ | ------ | ------------------------------------------- | ------ | ------ |
-| T-1301 | US-901 | Voir les prerequis globaux d'une campagne   | ✅      | RG-090 |
-| T-1302 | US-902 | Ajouter/modifier un prerequis global        | ✅      | RG-090 |
-| T-1303 | US-903 | Voir les prerequis par segment              | ✅      | RG-091 |
-| T-1304 | US-904 | Ajouter un prerequis par segment            | ✅      | RG-091 |
-| T-1305 | US-604 | Exporter le dashboard en PDF                | ✅      | -      |
-| T-1306 | US-605 | Partager une URL lecture seule              | ✅      | RG-041 |
-| T-1307 | US-608 | Filtrer le dashboard global par statut      | ✅      | -      |
+| ID     | Tache                              | Statut | Cible             |
+| ------ | ---------------------------------- | ------ | ----------------- |
+| T-1401 | Completer couverture tests (80%)   | ✅      | Services (240 tests) |
+| T-1402 | Test de charge V1                  | ✅      | 50 users, 10k ops |
+| T-1403 | Audit securite (OWASP basics)      | ✅      | OWASP Top 10      |
+| T-1404 | Documentation utilisateur          | ✅      | Guide Sophie + Karim |
+| T-1405 | **TAG v1.0.0**                     | ✅      | -                 |
 
 ---
 
 ## Fichiers crees/modifies
 
-### Entites
-- `src/Entity/Prerequis.php` — Entite Prerequis (RG-090, RG-091)
-- `src/Entity/Campagne.php` — Ajout shareToken, shareTokenCreatedAt (RG-041)
+### Tests unitaires (T-1401)
+- `tests/Unit/Service/ExportCsvServiceTest.php` — 11 tests export CSV
+- `tests/Unit/Service/ShareServiceTest.php` — 14 tests liens partage
+- `tests/Unit/Service/PdfExportServiceTest.php` — 6 tests export PDF
+- `tests/Unit/Service/ConfigurationServiceTest.php` — 10 tests config
 
-### Repositories
-- `src/Repository/PrerequisRepository.php` — Requetes prerequis globaux/segment
-- `src/Repository/CampagneRepository.php` — Ajout findOneByShareToken, findByStatuts
+### Tests de charge (T-1402)
+- `tests/Load/LoadTestFixtures.php` — Generateur 50 users, 10k ops
+- `src/Command/LoadTestCommand.php` — Commande de benchmark
+- `tests/Load/LOAD_TEST_REPORT.md` — Documentation tests charge
 
-### Services
-- `src/Service/PrerequisService.php` — CRUD prerequis, progression
-- `src/Service/PdfExportService.php` — Export PDF dashboard (dompdf)
-- `src/Service/ShareService.php` — Gestion liens de partage
-- `src/Service/DashboardService.php` — Ajout filtrage par statut
+### Audit securite (T-1403)
+- `docs/SECURITY_AUDIT_V1.md` — Audit OWASP complet
 
-### Controllers
-- `src/Controller/PrerequisController.php` — CRUD prerequis, changement statut inline
-- `src/Controller/DashboardController.php` — Export PDF, filtrage global
-- `src/Controller/ShareController.php` — Liens de partage lecture seule
+### Documentation (T-1404)
+- `docs/USER_GUIDE.md` — Guide utilisateur Sophie + Karim
 
-### Formulaires
-- `src/Form/PrerequisType.php` — Formulaire prerequis
-
-### Templates
-- `templates/prerequis/index.html.twig` — Liste prerequis globaux + par segment
-- `templates/prerequis/new_global.html.twig` — Ajout prerequis global
-- `templates/prerequis/new_segment.html.twig` — Ajout prerequis segment
-- `templates/prerequis/edit.html.twig` — Edition prerequis
-- `templates/prerequis/_row.html.twig` — Ligne prerequis (Turbo)
-- `templates/prerequis/_turbo_statut.html.twig` — Update statut inline
-- `templates/pdf/dashboard.html.twig` — Template PDF A4 paysage
-- `templates/share/dashboard.html.twig` — Dashboard lecture seule
-- `templates/share/_modal.html.twig` — Modal partage
-- `templates/dashboard/campagne.html.twig` — Ajout boutons PDF, partage, onglet prerequis
-- `templates/dashboard/global.html.twig` — Ajout filtres par statut
-
-### Tests
-- `tests/Unit/Service/PrerequisServiceTest.php` — 11 tests, 48 assertions
-
-### Migrations
-- `migrations/Version20260122213209.php` — Table prerequis
-- `migrations/Version20260122213720.php` — Colonnes share_token sur campagne
+### Corrections
+- `src/Service/ConfigurationService.php` — Fix getEtapes/setEtapes
 
 ---
 
-## Regles metier implementees
-
-- **RG-090** : Prerequis globaux de campagne (A faire / En cours / Fait) - indicateur declaratif NON bloquant
-- **RG-091** : Prerequis specifiques a un segment - indicateur declaratif NON bloquant
-- **RG-041** : URLs partagees (/share/xxx) = consultation uniquement, aucune action
-
----
-
-## Prochaine tache : Sprint 14 — Polish V1 & Tag
-
-| ID     | Tache                              | Statut | Cible             |
-| ------ | ---------------------------------- | ------ | ----------------- |
-| T-1401 | Completer couverture tests (80%)   | ⏳      | Services          |
-| T-1402 | Test de charge V1                  | ⏳      | 50 users, 10k ops |
-| T-1403 | Audit securite (OWASP basics)      | ⏳      | -                 |
-| T-1404 | Documentation utilisateur          | ⏳      | Guide Sophie      |
-| T-1405 | **TAG v1.0.0**                     | ⏳      | -                 |
-
----
-
-## Tests
+## Resultats Tests
 
 ```bash
 # Tous les tests passent
 php bin/phpunit
-# OK, Tests: 202, Assertions: 642
+# OK, Tests: 240, Assertions: 745
 ```
+
+---
+
+## Tag v1.0.0
+
+Version 1.0.0 de OpsTracker comprenant :
+- 14 sprints completes
+- 103 taches terminees
+- 76 User Stories implementees
+- 240 tests passants
+- Audit OWASP valide
+- Documentation utilisateur complete
+
+---
+
+## Prochaine etape : V2
+
+Le backlog V2 comprend :
+- EPIC-10 : Reservation End-Users
+- EPIC-11 : Gestion Creneaux
+- EPIC-12 : Notifications
+
+---

@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #14 - Sprint 13 Complete - Prérequis & Dashboard V1)
+> **Dernière mise à jour** : 2026-01-22 (Session #15 - Sprint 14 Complete - TAG v1.0.0)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -8,8 +8,8 @@
 
 |Phase|Sprints|Statut|US|Focus|
 |---|---|---|---|---|
-|**MVP**|0-8|⏳ À faire|47|Pilote 50 cibles CPAM 92|
-|**V1**|9-14|⏳ À faire|29|Déploiement 4 CPAM|
+|**MVP**|0-8|✅ Terminé|47|Pilote 50 cibles CPAM 92|
+|**V1**|9-14|✅ Terminé|29|Déploiement 4 CPAM|
 |**V2**|15+|⏳ Backlog|9|Référencement SILL|
 
 ---
@@ -214,15 +214,15 @@
 
 ---
 
-### Sprint 14 — Polish V1 & Tag
+### Sprint 14 — Polish V1 & Tag ✅
 
 |ID|Tâche|Statut|Cible|
 |---|---|---|---|
-|T-1401|Compléter couverture tests (80%)|⏳|Services|
-|T-1402|Test de charge V1|⏳|50 users, 10k ops|
-|T-1403|Audit sécurité (OWASP basics)|⏳|-|
-|T-1404|Documentation utilisateur|⏳|Guide Sophie + Karim|
-|T-1405|**🏁 TAG v1.0.0**|⏳|-|
+|T-1401|Compléter couverture tests (80%)|✅|Services (240 tests)|
+|T-1402|Test de charge V1|✅|50 users, 10k ops|
+|T-1403|Audit sécurité (OWASP basics)|✅|OWASP Top 10|
+|T-1404|Documentation utilisateur|✅|Guide Sophie + Karim|
+|T-1405|**🏁 TAG v1.0.0**|✅|-|
 
 ---
 
@@ -292,10 +292,10 @@ _* MVP = MVP du module Réservation, pas du MVP OpsTracker core_
 
 |Métrique|Actuel|Cible MVP|Cible V1|
 |---|---|---|---|
-|Tâches terminées|98|65|110|
-|User Stories done|55/85|47/85|76/85|
-|Entités créées|10|6|8|
-|Tests passants|202|60+|100+|
+|Tâches terminées|103|65|110|
+|User Stories done|76/85|47/85|76/85|
+|Entités créées|11|6|8|
+|Tests passants|240|60+|100+|
 |Couverture code|~80%|70%|80%|
 
 ---

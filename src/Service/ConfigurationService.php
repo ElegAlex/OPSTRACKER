@@ -258,7 +258,7 @@ class ConfigurationService
                 $template->getDescription() ?? '',
                 $template->getVersion(),
                 $template->isActif() ? '1' : '0',
-                json_encode($template->getStructure() ?? [], JSON_UNESCAPED_UNICODE),
+                json_encode($template->getEtapes() ?? [], JSON_UNESCAPED_UNICODE),
             ]);
         }
 
@@ -383,7 +383,7 @@ class ConfigurationService
                 $template->setVersion((int) ($data['version'] ?? 1));
             }
             $template->setActif($data['actif'] === '1');
-            $template->setStructure(json_decode($data['structure'], true) ?: []);
+            $template->setEtapes(json_decode($data['structure'], true) ?: []);
 
             $this->em->persist($template);
             $result['imported']++;
