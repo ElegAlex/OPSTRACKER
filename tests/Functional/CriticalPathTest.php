@@ -64,9 +64,10 @@ class CriticalPathTest extends WebTestCase
 
         $this->client->submit($form);
 
-        // Devrait rediriger vers /campagnes
+        // Devrait rediriger vers / puis /campagnes (redirection selon role)
         $this->assertResponseRedirects();
-        $this->client->followRedirect();
+        $this->client->followRedirect(); // → /
+        $this->client->followRedirect(); // → /campagnes
         $this->assertResponseIsSuccessful();
     }
 
