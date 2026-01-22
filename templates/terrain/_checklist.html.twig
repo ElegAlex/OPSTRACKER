@@ -1,0 +1,117 @@
+{#
+    Composant Checklist pour l'interface terrain (Karim)
+
+    US-501 : Cocher une etape de checklist
+    US-502 : Voir la progression de la checklist
+    T-605 : Turbo Frame pour update sans reload
+    RG-082 : Touch targets 48x48px minimum
+#}
+<turbo-frame id="checklist-frame">
+    {% set instance = operation.checklistInstance %}
+    {% set progression = checklist_progression %}
+
+    {% if instance and progression %}
+        {# Barre de progression globale #}
+        <div class="bg-white border-b-2 border-ink px-4 py-3">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="font-bold text-ink flex items-center gap-2">
+                    <i data-feather="check-square" class="w-5 h-5"></i>
+                    Checklist
+                </h2>
+                <span class="text-lg font-bold text-ink num">{{ progression.completed }}/{{ progression.total }} etapes</span>
+            </div>
+
+            {# Barre de progression segmentee #}
+            <div class="h-3 bg-paper border border-ink flex overflow-hidden">
+                {% for i in 1..progression.total %}
+                    <div class="h-full {% if i <= progression.completed %}bg-success{% else %}bg-paper{% endif %}" style="width: {{ (100 / progression.total)|round(2) }}%"></div>
+                {% endfor %}
+            </div>
+            <p class="text-xs text-muted mt-1">{{ progression.percentage }}% complete</p>
+        </div>
+
+        {# Liste des phases et etapes #}
+        <div class="px-4 py-4">
+            {% for phaseIndex, phase in instance.phases %}
+                {% set phaseStats = progression.phases[phase.id] ?? null %}
+                {% set isAccessible = phaseStats.is_accessible ?? true %}
+
+                <div class="mb-6">
+                    {# En-tete de phase #}
+                    <h3 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                        <span class="w-6 h-6 {% if isAccessible %}bg-ink{% else %}bg-muted{% endif %} text-white text-xs font-bold flex items-center justify-center">
+                            {{ loop.index }}
+                        </span>
+                        {{ phase.nom }}
+                        {% if phase.verrouillable and not isAccessible %}
+                            <i data-feather="lock" class="w-4 h-4 text-muted" title="Phase verrouillee"></i>
+                        {% endif %}
+                        {% if phaseStats and phaseStats.is_complete %}
+                            <i data-feather="check-circle" class="w-4 h-4 text-success"></i>
+                        {% endif %}
+                    </h3>
+
+                    {# Etapes de la phase #}
+                    {% for etape in phase.etapes %}
+                        {% set isCochee = instance.isEtapeCochee(etape.id) %}
+                        {% set isNextStep = not isCochee and isAccessible and loop.first %}
+
+                        <div class="bg-white border-2 {% if isCochee %}border-ink step-done{% elseif isNextStep %}border-primary border-l-4{% else %}border-ink{% endif %} mb-2 {% if not isAccessible %}opacity-50{% endif %}">
+                            <form action="{{ path('terrain_checklist_toggle', {id: operation.id, etapeId: etape.id}) }}"
+                                  method="post"
+                                  data-turbo-frame="checklist-frame"
+                                  class="w-full flex items-center gap-4 p-3">
+                                <input type="hidden" name="_token" value="{{ csrf_token('checklist_' ~ operation.id) }}">
+
+                                {# Checkbox 48x48px (RG-082) #}
+                                <button type="submit"
+                                        class="checkbox-large {% if isCochee %}bg-success border-success{% else %}bg-white border-ink hover:border-primary{% endif %} border-2 flex items-center justify-center flex-shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
+                                        {% if not isAccessible %}disabled{% endif %}
+                                        aria-label="{{ isCochee ? 'Decocher' : 'Cocher' }} l'etape {{ etape.titre }}">
+                                    {% if isCochee %}
+                                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    {% endif %}
+                                </button>
+
+                                {# Texte de l'etape #}
+                                <div class="flex-1 text-left">
+                                    <p class="font-semibold text-ink {% if isCochee %}step-text{% endif %}">
+                                        {{ etape.titre }}
+                                        {% if not etape.obligatoire %}
+                                            <span class="text-xs text-muted">(optionnel)</span>
+                                        {% endif %}
+                                    </p>
+                                    {% if etape.description %}
+                                        <p class="text-xs text-muted">{{ etape.description }}</p>
+                                    {% endif %}
+                                </div>
+
+                                {# Lien document si present #}
+                                {% if etape.documentId %}
+                                    <a href="#" class="p-2 bg-primary/10 text-primary flex-shrink-0" title="Voir le document">
+                                        <i data-feather="file-text" class="w-5 h-5"></i>
+                                    </a>
+                                {% endif %}
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {# Scripts pour reinitialiser les icones Feather apres update Turbo #}
+        <script>
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        </script>
+    {% else %}
+        {# Pas de checklist #}
+        <div class="px-4 py-6 text-center text-muted">
+            <i data-feather="clipboard" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+            <p>Aucune checklist pour cette intervention</p>
+        </div>
+    {% endif %}
+</turbo-frame>

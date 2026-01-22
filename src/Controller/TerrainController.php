@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Operation;
 use App\Repository\OperationRepository;
+use App\Service\ChecklistService;
 use App\Service\OperationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,7 @@ class TerrainController extends AbstractController
     public function __construct(
         private readonly OperationRepository $operationRepository,
         private readonly OperationService $operationService,
+        private readonly ChecklistService $checklistService,
     ) {
     }
 
@@ -69,10 +71,63 @@ class TerrainController extends AbstractController
 
         $transitions = $this->operationService->getTransitionsDisponibles($operation);
 
+        // Calculer la progression de la checklist si elle existe
+        $checklistProgression = null;
+        if ($operation->getChecklistInstance()) {
+            $checklistProgression = $this->checklistService->getProgression($operation->getChecklistInstance());
+        }
+
         return $this->render('terrain/show.html.twig', [
             'operation' => $operation,
             'transitions' => $transitions,
+            'checklist_progression' => $checklistProgression,
         ]);
+    }
+
+    /**
+     * Toggle (coche/decoche) une etape de la checklist.
+     * US-501 : Cocher une etape de checklist
+     * T-605 : Retourne un Turbo Frame pour update sans reload
+     * RG-082 : Touch targets 48x48px (gere dans le template)
+     */
+    #[Route('/{id}/checklist/toggle/{etapeId}', name: 'terrain_checklist_toggle', methods: ['POST'])]
+    public function toggleEtape(
+        Request $request,
+        Operation $operation,
+        string $etapeId
+    ): Response {
+        $this->denyAccessUnlessGranted('edit', $operation);
+
+        // Verifier le token CSRF
+        if (!$this->isCsrfTokenValid('checklist_' . $operation->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token de securite invalide.');
+            return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
+        }
+
+        $instance = $operation->getChecklistInstance();
+        if (!$instance) {
+            $this->addFlash('error', 'Pas de checklist pour cette operation.');
+            return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
+        }
+
+        try {
+            $this->checklistService->toggleEtape($instance, $etapeId, $this->getUser());
+        } catch (\InvalidArgumentException $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
+
+        // Calculer la nouvelle progression
+        $progression = $this->checklistService->getProgression($instance);
+
+        // T-605 : Si requete Turbo, retourner uniquement le fragment
+        if ($request->headers->has('Turbo-Frame')) {
+            return $this->render('terrain/_checklist.html.twig', [
+                'operation' => $operation,
+                'checklist_progression' => $progression,
+            ]);
+        }
+
+        return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
     }
 
     /**

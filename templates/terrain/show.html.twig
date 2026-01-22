@@ -90,31 +90,6 @@
         </div>
     </div>
 
-    {# Barre de progression checklist (si existe) #}
-    {% if operation.checklistInstance %}
-        {% set progress = operation.checklistInstance.progression %}
-        {% set completed = progress.completed|default(0) %}
-        {% set total = progress.total|default(0) %}
-        {% set pct = total > 0 ? (completed / total * 100)|round : 0 %}
-
-        <div class="bg-white border-b-2 border-ink px-4 py-3">
-            <div class="flex items-center justify-between mb-2">
-                <h2 class="font-bold text-ink flex items-center gap-2">
-                    <i data-feather="check-square" class="w-5 h-5"></i>
-                    Checklist
-                </h2>
-                <span class="text-lg font-bold text-ink num">{{ completed }}/{{ total }} etapes</span>
-            </div>
-
-            {# Barre de progression segmentee #}
-            <div class="h-3 bg-paper border border-ink flex overflow-hidden">
-                {% for i in 1..total %}
-                    <div class="h-full {% if i <= completed %}bg-success{% else %}bg-paper{% endif %}" style="width: {{ (100 / total)|round(2) }}%"></div>
-                {% endfor %}
-            </div>
-            <p class="text-xs text-muted mt-1">{{ pct }}% complete</p>
-        </div>
-    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -151,17 +126,11 @@
         </div>
     {% endif %}
 
-    {# Checklist (si existe) - Placeholder pour Sprint 6 #}
-    {% if operation.checklistInstance %}
-        <div class="mb-6">
-            <div class="p-4 bg-ink/5 border-2 border-ink/20">
-                <p class="text-sm text-muted text-center">
-                    <i data-feather="check-square" class="w-4 h-4 inline"></i>
-                    Checklist disponible - Fonctionnalite complete au Sprint 6
-                </p>
-            </div>
-        </div>
-    {% endif %}
+    {# Checklist avec Turbo Frame (T-605) #}
+    {% include 'terrain/_checklist.html.twig' with {
+        operation: operation,
+        checklist_progression: checklist_progression
+    } %}
 
     {# Informations campagne #}
     <div class="mb-6">
