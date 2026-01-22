@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #4 - Sprint 3 Complete)
+> **Dernière mise à jour** : 2026-01-22 (Session #5 - Sprint 4 Complete)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels  
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -74,17 +74,17 @@
 
 ---
 
-### Sprint 4 — Opérations & Segments (EPIC-03 + EPIC-09 MVP)
+### Sprint 4 — Opérations & Segments (EPIC-03 + EPIC-09 MVP) ✅
 
 |ID|US|Titre|Statut|RG|Priorité|
 |---|---|---|---|---|---|
-|T-401|US-301|Voir la liste des opérations (vue tableau)|⏳|RG-080|🔴 MVP|
-|T-402|US-303|Filtrer les opérations|⏳|-|🔴 MVP|
-|T-403|US-304|Modifier le statut d'une opération (inline)|⏳|RG-017, RG-080|🔴 MVP|
-|T-404|US-306|Assigner un technicien à une opération|⏳|RG-018|🔴 MVP|
-|T-405|US-905|Créer/modifier des segments|⏳|-|🔴 MVP|
-|T-406|US-906|Voir la progression par segment (détail)|⏳|-|🔴 MVP|
-|T-407|-|Tests OperationService|⏳|-|MVP|
+|T-401|US-301|Voir la liste des opérations (vue tableau)|✅|RG-080|🔴 MVP|
+|T-402|US-303|Filtrer les opérations|✅|-|🔴 MVP|
+|T-403|US-304|Modifier le statut d'une opération (inline)|✅|RG-017, RG-080|🔴 MVP|
+|T-404|US-306|Assigner un technicien à une opération|✅|RG-018|🔴 MVP|
+|T-405|US-905|Créer/modifier des segments|✅|-|🔴 MVP|
+|T-406|US-906|Voir la progression par segment (détail)|✅|-|🔴 MVP|
+|T-407|-|Tests OperationService|✅|-|MVP|
 
 ---
 

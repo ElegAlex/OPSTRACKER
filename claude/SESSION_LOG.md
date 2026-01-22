@@ -31,6 +31,49 @@
 
 ## Sessions
 
+### Session #5 — 2026-01-22
+
+**Duree** : ~45 min
+**Tache(s)** : T-401 a T-407 (Sprint 4 complet)
+**Statut** : ✅ Termine
+
+### Realise
+- OperationService avec logique metier (workflow RG-017, assignation RG-018, motif report RG-021)
+- OperationController avec routes liste, filtres, transitions, assignation
+- SegmentController avec CRUD complet et progression par segment
+- Extension OperationRepository avec methodes de filtrage avancees
+- Formulaire SegmentType pour creation/modification segments
+- Templates Twig operations/index.html.twig (vue tableau avec filtres)
+- Templates Twig segments (index, new, edit, show avec progression)
+- Integration triple signalisation RG-080 (icone + couleur + texte)
+- Select inline pour changement statut et assignation technicien
+- Modal pour motif de report (RG-021)
+- Mise a jour campagne/show.html.twig avec liens operations et segments
+- Tests unitaires OperationServiceTest (15 tests, 71 assertions)
+- Total : 58 tests passants, 197 assertions
+
+### Fichiers crees/modifies
+- `src/Service/OperationService.php` (nouveau)
+- `src/Controller/OperationController.php` (nouveau)
+- `src/Controller/SegmentController.php` (nouveau)
+- `src/Form/SegmentType.php` (nouveau)
+- `src/Repository/OperationRepository.php` (modifie)
+- `templates/operation/index.html.twig` (nouveau)
+- `templates/segment/index.html.twig` (nouveau)
+- `templates/segment/new.html.twig` (nouveau)
+- `templates/segment/edit.html.twig` (nouveau)
+- `templates/segment/show.html.twig` (nouveau)
+- `templates/campagne/show.html.twig` (modifie)
+- `tests/Unit/Service/OperationServiceTest.php` (nouveau)
+
+### Problemes rencontres
+- Aucun probleme majeur
+
+### Commits
+- A venir apres validation
+
+---
+
 ### Session #4 — 2026-01-22
 
 **Duree** : ~30 min
