@@ -31,6 +31,45 @@
 
 ## Sessions
 
+### Session #6 — 2026-01-22
+
+**Duree** : ~40 min
+**Tache(s)** : T-501 a T-506 (Sprint 5 complet)
+**Statut** : ✅ Termine
+
+### Realise
+- Layout mobile responsive terrain `templates/terrain/_layout.html.twig` (RG-082)
+- TerrainController avec routes index, show, transitions (demarrer, terminer, reporter, probleme)
+- OperationVoter pour securiser l'acces aux operations (technicien = ses operations uniquement)
+- Vue "Mes interventions" avec groupement par statut (prochaine, planifiees, en cours, realisees, reportees)
+- Compteurs de statut du jour (faites, a faire, report, total)
+- Page detail intervention avec metadonnees et barre progression checklist
+- Boutons d'action 56px tactiles (COMMENCER, TERMINER, REPORTER, PROBLEME)
+- Modales pour saisie motif report et probleme (RG-021)
+- Triple signalisation RG-080 (badge statut avec icone + couleur + texte)
+- Retour automatique a la liste apres action (US-404)
+- Tests unitaires OperationVoter (14 tests)
+- Total : 71 tests passants, 215 assertions
+
+### Fichiers crees
+- `src/Controller/TerrainController.php`
+- `src/Security/Voter/OperationVoter.php`
+- `templates/terrain/_layout.html.twig`
+- `templates/terrain/index.html.twig`
+- `templates/terrain/show.html.twig`
+- `templates/terrain/_status_badge.html.twig`
+- `templates/terrain/_operation_card.html.twig`
+- `templates/terrain/_operation_card_compact.html.twig`
+- `tests/Unit/Security/OperationVoterTest.php`
+
+### Problemes rencontres
+- Tests fonctionnels WebTestCase complexes a configurer → utilisation de tests unitaires pour le voter
+
+### Commits
+- A venir apres validation
+
+---
+
 ### Session #5 — 2026-01-22
 
 **Duree** : ~45 min

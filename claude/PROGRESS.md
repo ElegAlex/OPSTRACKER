@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #5 - Sprint 4 Complete)
+> **Dernière mise à jour** : 2026-01-22 (Session #6 - Sprint 5 Complete)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels  
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -88,16 +88,16 @@
 
 ---
 
-### Sprint 5 — Interface Terrain Karim (EPIC-04)
+### Sprint 5 — Interface Terrain Karim (EPIC-04) ✅
 
 |ID|US|Titre|Statut|RG|Priorité|
 |---|---|---|---|---|---|
-|T-501|-|Layout mobile responsive (Twig base)|⏳|RG-082|MVP|
-|T-502|US-401|Voir "Mes interventions" (vue filtrée)|⏳|RG-020, RG-080, RG-082|🔴 MVP|
-|T-503|US-402|Ouvrir le détail d'une intervention|⏳|-|🔴 MVP|
-|T-504|US-403|Changer le statut en 1 clic (56px buttons)|⏳|RG-017, RG-021, RG-082|🔴 MVP|
-|T-505|US-404|Retour automatique après action|⏳|-|🔴 MVP|
-|T-506|-|Tests TerrainController|⏳|-|MVP|
+|T-501|-|Layout mobile responsive (Twig base)|✅|RG-082|MVP|
+|T-502|US-401|Voir "Mes interventions" (vue filtrée)|✅|RG-020, RG-080, RG-082|🔴 MVP|
+|T-503|US-402|Ouvrir le détail d'une intervention|✅|-|🔴 MVP|
+|T-504|US-403|Changer le statut en 1 clic (56px buttons)|✅|RG-017, RG-021, RG-082|🔴 MVP|
+|T-505|US-404|Retour automatique après action|✅|-|🔴 MVP|
+|T-506|-|Tests TerrainController (OperationVoter)|✅|-|MVP|
 
 ---
 

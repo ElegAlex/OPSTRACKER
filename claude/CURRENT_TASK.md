@@ -1,13 +1,13 @@
 # CURRENT_TASK.md — Tache en Cours
 
 > **Assigne le** : 2026-01-22
-> **Session** : #5 (terminee)
+> **Session** : #6 (terminee)
 
 ---
 
-## Tache : Sprint 4 — Operations & Segments (EPIC-03 + EPIC-09 MVP) ✅ COMPLETE
+## Tache : Sprint 5 — Interface Terrain Karim (EPIC-04) ✅ COMPLETE
 
-**Sprint** : 4 - Operations & Segments
+**Sprint** : 5 - Interface Terrain Karim
 **Priorite** : MVP
 **Statut** : ✅ TERMINE
 
@@ -15,56 +15,48 @@
 
 ## Taches realisees
 
-| ID    | US     | Titre                                           | Statut | RG             |
-| ----- | ------ | ----------------------------------------------- | ------ | -------------- |
-| T-401 | US-301 | Voir la liste des operations (vue tableau)      | ✅      | RG-080         |
-| T-402 | US-303 | Filtrer les operations                          | ✅      | -              |
-| T-403 | US-304 | Modifier le statut d'une operation (inline)     | ✅      | RG-017, RG-080 |
-| T-404 | US-306 | Assigner un technicien a une operation          | ✅      | RG-018         |
-| T-405 | US-905 | Creer/modifier des segments                     | ✅      | -              |
-| T-406 | US-906 | Voir la progression par segment (detail)        | ✅      | -              |
-| T-407 | -      | Tests OperationService                          | ✅      | -              |
+| ID    | US     | Titre                                      | Statut | RG                       |
+| ----- | ------ | ------------------------------------------ | ------ | ------------------------ |
+| T-501 | -      | Layout mobile responsive (Twig base)       | ✅      | RG-082                   |
+| T-502 | US-401 | Voir "Mes interventions" (vue filtree)     | ✅      | RG-020, RG-080, RG-082   |
+| T-503 | US-402 | Ouvrir le detail d'une intervention        | ✅      | -                        |
+| T-504 | US-403 | Changer le statut en 1 clic (56px buttons) | ✅      | RG-017, RG-021, RG-082   |
+| T-505 | US-404 | Retour automatique apres action            | ✅      | -                        |
+| T-506 | -      | Tests TerrainController (OperationVoter)   | ✅      | -                        |
 
 ---
 
 ## Fichiers crees/modifies
 
-### Services
-- `src/Service/OperationService.php` — Logique metier operations (workflow, assignation, segments)
+### Controller
+- `src/Controller/TerrainController.php` — Routes terrain (index, show, transitions)
 
-### Controllers
-- `src/Controller/OperationController.php` — Routes liste, filtres, transitions, assignation
-- `src/Controller/SegmentController.php` — CRUD segments + progression
-
-### Formulaires
-- `src/Form/SegmentType.php` — Creation/modification segment
-
-### Repositories
-- `src/Repository/OperationRepository.php` — Methodes findWithFilters, countBySegment
+### Security
+- `src/Security/Voter/OperationVoter.php` — Controle d'acces aux operations
 
 ### Templates
-- `templates/operation/index.html.twig` — Vue tableau avec filtres inline
-- `templates/segment/index.html.twig` — Liste segments + progression
-- `templates/segment/new.html.twig` — Formulaire creation
-- `templates/segment/edit.html.twig` — Formulaire modification
-- `templates/segment/show.html.twig` — Detail segment avec operations
-- `templates/campagne/show.html.twig` — Liens vers operations et segments
+- `templates/terrain/_layout.html.twig` — Layout mobile responsive
+- `templates/terrain/index.html.twig` — Liste "Mes interventions"
+- `templates/terrain/show.html.twig` — Detail intervention avec actions
+- `templates/terrain/_status_badge.html.twig` — Badge statut RGAA
+- `templates/terrain/_operation_card.html.twig` — Card operation
+- `templates/terrain/_operation_card_compact.html.twig` — Card compacte
 
 ### Tests
-- `tests/Unit/Service/OperationServiceTest.php` — 15 tests, 71 assertions
+- `tests/Unit/Security/OperationVoterTest.php` — 14 tests, 17 assertions
 
 ---
 
-## Prochaine tache : Sprint 5 — Interface Terrain Karim (EPIC-04)
+## Prochaine tache : Sprint 6 — Checklists (EPIC-05 MVP)
 
-| ID    | US     | Titre                                      | Statut | RG                       |
-| ----- | ------ | ------------------------------------------ | ------ | ------------------------ |
-| T-501 | -      | Layout mobile responsive (Twig base)       | ⏳      | RG-082                   |
-| T-502 | US-401 | Voir "Mes interventions" (vue filtree)     | ⏳      | RG-020, RG-080, RG-082   |
-| T-503 | US-402 | Ouvrir le detail d'une intervention        | ⏳      | -                        |
-| T-504 | US-403 | Changer le statut en 1 clic (56px buttons) | ⏳      | RG-017, RG-021, RG-082   |
-| T-505 | US-404 | Retour automatique apres action            | ⏳      | -                        |
-| T-506 | -      | Tests TerrainController                    | ⏳      | -                        |
+| ID    | US     | Titre                                        | Statut | RG     |
+| ----- | ------ | -------------------------------------------- | ------ | ------ |
+| T-601 | US-503 | Creer un template de checklist (Sophie)      | ⏳      | RG-030 |
+| T-602 | -      | CRUD Templates EasyAdmin                     | ⏳      | -      |
+| T-603 | US-501 | Cocher une etape de checklist (48x48px)      | ⏳      | RG-082 |
+| T-604 | US-502 | Voir la progression de la checklist          | ⏳      | -      |
+| T-605 | -      | Turbo Frames pour update sans reload         | ⏳      | -      |
+| T-606 | -      | Tests ChecklistService                       | ⏳      | -      |
 
 ---
 
@@ -73,5 +65,5 @@
 ```bash
 # Tous les tests passent
 php bin/phpunit
-# OK, Tests: 58, Assertions: 197
+# OK, Tests: 71, Assertions: 215
 ```
