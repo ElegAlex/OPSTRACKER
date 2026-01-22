@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Campagne;
+use App\Entity\ChecklistTemplate;
 use App\Entity\TypeOperation;
 use App\Entity\Utilisateur;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
@@ -47,6 +48,7 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Configuration');
         yield MenuItem::linkToCrud('Types d\'operation', 'fa fa-cogs', TypeOperation::class);
+        yield MenuItem::linkToCrud('Templates checklist', 'fa fa-check-square', ChecklistTemplate::class);
 
         yield MenuItem::section('Utilisateurs');
         yield MenuItem::linkToCrud('Utilisateurs', 'fa fa-users', Utilisateur::class);
