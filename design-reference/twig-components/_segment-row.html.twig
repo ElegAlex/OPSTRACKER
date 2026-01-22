@@ -1,0 +1,89 @@
+{#
+    Component: Segment Progress Row
+    Usage: Ligne de progression par segment dans le dashboard
+    
+    Props:
+    - segment: object with properties:
+        - id: int
+        - name: string (ex: "Bâtiment A — Siège")
+        - totalOperations: int
+        - realise: int
+        - planifie: int
+        - reporte: int
+        - aRemedier: int
+        - isLate: boolean
+    - clickable: boolean - default: true
+#}
+
+{% set total = segment.totalOperations %}
+{% set percentage = total > 0 ? ((segment.realise / total) * 100)|round : 0 %}
+
+{% set pctRealise = total > 0 ? ((segment.realise / total) * 100)|round : 0 %}
+{% set pctPlanifie = total > 0 ? ((segment.planifie / total) * 100)|round : 0 %}
+{% set pctReporte = total > 0 ? ((segment.reporte / total) * 100)|round : 0 %}
+{% set pctRemedier = total > 0 ? ((segment.aRemedier / total) * 100)|round : 0 %}
+
+<div class="p-5 {{ segment.isLate ? 'bg-danger/5' : '' }} {{ clickable|default(true) ? 'cursor-pointer hover:bg-paper' : '' }} transition-colors"
+     {% if clickable|default(true) %}onclick="window.location='{{ path('app_segment_show', {id: segment.id}) }}'"{% endif %}>
+    
+    {# Header: Nom + Pourcentage #}
+    <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-3">
+            {# Indicateur géométrique #}
+            <div class="w-3 h-3 {{ segment.isLate ? 'bg-warning' : 'bg-success' }}"></div>
+            
+            {# Nom du segment #}
+            <h3 class="font-semibold text-ink">{{ segment.name }}</h3>
+            
+            {# Compteur opérations #}
+            <span class="text-xs text-muted">{{ total }} opérations</span>
+            
+            {# Badge alerte si en retard #}
+            {% if segment.isLate %}
+                <span class="flex items-center gap-1 px-2 py-0.5 bg-danger text-white text-[10px] font-bold uppercase">
+                    <i data-feather="alert-triangle" class="w-3 h-3"></i>
+                    En retard
+                </span>
+            {% endif %}
+        </div>
+        
+        <div class="flex items-center gap-4">
+            {# Pourcentage principal #}
+            <span class="text-2xl font-bold tabular-nums tracking-tight {{ segment.isLate ? 'text-danger' : 'text-ink' }}">
+                {{ percentage }}%
+            </span>
+            
+            {% if clickable|default(true) %}
+                <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
+            {% endif %}
+        </div>
+    </div>
+    
+    {# Barre de progression empilée #}
+    <div class="h-3 bg-paper flex overflow-hidden">
+        <div class="bg-success h-full" style="width: {{ pctRealise }}%"></div>
+        <div class="bg-primary h-full" style="width: {{ pctPlanifie }}%"></div>
+        <div class="bg-warning h-full" style="width: {{ pctReporte }}%"></div>
+        <div class="bg-danger h-full" style="width: {{ pctRemedier }}%"></div>
+    </div>
+    
+    {# Légende détaillée #}
+    <div class="flex items-center gap-6 mt-2 text-xs text-muted">
+        <span class="flex items-center gap-1">
+            <span class="w-2 h-2 bg-success"></span>
+            {{ segment.realise }} réalisés
+        </span>
+        <span class="flex items-center gap-1">
+            <span class="w-2 h-2 bg-primary"></span>
+            {{ segment.planifie }} planifiés
+        </span>
+        <span class="flex items-center gap-1">
+            <span class="w-2 h-2 bg-warning"></span>
+            {{ segment.reporte }} reportés
+        </span>
+        <span class="flex items-center gap-1">
+            <span class="w-2 h-2 bg-danger"></span>
+            {{ segment.aRemedier }} à remédier
+        </span>
+    </div>
+</div>

@@ -1,0 +1,182 @@
+{#
+    Component: Campaign Card
+    Usage: Card campagne dans la vue portefeuille
+    
+    Props:
+    - campaign: object with properties:
+        - id: int
+        - name: string
+        - type: string (ex: "Migration poste de travail")
+        - typeIcon: string (feather icon)
+        - status: string (en_cours|preparation|terminee|archivee)
+        - dateStart: DateTime
+        - dateEnd: DateTime
+        - techniciansCount: int
+        - totalOperations: int
+        - realise: int
+        - planifie: int
+        - reporte: int
+        - aRemedier: int (optionnel pour campagnes terminées/archivées)
+        - isFavorite: boolean
+        - closedAt: DateTime|null (pour terminées)
+        - archivedAt: DateTime|null (pour archivées)
+#}
+
+{% set statusColors = {
+    'en_cours': 'success',
+    'preparation': 'warning',
+    'terminee': 'complete',
+    'archivee': 'muted',
+} %}
+
+{% set color = statusColors[campaign.status] ?? 'primary' %}
+{% set percentage = campaign.totalOperations > 0 ? ((campaign.realise / campaign.totalOperations) * 100)|round : 0 %}
+
+{% set bgColorClass = {
+    'success': 'bg-success',
+    'warning': 'bg-warning',
+    'complete': 'bg-complete',
+    'muted': 'bg-ink/20',
+}[color] %}
+
+{# Opacité réduite pour terminées/archivées #}
+{% set opacityClass = campaign.status in ['terminee', 'archivee'] ? 'opacity-90 hover:opacity-100' : '' %}
+
+<div class="bg-white border-2 border-ink overflow-hidden cursor-pointer hover:shadow-lg transition-all {{ opacityClass }}"
+     onclick="window.location='{{ path('app_campaign_show', {id: campaign.id}) }}'">
+    
+    {# Liseré coloré en haut #}
+    <div class="h-2 {{ bgColorClass }}"></div>
+    
+    <div class="p-6">
+        <div class="flex items-center gap-8">
+            
+            {# GAUCHE: Favoris + Infos #}
+            <div class="flex items-center gap-5 flex-1 min-w-0">
+                
+                {# Bouton favoris #}
+                <button class="w-10 h-10 {{ campaign.isFavorite ? 'bg-warning/10 text-warning' : 'border-2 border-ink/10 text-muted hover:text-warning hover:border-warning' }} flex items-center justify-center transition-colors flex-shrink-0"
+                        onclick="event.stopPropagation(); toggleFavorite({{ campaign.id }})"
+                        title="{{ campaign.isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}">
+                    <i data-feather="star" class="w-5 h-5 {{ campaign.isFavorite ? 'fill-current' : '' }}"></i>
+                </button>
+                
+                <div class="min-w-0">
+                    {# Titre + Badge #}
+                    <div class="flex items-center gap-4 mb-2">
+                        <h3 class="text-xl font-bold text-ink truncate">{{ campaign.name }}</h3>
+                        {% include '_status-badge.html.twig' with { status: campaign.status } %}
+                    </div>
+                    
+                    {# Méta infos #}
+                    <div class="flex items-center gap-6 text-sm text-muted">
+                        <span class="flex items-center gap-2">
+                            <i data-feather="{{ campaign.typeIcon|default('monitor') }}" class="w-4 h-4"></i>
+                            {{ campaign.type }}
+                        </span>
+                        
+                        {% if campaign.status == 'terminee' and campaign.closedAt %}
+                            <span class="flex items-center gap-2">
+                                <i data-feather="calendar" class="w-4 h-4"></i>
+                                Clôturée le {{ campaign.closedAt|date('d M Y') }}
+                            </span>
+                        {% elseif campaign.status == 'archivee' and campaign.archivedAt %}
+                            <span class="flex items-center gap-2">
+                                <i data-feather="archive" class="w-4 h-4"></i>
+                                Archivée le {{ campaign.archivedAt|date('d M Y') }}
+                            </span>
+                        {% else %}
+                            <span class="flex items-center gap-2">
+                                <i data-feather="calendar" class="w-4 h-4"></i>
+                                {{ campaign.dateStart|date('d M') }} → {{ campaign.dateEnd|date('d M') }}
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <i data-feather="users" class="w-4 h-4"></i>
+                                {{ campaign.techniciansCount }} technicien{{ campaign.techniciansCount > 1 ? 's' : '' }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            {# CENTRE: Progression (sauf archivées) #}
+            {% if campaign.status != 'archivee' %}
+                <div class="flex items-center gap-6 flex-shrink-0">
+                    <div class="w-48">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-muted">
+                                {{ campaign.status == 'preparation' ? 'Configuration' : 'Progression' }}
+                            </span>
+                            <span class="font-bold text-ink">{{ percentage }}%</span>
+                        </div>
+                        <div class="h-2 bg-paper">
+                            <div class="h-full {{ bgColorClass }}" style="width: {{ percentage }}%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-muted mt-1">
+                            <span>{{ campaign.realise }} réalisés</span>
+                            <span>{{ campaign.totalOperations }}</span>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {# DROITE: Stats en blocs (campagnes actives) #}
+            {% if campaign.status == 'en_cours' %}
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    <div class="w-20 h-20 bg-success/10 flex flex-col items-center justify-center">
+                        <span class="text-2xl font-bold tabular-nums text-success">{{ campaign.realise }}</span>
+                        <span class="text-[9px] text-muted uppercase tracking-wider">Réalisés</span>
+                    </div>
+                    <div class="w-20 h-20 bg-primary/10 flex flex-col items-center justify-center">
+                        <span class="text-2xl font-bold tabular-nums text-primary">{{ campaign.planifie }}</span>
+                        <span class="text-[9px] text-muted uppercase tracking-wider">Planifiés</span>
+                    </div>
+                    <div class="w-20 h-20 bg-warning/10 flex flex-col items-center justify-center">
+                        <span class="text-2xl font-bold tabular-nums text-warning">{{ campaign.reporte }}</span>
+                        <span class="text-[9px] text-muted uppercase tracking-wider">Reportés</span>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {# DROITE: Compteur simple (terminées) #}
+            {% if campaign.status == 'terminee' %}
+                <div class="flex items-center gap-3 text-sm flex-shrink-0">
+                    <div class="w-8 h-8 bg-complete/10 flex items-center justify-center">
+                        <i data-feather="check" class="w-4 h-4 text-complete"></i>
+                    </div>
+                    <span class="font-bold tabular-nums text-ink">{{ campaign.realise }}</span>
+                    <span class="text-muted">/ {{ campaign.totalOperations }}</span>
+                </div>
+            {% endif %}
+            
+            {# DROITE: Actions contextuelles #}
+            <div class="flex items-center gap-2 flex-shrink-0">
+                {% if campaign.status == 'preparation' %}
+                    <button class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-warning hover:bg-warning/90 transition-colors"
+                            onclick="event.stopPropagation(); window.location='{{ path('app_campaign_configure', {id: campaign.id}) }}'">
+                        <i data-feather="settings" class="w-4 h-4"></i>
+                        Configurer
+                    </button>
+                {% elseif campaign.status == 'terminee' %}
+                    <button class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/5 transition-colors"
+                            onclick="event.stopPropagation(); duplicateCampaign({{ campaign.id }})">
+                        <i data-feather="copy" class="w-4 h-4"></i>
+                        Dupliquer
+                    </button>
+                {% elseif campaign.status == 'archivee' %}
+                    <button class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted hover:text-ink hover:bg-ink/5 transition-colors"
+                            onclick="event.stopPropagation(); restoreCampaign({{ campaign.id }})">
+                        <i data-feather="rotate-ccw" class="w-4 h-4"></i>
+                        Restaurer
+                    </button>
+                {% endif %}
+                
+                {# Menu contextuel #}
+                <button class="w-10 h-10 border-2 border-ink/10 flex items-center justify-center text-muted hover:bg-ink hover:text-white hover:border-ink transition-colors"
+                        onclick="event.stopPropagation(); openCampaignMenu({{ campaign.id }})">
+                    <i data-feather="more-horizontal" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

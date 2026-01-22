@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpsTracker — Mon créneau confirmé</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        ink: '#0a0a0a',
+                        paper: '#f5f5f0',
+                        cream: '#fafaf5',
+                        primary: '#2563eb',
+                        success: '#059669',
+                        warning: '#d97706',
+                        danger: '#dc2626',
+                        muted: '#6b6b6b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-paper font-sans min-h-screen">
+    
+    <!-- ============================================== -->
+    <!-- HEADER                                         -->
+    <!-- ============================================== -->
+    <header class="bg-white border-b-2 border-ink">
+        <div class="max-w-2xl mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-ink flex items-center justify-center">
+                        <span class="text-white font-bold">O</span>
+                    </div>
+                    <div>
+                        <p class="font-bold text-ink">CPAM de Nanterre</p>
+                        <p class="text-xs text-muted">Migration Windows 11</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-medium text-ink">Marie DUPONT</p>
+                    <p class="text-xs text-muted">Matricule A12345</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================== -->
+    <!-- CONTENU                                        -->
+    <!-- ============================================== -->
+    <main class="max-w-2xl mx-auto px-4 py-8">
+        
+        <!-- Confirmation success -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-success/20 mx-auto flex items-center justify-center mb-4">
+                <i data-feather="check-circle" class="w-12 h-12 text-success"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-ink mb-2">Créneau confirmé !</h1>
+            <p class="text-muted">Vous recevrez un email de confirmation avec une invitation calendrier.</p>
+        </div>
+
+        <!-- Card récapitulatif -->
+        <div class="bg-white border-2 border-ink mb-6">
+            <div class="bg-ink text-white px-4 py-3">
+                <h2 class="font-bold flex items-center gap-2">
+                    <i data-feather="calendar" class="w-5 h-5"></i>
+                    Votre rendez-vous
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="flex items-start gap-4 mb-6">
+                    <div class="w-16 h-16 bg-primary/10 flex flex-col items-center justify-center flex-shrink-0">
+                        <span class="text-2xl font-bold text-primary">27</span>
+                        <span class="text-xs font-medium text-primary uppercase">JAN</span>
+                    </div>
+                    <div>
+                        <p class="text-xl font-bold text-ink">Lundi 27 janvier 2026</p>
+                        <p class="text-lg text-ink">14h00 — 14h45</p>
+                        <p class="text-sm text-muted mt-1">Durée estimée : 45 minutes</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-ink/10 pt-4 space-y-3">
+                    <div class="flex items-start gap-3">
+                        <i data-feather="map-pin" class="w-5 h-5 text-muted flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <p class="font-medium text-ink">Votre bureau</p>
+                            <p class="text-sm text-muted">Bureau 312 — Bâtiment A, Étage 3</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <i data-feather="monitor" class="w-5 h-5 text-muted flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <p class="font-medium text-ink">Intervention</p>
+                            <p class="text-sm text-muted">Migration Windows 11 — Poste PC-0523</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <i data-feather="user" class="w-5 h-5 text-muted flex-shrink-0 mt-0.5"></i>
+                        <div>
+                            <p class="font-medium text-ink">Technicien</p>
+                            <p class="text-sm text-muted">Un technicien de la DSI viendra à votre poste</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ce qu'il faut préparer -->
+        <div class="bg-warning/10 border-2 border-warning mb-6">
+            <div class="bg-warning text-white px-4 py-3">
+                <h2 class="font-bold flex items-center gap-2">
+                    <i data-feather="alert-triangle" class="w-5 h-5"></i>
+                    Avant l'intervention
+                </h2>
+            </div>
+            <div class="p-4">
+                <ul class="space-y-3">
+                    <li class="flex items-start gap-3">
+                        <div class="w-6 h-6 bg-warning/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="text-warning font-bold text-sm">1</span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-ink">Sauvegardez vos documents importants</p>
+                            <p class="text-sm text-muted">Vérifiez que OneDrive est synchronisé</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <div class="w-6 h-6 bg-warning/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="text-warning font-bold text-sm">2</span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-ink">Fermez vos applications</p>
+                            <p class="text-sm text-muted">Enregistrez votre travail en cours</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <div class="w-6 h-6 bg-warning/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="text-warning font-bold text-sm">3</span>
+                        </div>
+                        <div>
+                            <p class="font-medium text-ink">Soyez présent à votre poste</p>
+                            <p class="text-sm text-muted">Le technicien aura besoin de vous au début</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="space-y-3">
+            <button class="w-full bg-white border-2 border-ink text-ink font-bold py-3 flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="calendar" class="w-5 h-5"></i>
+                AJOUTER À MON CALENDRIER
+            </button>
+            
+            <button class="w-full bg-white border-2 border-warning text-warning font-bold py-3 flex items-center justify-center gap-3 hover:bg-warning hover:text-white transition-colors">
+                <i data-feather="edit" class="w-5 h-5"></i>
+                MODIFIER MON CRÉNEAU
+            </button>
+            
+            <button class="w-full text-danger text-sm font-medium py-2 hover:underline">
+                Annuler mon inscription
+            </button>
+        </div>
+
+        <!-- Note -->
+        <div class="mt-8 p-4 bg-ink/5 text-center">
+            <p class="text-sm text-muted">
+                <i data-feather="mail" class="w-4 h-4 inline mr-1"></i>
+                Un email de rappel vous sera envoyé <strong>2 jours avant</strong> l'intervention.
+            </p>
+        </div>
+
+    </main>
+
+    <!-- ============================================== -->
+    <!-- FOOTER                                         -->
+    <!-- ============================================== -->
+    <footer class="border-t border-ink/10 mt-12 py-6">
+        <div class="max-w-2xl mx-auto px-4 text-center text-xs text-muted">
+            <p>CPAM de Nanterre — Direction des Systèmes d'Information</p>
+            <p class="mt-1">Un problème ? Contactez le support au <strong>01 23 45 67 89</strong></p>
+        </div>
+    </footer>
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

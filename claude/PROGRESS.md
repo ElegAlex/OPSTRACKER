@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #1 - Sprint 0 Complete)
+> **Dernière mise à jour** : 2026-01-22 (Session #2 - Sprint 1 Complete)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels  
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -30,17 +30,17 @@
 
 ---
 
-### Sprint 1 — Authentification & Utilisateurs (EPIC-01)
+### Sprint 1 — Authentification & Utilisateurs (EPIC-01) ✅
 
-|ID|US|Titre|Statut|RG|Priorité|
-|---|---|---|---|---|---|
-|T-101|-|Entité `Utilisateur` (email, password, rôles, actif)|⏳|RG-002, RG-003|MVP|
-|T-102|US-101|Se connecter à l'application|⏳|RG-001, RG-006|🔴 MVP|
-|T-103|US-102|Se déconnecter|⏳|-|🔴 MVP|
-|T-104|US-103|Créer un compte utilisateur (Admin)|⏳|RG-002, RG-003|🔴 MVP|
-|T-105|-|Verrouillage compte après 5 échecs|⏳|RG-006|MVP|
-|T-106|-|CRUD Utilisateurs EasyAdmin|⏳|-|MVP|
-|T-107|-|Tests UtilisateurService|⏳|-|MVP|
+| ID    | US     | Titre                                                | Statut | RG             | Priorité |
+| ----- | ------ | ---------------------------------------------------- | ------ | -------------- | -------- |
+| T-101 | -      | Entité `Utilisateur` (email, password, rôles, actif) | ✅      | RG-002, RG-003 | MVP      |
+| T-102 | US-101 | Se connecter à l'application                         | ✅      | RG-001, RG-006 | 🔴 MVP   |
+| T-103 | US-102 | Se déconnecter                                       | ✅      | -              | 🔴 MVP   |
+| T-104 | US-103 | Créer un compte utilisateur (Admin)                  | ✅      | RG-002, RG-003 | 🔴 MVP   |
+| T-105 | -      | Verrouillage compte après 5 échecs                   | ✅      | RG-006         | MVP      |
+| T-106 | -      | CRUD Utilisateurs EasyAdmin                          | ✅      | -              | MVP      |
+| T-107 | -      | Tests UtilisateurService                             | ✅      | -              | MVP      |
 
 ---
 

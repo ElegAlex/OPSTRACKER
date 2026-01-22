@@ -31,6 +31,32 @@
 
 ## Sessions
 
+### Session #2 — 2026-01-22
+
+**Duree** : ~30 min
+**Tache(s)** : T-101 a T-107 (Sprint 1 complet)
+**Statut** : ✅ Termine
+
+### Realise
+- Entite Utilisateur avec champs RG-002, RG-003, RG-006
+- Migration PostgreSQL pour table utilisateur
+- SecurityController avec login/logout
+- Templates Twig design system Bauhaus
+- UserChecker pour comptes actifs/verrouilles
+- LoginSubscriber pour verrouillage apres 5 echecs (RG-006)
+- UtilisateurService avec validation mot de passe (RG-001)
+- Commande app:create-admin
+- EasyAdmin CRUD Utilisateurs
+- 34 tests unitaires passants
+
+### Problemes rencontres
+- user_checker mal place dans security.yaml (corrige)
+
+### Commits
+- A venir apres validation
+
+---
+
 ### Session #1 — 2026-01-22
 
 **Durée** : ~20 min

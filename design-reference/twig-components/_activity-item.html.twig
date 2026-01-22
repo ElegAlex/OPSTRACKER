@@ -1,0 +1,55 @@
+{#
+    Component: Activity Feed Item
+    Usage: Élément dans le flux d'activité récente
+    
+    Props:
+    - activity: object with properties:
+        - type: string (realise|reporte|a_remedier|planifie)
+        - userName: string
+        - userInitials: string
+        - operationCode: string (ex: "PC-0847")
+        - operationId: int
+        - segmentName: string
+        - createdAt: DateTime
+#}
+
+{% set typeConfig = {
+    'realise': { icon: 'check', color: 'success', verb: 'a terminé' },
+    'reporte': { icon: 'pause', color: 'warning', verb: 'a reporté' },
+    'a_remedier': { icon: 'alert-triangle', color: 'danger', verb: 'a signalé' },
+    'planifie': { icon: 'calendar', color: 'primary', verb: 'a planifié' },
+} %}
+
+{% set config = typeConfig[activity.type] ?? typeConfig['realise'] %}
+
+{% set colorClasses = {
+    'success': 'bg-success/10 text-success',
+    'warning': 'bg-warning/10 text-warning',
+    'danger': 'bg-danger/10 text-danger',
+    'primary': 'bg-primary/10 text-primary',
+} %}
+
+<div class="p-4 flex items-start gap-3">
+    {# Icône type d'action #}
+    <div class="w-8 h-8 {{ colorClasses[config.color] }} flex items-center justify-center flex-shrink-0 mt-0.5">
+        <i data-feather="{{ config.icon }}" class="w-4 h-4"></i>
+    </div>
+    
+    <div class="min-w-0">
+        {# Message principal #}
+        <p class="text-sm text-ink">
+            <span class="font-semibold">{{ activity.userName }}</span>
+            {{ config.verb }}
+            <a href="{{ path('app_operation_show', {id: activity.operationId}) }}" 
+               class="font-medium hover:text-primary transition-colors"
+               onclick="event.stopPropagation()">
+                {{ activity.operationCode }}
+            </a>
+        </p>
+        
+        {# Méta (segment + temps) #}
+        <p class="text-xs text-muted mt-0.5">
+            {{ activity.segmentName }} • {{ activity.createdAt|date('relative') }}
+        </p>
+    </div>
+</div>

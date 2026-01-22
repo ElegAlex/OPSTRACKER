@@ -1,0 +1,128 @@
+{#
+    Component: Sidebar Navigation
+    Usage: Sidebar principale de l'application
+    
+    Props:
+    - currentRoute: string (route name pour highlight)
+    - user: object with name, initials, role
+    - favorites: array of { id, name, status } (campagnes épinglées)
+#}
+
+<aside class="w-80 bg-white border-r-4 border-ink flex flex-col flex-shrink-0 relative overflow-hidden">
+    
+    {# Éléments géométriques décoratifs #}
+    <div class="absolute -right-16 -top-16 w-48 h-48 bg-primary/5 rounded-full"></div>
+    <div class="absolute left-0 bottom-32 w-3 h-32 bg-success"></div>
+    
+    {# Logo #}
+    <div class="relative z-10 p-8">
+        <a href="{{ path('app_home') }}" class="flex items-center gap-4">
+            <div class="relative">
+                <div class="w-14 h-14 bg-primary flex items-center justify-center">
+                    <span class="text-2xl font-bold text-white">O</span>
+                </div>
+                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-success"></div>
+            </div>
+            <div>
+                <div class="text-xl font-bold tracking-tight text-ink">OpsTracker</div>
+                <div class="text-xs text-muted uppercase tracking-widest mt-0.5">{{ app.request.server.get('INSTANCE_NAME')|default('CPAM') }}</div>
+            </div>
+        </a>
+    </div>
+    
+    {# Navigation principale #}
+    <nav class="relative z-10 flex-1 px-6 py-4">
+        <div class="space-y-2">
+            
+            {# Campagnes #}
+            {% set isActive = currentRoute starts with 'app_campaign' %}
+            <a href="{{ path('app_campaign_index') }}" 
+               class="flex items-center gap-4 px-4 py-3 {{ isActive ? 'bg-primary/5 text-ink font-medium relative' : 'text-muted hover:text-ink hover:bg-paper' }} transition-colors">
+                {% if isActive %}
+                    <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+                {% endif %}
+                <div class="w-8 h-8 {{ isActive ? 'bg-primary/10' : 'border-2 border-ink/10' }} flex items-center justify-center">
+                    <i data-feather="layers" class="w-4 h-4 {{ isActive ? 'text-primary' : '' }}"></i>
+                </div>
+                Campagnes
+            </a>
+            
+            {# Équipe #}
+            {% set isActive = currentRoute starts with 'app_user' or currentRoute starts with 'app_team' %}
+            <a href="{{ path('app_user_index') }}" 
+               class="flex items-center gap-4 px-4 py-3 {{ isActive ? 'bg-primary/5 text-ink font-medium relative' : 'text-muted hover:text-ink hover:bg-paper' }} transition-colors">
+                {% if isActive %}
+                    <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+                {% endif %}
+                <div class="w-8 h-8 {{ isActive ? 'bg-primary/10' : 'border-2 border-ink/10' }} flex items-center justify-center">
+                    <i data-feather="users" class="w-4 h-4 {{ isActive ? 'text-primary' : '' }}"></i>
+                </div>
+                Équipe
+            </a>
+            
+            {# Configuration (admin only) #}
+            {% if is_granted('ROLE_ADMIN') %}
+                {% set isActive = currentRoute starts with 'app_config' or currentRoute starts with 'admin_' %}
+                <a href="{{ path('admin') }}" 
+                   class="flex items-center gap-4 px-4 py-3 {{ isActive ? 'bg-primary/5 text-ink font-medium relative' : 'text-muted hover:text-ink hover:bg-paper' }} transition-colors">
+                    {% if isActive %}
+                        <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+                    {% endif %}
+                    <div class="w-8 h-8 {{ isActive ? 'bg-primary/10' : 'border-2 border-ink/10' }} flex items-center justify-center">
+                        <i data-feather="settings" class="w-4 h-4 {{ isActive ? 'text-primary' : '' }}"></i>
+                    </div>
+                    Configuration
+                </a>
+            {% endif %}
+        </div>
+        
+        {# Favoris / Épinglés #}
+        {% if favorites is defined and favorites|length > 0 %}
+            <div class="mt-12">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-2 h-2 bg-warning"></div>
+                    <span class="text-[10px] font-semibold text-muted uppercase tracking-[0.2em]">Épinglés</span>
+                </div>
+                <div class="space-y-1 pl-5 border-l-2 border-ink/10">
+                    {% for fav in favorites %}
+                        {% set statusColor = {
+                            'en_cours': 'bg-success',
+                            'preparation': 'bg-warning',
+                            'terminee': 'bg-complete',
+                        }[fav.status]|default('bg-muted') %}
+                        
+                        <a href="{{ path('app_campaign_show', {id: fav.id}) }}" 
+                           class="flex items-center gap-3 py-2 text-muted hover:text-ink transition-colors">
+                            <div class="w-2 h-2 {{ statusColor }}"></div>
+                            <span class="text-sm truncate">{{ fav.name }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </nav>
+    
+    {# User footer #}
+    <div class="relative z-10 p-6 border-t-2 border-ink/10">
+        <div class="flex items-center justify-between">
+            <a href="{{ path('app_profile') }}" class="flex items-center gap-4 group">
+                <div class="relative">
+                    <div class="w-12 h-12 bg-primary/10 flex items-center justify-center text-lg font-semibold text-primary">
+                        {{ user.initials|default('??') }}
+                    </div>
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success"></div>
+                </div>
+                <div>
+                    <p class="font-medium text-ink group-hover:text-primary transition-colors">{{ user.name }}</p>
+                    <p class="text-xs text-muted">{{ user.role }}</p>
+                </div>
+            </a>
+            
+            <a href="{{ path('app_logout') }}" 
+               class="w-10 h-10 border-2 border-ink/10 flex items-center justify-center text-muted hover:bg-ink hover:text-white hover:border-ink transition-colors"
+               title="Déconnexion">
+                <i data-feather="log-out" class="w-4 h-4"></i>
+            </a>
+        </div>
+    </div>
+</aside>

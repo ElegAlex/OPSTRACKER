@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpsTracker — Mes Interventions (Karim)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        ink: '#0a0a0a',
+                        paper: '#f5f5f0',
+                        cream: '#fafaf5',
+                        primary: '#2563eb',
+                        success: '#059669',
+                        warning: '#d97706',
+                        danger: '#dc2626',
+                        complete: '#0d9488',
+                        muted: '#6b6b6b',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .num { font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+        /* Mobile-first: pas de scrollbar visible */
+        ::-webkit-scrollbar { display: none; }
+        /* Boutons tactiles 56px minimum */
+        .btn-action { min-height: 56px; }
+        /* Animation feedback */
+        @keyframes checkPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .check-animation { animation: checkPop 0.3s ease-out; }
+        /* Card mise en avant */
+        .card-next { 
+            border-left: 6px solid #2563eb;
+            background: linear-gradient(90deg, rgba(37,99,235,0.05) 0%, white 20%);
+        }
+    </style>
+</head>
+<body class="bg-paper font-sans min-h-screen">
+    
+    <!-- ============================================== -->
+    <!-- HEADER MOBILE SIMPLIFIÉ                        -->
+    <!-- ============================================== -->
+    <header class="bg-white border-b-2 border-ink px-4 py-3 sticky top-0 z-50">
+        <div class="flex items-center justify-between">
+            <!-- Logo compact -->
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-ink flex items-center justify-center">
+                    <span class="text-white font-bold text-sm">O</span>
+                </div>
+                <span class="font-bold text-lg text-ink">Mes interventions</span>
+            </div>
+            
+            <!-- User -->
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-muted">Karim D.</span>
+                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                    KD
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================== -->
+    <!-- BARRE DE STATUT JOURNÉE                        -->
+    <!-- ============================================== -->
+    <div class="bg-white border-b-2 border-ink px-4 py-4">
+        <div class="flex items-center justify-between mb-3">
+            <div>
+                <p class="text-xs text-muted uppercase tracking-wider font-semibold">Aujourd'hui</p>
+                <p class="text-2xl font-bold text-ink">Mardi 21 janvier</p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-muted">Migration Windows 11</p>
+                <p class="text-sm font-semibold text-ink">Bâtiment A</p>
+            </div>
+        </div>
+        
+        <!-- Compteurs du jour -->
+        <div class="grid grid-cols-4 gap-2">
+            <!-- Réalisées -->
+            <div class="bg-success/10 p-3 text-center">
+                <div class="flex items-center justify-center gap-1 mb-1">
+                    <i data-feather="check-circle" class="w-4 h-4 text-success"></i>
+                </div>
+                <p class="text-2xl font-bold text-success num">4</p>
+                <p class="text-[10px] text-success font-medium uppercase">Faites</p>
+            </div>
+            
+            <!-- Planifiées -->
+            <div class="bg-primary/10 p-3 text-center">
+                <div class="flex items-center justify-center gap-1 mb-1">
+                    <i data-feather="clock" class="w-4 h-4 text-primary"></i>
+                </div>
+                <p class="text-2xl font-bold text-primary num">3</p>
+                <p class="text-[10px] text-primary font-medium uppercase">À faire</p>
+            </div>
+            
+            <!-- Reportées -->
+            <div class="bg-warning/10 p-3 text-center">
+                <div class="flex items-center justify-center gap-1 mb-1">
+                    <i data-feather="pause-circle" class="w-4 h-4 text-warning"></i>
+                </div>
+                <p class="text-2xl font-bold text-warning num">1</p>
+                <p class="text-[10px] text-warning font-medium uppercase">Report</p>
+            </div>
+            
+            <!-- Total -->
+            <div class="bg-ink/5 p-3 text-center">
+                <div class="flex items-center justify-center gap-1 mb-1">
+                    <i data-feather="list" class="w-4 h-4 text-ink"></i>
+                </div>
+                <p class="text-2xl font-bold text-ink num">8</p>
+                <p class="text-[10px] text-muted font-medium uppercase">Total</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- LISTE DES INTERVENTIONS                        -->
+    <!-- ============================================== -->
+    <main class="px-4 py-4 pb-6">
+        
+        <!-- Section: Prochaine intervention -->
+        <div class="mb-6">
+            <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                <i data-feather="arrow-right" class="w-4 h-4"></i>
+                Prochaine intervention
+            </h2>
+            
+            <!-- Card mise en avant -->
+            <div class="bg-white border-2 border-ink card-next p-4 mb-2">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-lg font-bold text-ink">PC-0523</span>
+                            <!-- Badge statut RGAA: icône + couleur + texte -->
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold">
+                                <i data-feather="clock" class="w-3 h-3"></i>
+                                Planifié
+                            </span>
+                        </div>
+                        <p class="text-sm text-ink font-medium">Martin DUPONT</p>
+                        <p class="text-xs text-muted">Bureau 312 • Bâtiment A</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-muted">Checklist</p>
+                        <p class="text-sm font-bold text-ink">0/8</p>
+                    </div>
+                </div>
+                
+                <!-- Bouton d'action principal 56px -->
+                <button class="btn-action w-full bg-primary text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors">
+                    <i data-feather="play" class="w-6 h-6"></i>
+                    COMMENCER
+                </button>
+            </div>
+        </div>
+
+        <!-- Section: À faire aujourd'hui -->
+        <div class="mb-6">
+            <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                <i data-feather="clock" class="w-4 h-4"></i>
+                À faire aujourd'hui
+                <span class="bg-primary/10 text-primary px-2 py-0.5 text-xs font-bold">2</span>
+            </h2>
+            
+            <!-- Card intervention planifiée -->
+            <div class="bg-white border-2 border-ink p-4 mb-2">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-lg font-bold text-ink">PC-0524</span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold">
+                                <i data-feather="clock" class="w-3 h-3"></i>
+                                Planifié
+                            </span>
+                        </div>
+                        <p class="text-sm text-ink font-medium">Sophie BERNARD</p>
+                        <p class="text-xs text-muted">Bureau 315 • Bâtiment A</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-muted">Checklist</p>
+                        <p class="text-sm font-bold text-ink">0/8</p>
+                    </div>
+                </div>
+                
+                <button class="btn-action w-full bg-white border-2 border-ink text-ink font-bold flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
+                    <i data-feather="eye" class="w-5 h-5"></i>
+                    VOIR DÉTAIL
+                </button>
+            </div>
+            
+            <!-- Card intervention planifiée 2 -->
+            <div class="bg-white border-2 border-ink p-4 mb-2">
+                <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-lg font-bold text-ink">PC-0525</span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold">
+                                <i data-feather="clock" class="w-3 h-3"></i>
+                                Planifié
+                            </span>
+                        </div>
+                        <p class="text-sm text-ink font-medium">Pierre MOREAU</p>
+                        <p class="text-xs text-muted">Bureau 401 • Bâtiment A</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-muted">Checklist</p>
+                        <p class="text-sm font-bold text-ink">0/8</p>
+                    </div>
+                </div>
+                
+                <button class="btn-action w-full bg-white border-2 border-ink text-ink font-bold flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
+                    <i data-feather="eye" class="w-5 h-5"></i>
+                    VOIR DÉTAIL
+                </button>
+            </div>
+        </div>
+
+        <!-- Section: Réalisées aujourd'hui -->
+        <div class="mb-6">
+            <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                <i data-feather="check-circle" class="w-4 h-4 text-success"></i>
+                Réalisées aujourd'hui
+                <span class="bg-success/10 text-success px-2 py-0.5 text-xs font-bold">4</span>
+            </h2>
+            
+            <!-- Cards réalisées (condensées) -->
+            <div class="space-y-2">
+                <div class="bg-success/5 border border-success/30 p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-success/20 flex items-center justify-center">
+                            <i data-feather="check" class="w-5 h-5 text-success"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-ink">PC-0519</p>
+                            <p class="text-xs text-muted">Jean PETIT • Bureau 201</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success/10 text-success text-xs font-semibold">
+                            <i data-feather="check-circle" class="w-3 h-3"></i>
+                            Réalisé
+                        </span>
+                        <p class="text-xs text-muted mt-1">8/8 ✓</p>
+                    </div>
+                </div>
+                
+                <div class="bg-success/5 border border-success/30 p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-success/20 flex items-center justify-center">
+                            <i data-feather="check" class="w-5 h-5 text-success"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-ink">PC-0520</p>
+                            <p class="text-xs text-muted">Marie DURAND • Bureau 205</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success/10 text-success text-xs font-semibold">
+                            <i data-feather="check-circle" class="w-3 h-3"></i>
+                            Réalisé
+                        </span>
+                        <p class="text-xs text-muted mt-1">8/8 ✓</p>
+                    </div>
+                </div>
+                
+                <div class="bg-success/5 border border-success/30 p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-success/20 flex items-center justify-center">
+                            <i data-feather="check" class="w-5 h-5 text-success"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-ink">PC-0521</p>
+                            <p class="text-xs text-muted">Luc MARTIN • Bureau 210</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success/10 text-success text-xs font-semibold">
+                            <i data-feather="check-circle" class="w-3 h-3"></i>
+                            Réalisé
+                        </span>
+                        <p class="text-xs text-muted mt-1">8/8 ✓</p>
+                    </div>
+                </div>
+                
+                <div class="bg-success/5 border border-success/30 p-3 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-success/20 flex items-center justify-center">
+                            <i data-feather="check" class="w-5 h-5 text-success"></i>
+                        </div>
+                        <div>
+                            <p class="font-bold text-ink">PC-0522</p>
+                            <p class="text-xs text-muted">Anne LEROY • Bureau 215</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-success/10 text-success text-xs font-semibold">
+                            <i data-feather="check-circle" class="w-3 h-3"></i>
+                            Réalisé
+                        </span>
+                        <p class="text-xs text-muted mt-1">8/8 ✓</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Reportée -->
+        <div class="mb-6">
+            <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                <i data-feather="pause-circle" class="w-4 h-4 text-warning"></i>
+                Reportée
+                <span class="bg-warning/10 text-warning px-2 py-0.5 text-xs font-bold">1</span>
+            </h2>
+            
+            <div class="bg-warning/5 border-2 border-warning/50 p-4">
+                <div class="flex items-start justify-between mb-2">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-lg font-bold text-ink">PC-0518</span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-warning/10 text-warning text-xs font-semibold">
+                                <i data-feather="pause-circle" class="w-3 h-3"></i>
+                                Reporté
+                            </span>
+                        </div>
+                        <p class="text-sm text-ink font-medium">Claire DUBOIS</p>
+                        <p class="text-xs text-muted">Bureau 118 • Bâtiment A</p>
+                    </div>
+                </div>
+                <div class="bg-warning/10 p-2 mt-2">
+                    <p class="text-xs text-warning font-medium">
+                        <i data-feather="info" class="w-3 h-3 inline"></i>
+                        Motif : Agent absent — Replanifié au 23/01
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+    </main>
+
+
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

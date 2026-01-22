@@ -1,0 +1,45 @@
+{#
+    Component: Status Badge
+    Usage: Badges de statut pour campagnes et opérations
+    
+    Props:
+    - status: string (en_cours|a_venir|preparation|terminee|archivee|planifie|realise|reporte|a_remedier)
+    - size: string (sm|md) - default: md
+    - showIcon: boolean - default: true
+#}
+
+{% set statusConfig = {
+    'en_cours': { label: 'En cours', color: 'success', icon: 'play-circle' },
+    'a_venir': { label: 'À venir', color: 'primary', icon: 'calendar' },
+    'preparation': { label: 'Préparation', color: 'warning', icon: 'clock' },
+    'terminee': { label: 'Terminée', color: 'complete', icon: 'check-circle' },
+    'archivee': { label: 'Archivée', color: 'muted', icon: 'archive' },
+    'a_planifier': { label: 'À planifier', color: 'muted', icon: 'clock' },
+    'planifie': { label: 'Planifié', color: 'primary', icon: 'clock' },
+    'realise': { label: 'Réalisé', color: 'success', icon: 'check-circle' },
+    'reporte': { label: 'Reporté', color: 'warning', icon: 'pause-circle' },
+    'a_remedier': { label: 'À remédier', color: 'danger', icon: 'alert-triangle' },
+} %}
+
+{% set config = statusConfig[status] ?? statusConfig['a_planifier'] %}
+
+{% set colorClasses = {
+    'success': 'bg-success text-white',
+    'primary': 'bg-primary text-white',
+    'warning': 'bg-warning text-white',
+    'danger': 'bg-danger text-white',
+    'complete': 'bg-complete text-white',
+    'muted': 'bg-ink/10 text-muted',
+} %}
+
+{% set sizeClasses = {
+    'sm': 'px-2 py-0.5 text-[9px]',
+    'md': 'px-3 py-1 text-[10px]',
+} %}
+
+<span class="{{ colorClasses[config.color] }} {{ sizeClasses[size|default('md')] }} font-bold uppercase tracking-wider inline-flex items-center gap-1">
+    {% if showIcon|default(true) %}
+        <i data-feather="{{ config.icon }}" class="w-3 h-3"></i>
+    {% endif %}
+    {{ config.label }}
+</span>

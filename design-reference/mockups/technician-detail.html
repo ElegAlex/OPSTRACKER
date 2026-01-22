@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpsTracker — Détail Intervention (Karim)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        ink: '#0a0a0a',
+                        paper: '#f5f5f0',
+                        cream: '#fafaf5',
+                        primary: '#2563eb',
+                        success: '#059669',
+                        warning: '#d97706',
+                        danger: '#dc2626',
+                        complete: '#0d9488',
+                        muted: '#6b6b6b',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .num { font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+        ::-webkit-scrollbar { display: none; }
+        .btn-action { min-height: 56px; }
+        /* Checkbox custom 48x48 minimum (RGAA) */
+        .checkbox-large {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+        }
+        /* Animation check */
+        @keyframes checkBounce {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        .check-bounce { animation: checkBounce 0.25s ease-out; }
+        /* Ligne cochée */
+        .step-done {
+            background-color: rgba(5, 150, 105, 0.05);
+        }
+        .step-done .step-text {
+            text-decoration: line-through;
+            color: #6b6b6b;
+        }
+    </style>
+</head>
+<body class="bg-paper font-sans min-h-screen">
+    
+    <!-- ============================================== -->
+    <!-- HEADER AVEC RETOUR                             -->
+    <!-- ============================================== -->
+    <header class="bg-white border-b-2 border-ink px-4 py-3 sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <!-- Bouton retour -->
+            <a href="technician-list.html" class="w-10 h-10 flex items-center justify-center border-2 border-ink hover:bg-ink hover:text-white transition-colors text-ink">
+                <i data-feather="arrow-left" class="w-6 h-6"></i>
+            </a>
+            
+            <!-- Titre -->
+            <div class="flex-1">
+                <p class="text-xs text-muted">Intervention</p>
+                <p class="font-bold text-lg text-ink">PC-0523</p>
+            </div>
+            
+            <!-- Statut -->
+            <div class="flex items-center gap-2 px-3 py-1.5 bg-success text-white">
+                <i data-feather="zap" class="w-4 h-4"></i>
+                <span class="text-sm font-bold">En cours</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================== -->
+    <!-- INFOS INTERVENTION                             -->
+    <!-- ============================================== -->
+    <div class="bg-white border-b-2 border-ink px-4 py-4">
+        <div class="flex items-start justify-between mb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-ink mb-1">Martin DUPONT</h1>
+                <p class="text-sm text-muted">Bureau 312 • Bâtiment A • Étage 3</p>
+            </div>
+            <div class="w-12 h-12 bg-ink flex items-center justify-center">
+                <i data-feather="monitor" class="w-6 h-6 text-white"></i>
+            </div>
+        </div>
+        
+        <!-- Métadonnées -->
+        <div class="grid grid-cols-2 gap-3 text-sm">
+            <div class="bg-paper p-3">
+                <p class="text-xs text-muted uppercase font-semibold mb-1">Matricule</p>
+                <p class="font-bold text-ink">A12345</p>
+            </div>
+            <div class="bg-paper p-3">
+                <p class="text-xs text-muted uppercase font-semibold mb-1">Équipement</p>
+                <p class="font-bold text-ink">PC-W11-0523</p>
+            </div>
+            <div class="bg-paper p-3">
+                <p class="text-xs text-muted uppercase font-semibold mb-1">Contact</p>
+                <p class="font-bold text-ink">06 12 34 56 78</p>
+            </div>
+            <div class="bg-paper p-3">
+                <p class="text-xs text-muted uppercase font-semibold mb-1">Type</p>
+                <p class="font-bold text-ink">Migration W11</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- BARRE DE PROGRESSION CHECKLIST                 -->
+    <!-- ============================================== -->
+    <div class="bg-white border-b-2 border-ink px-4 py-3">
+        <div class="flex items-center justify-between mb-2">
+            <h2 class="font-bold text-ink flex items-center gap-2">
+                <i data-feather="check-square" class="w-5 h-5"></i>
+                Checklist
+            </h2>
+            <span class="text-lg font-bold text-ink num">3/8 étapes</span>
+        </div>
+        
+        <!-- Barre de progression segmentée -->
+        <div class="h-3 bg-paper border border-ink flex overflow-hidden">
+            <div class="bg-success h-full" style="width: 12.5%"></div>
+            <div class="bg-success h-full" style="width: 12.5%"></div>
+            <div class="bg-success h-full" style="width: 12.5%"></div>
+            <div class="bg-paper h-full" style="width: 12.5%"></div>
+            <div class="bg-paper h-full" style="width: 12.5%"></div>
+            <div class="bg-paper h-full" style="width: 12.5%"></div>
+            <div class="bg-paper h-full" style="width: 12.5%"></div>
+            <div class="bg-paper h-full" style="width: 12.5%"></div>
+        </div>
+        <p class="text-xs text-muted mt-1">37.5% complété</p>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- CHECKLIST                                      -->
+    <!-- ============================================== -->
+    <main class="px-4 py-4 pb-32">
+        
+        <!-- Phase 1: Préparation -->
+        <div class="mb-6">
+            <h3 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                <span class="w-6 h-6 bg-ink text-white text-xs font-bold flex items-center justify-center">1</span>
+                Préparation
+            </h3>
+            
+            <!-- Étape 1 - Cochée -->
+            <div class="bg-white border-2 border-ink mb-2 step-done">
+                <button class="w-full flex items-center gap-4 p-3" onclick="toggleStep(this)">
+                    <div class="checkbox-large bg-success border-2 border-success flex items-center justify-center flex-shrink-0">
+                        <i data-feather="check" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <div class="flex-1 text-left">
+                        <p class="font-semibold text-ink step-text">Vérifier le matériel nécessaire</p>
+                        <p class="text-xs text-muted">Clé USB, câble Ethernet, adaptateur</p>
+                    </div>
+                </button>
+            </div>
+            
+            <!-- Étape 2 - Cochée -->
+            <div class="bg-white border-2 border-ink mb-2 step-done">
+                <button class="w-full flex items-center gap-4 p-3" onclick="toggleStep(this)">
+                    <div class="checkbox-large bg-success border-2 border-success flex items-center justify-center flex-shrink-0">
+                        <i data-feather="check" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <div class="flex-1 text-left">
+                        <p class="font-semibold text-ink step-text">Informer l'agent de l'intervention</p>
+                        <p class="text-xs text-muted">Confirmer sa disponibilité</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Phase 2: Sauvegarde -->
+        <div class="mb-6">
+            <h3 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                <span class="w-6 h-6 bg-ink text-white text-xs font-bold flex items-center justify-center">2</span>
+                Sauvegarde
+            </h3>
+            
+            <!-- Étape 3 - Cochée -->
+            <div class="bg-white border-2 border-ink mb-2 step-done">
+                <button class="w-full flex items-center gap-4 p-3" onclick="toggleStep(this)">
+                    <div class="checkbox-large bg-success border-2 border-success flex items-center justify-center flex-shrink-0">
+                        <i data-feather="check" class="w-7 h-7 text-white"></i>
+                    </div>
+                    <div class="flex-1 text-left">
+                        <p class="font-semibold text-ink step-text">Sauvegarder les profils utilisateur</p>
+                        <p class="text-xs text-muted">Documents, Bureau, Favoris, Signatures</p>
+                    </div>
+                    <a href="#" class="p-2 bg-primary/10 text-primary flex-shrink-0" title="Voir le guide">
+                        <i data-feather="file-text" class="w-5 h-5"></i>
+                    </a>
+                </button>
+            </div>
+            
+            <!-- Étape 4 - Non cochée (prochaine) -->
+            <div class="bg-white border-2 border-primary mb-2 border-l-4">
+                <button class="w-full flex items-center gap-4 p-3" onclick="toggleStep(this)">
+                    <div class="checkbox-large bg-white border-2 border-ink flex items-center justify-center flex-shrink-0 hover:border-primary transition-colors">
+                        <!-- Vide -->
+                    </div>
+                    <div class="flex-1 text-left">
+                        <p class="font-semibold text-ink">Vérifier la sauvegarde OneDrive</p>
+                        <p class="text-xs text-muted">Synchronisation complète avant migration</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Phase 3: Migration -->
+        <div class="mb-6">
+            <h3 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                <span class="w-6 h-6 bg-muted text-white text-xs font-bold flex items-center justify-center">3</span>
+                Migration
+            </h3>
+            
+            <!-- Étape 5 -->
+            <div class="bg-white border-2 border-ink mb-2">
+                <button class="w-full flex items-center gap-4 p-3" onclick="toggleStep(this)">
+                    <div class="checkbox-large bg-white border-2 border-ink flex items-center justify-center flex-shrink-0">
+                    </div>
+                    <div class="flex-1 text-left">
+                        <p class="font-semibold text-ink">Lancer le script de migration</p>
+                        <p class="text-xs text-muted">Exécuter migrate-w11.ps1 en admin</p>
+                    </div>
+                    <a href="#" class="p-2 bg-primary/10 text-primary flex-shrink-0" title="Télécharger le script">
+                        <i data-feather="download" class="w-5 h-5"></i>
+                    </a>
+                </button>
+            </div>
+            
+            <!-- Étape 6 -->
+            <div class="bg-white border-2 border-ink mb-2">
+                <button class="w-full flex items-center gap-4 p-3" onclick="toggleStep(this)">
+                    <div class="checkbox-large bg-white border-2 border-ink flex items-center justify-center flex-shrink-0">
+                    </div>
+                    <div class="flex-1 text-left">
+                        <p class="font-semibold text-ink">Attendre la fin de l'installation</p>
+                        <p class="text-xs text-muted">~45 min • Ne pas interrompre</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Phase 4: Vérification -->
+        <div class="mb-6">
+            <h3 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                <span class="w-6 h-6 bg-muted text-white text-xs font-bold flex items-center justify-center">4</span>
+                Vérification
+            </h3>
+            
+            <!-- Étape 7 -->
+            <div class="bg-white border-2 border-ink mb-2">
+                <button class="w-full flex items-center gap-4 p-3" onclick="toggleStep(this)">
+                    <div class="checkbox-large bg-white border-2 border-ink flex items-center justify-center flex-shrink-0">
+                    </div>
+                    <div class="flex-1 text-left">
+                        <p class="font-semibold text-ink">Vérifier les applicatifs métier</p>
+                        <p class="text-xs text-muted">Cristal, GED, Messagerie</p>
+                    </div>
+                    <a href="#" class="p-2 bg-primary/10 text-primary flex-shrink-0" title="Liste de contrôle">
+                        <i data-feather="clipboard" class="w-5 h-5"></i>
+                    </a>
+                </button>
+            </div>
+            
+            <!-- Étape 8 -->
+            <div class="bg-white border-2 border-ink mb-2">
+                <button class="w-full flex items-center gap-4 p-3" onclick="toggleStep(this)">
+                    <div class="checkbox-large bg-white border-2 border-ink flex items-center justify-center flex-shrink-0">
+                    </div>
+                    <div class="flex-1 text-left">
+                        <p class="font-semibold text-ink">Faire signer l'agent</p>
+                        <p class="text-xs text-muted">Validation de la recette</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================================== -->
+    <!-- BARRE D'ACTIONS FIXE (56px min)               -->
+    <!-- ============================================== -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-ink p-4 space-y-2">
+        <!-- Bouton principal: Terminer -->
+        <button class="btn-action w-full bg-success text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-success/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Complétez d'abord toutes les étapes">
+            <i data-feather="check-circle" class="w-6 h-6"></i>
+            TERMINER L'INTERVENTION
+        </button>
+        
+        <!-- Actions secondaires -->
+        <div class="grid grid-cols-2 gap-2">
+            <button class="btn-action bg-warning/10 border-2 border-warning text-warning font-bold flex items-center justify-center gap-2 hover:bg-warning hover:text-white transition-colors">
+                <i data-feather="pause-circle" class="w-5 h-5"></i>
+                REPORTER
+            </button>
+            <button class="btn-action bg-danger/10 border-2 border-danger text-danger font-bold flex items-center justify-center gap-2 hover:bg-danger hover:text-white transition-colors">
+                <i data-feather="alert-triangle" class="w-5 h-5"></i>
+                PROBLÈME
+            </button>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+        
+        // Toggle step (simulation)
+        function toggleStep(btn) {
+            const checkbox = btn.querySelector('.checkbox-large');
+            const card = btn.closest('.bg-white');
+            const isChecked = checkbox.classList.contains('bg-success');
+            
+            if (isChecked) {
+                // Uncheck
+                checkbox.classList.remove('bg-success', 'border-success');
+                checkbox.classList.add('bg-white', 'border-ink');
+                checkbox.innerHTML = '';
+                card.classList.remove('step-done');
+            } else {
+                // Check
+                checkbox.classList.remove('bg-white', 'border-ink');
+                checkbox.classList.add('bg-success', 'border-success', 'check-bounce');
+                checkbox.innerHTML = '<svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>';
+                card.classList.add('step-done');
+            }
+            
+            updateProgress();
+        }
+        
+        // Update progress
+        function updateProgress() {
+            const total = document.querySelectorAll('.checkbox-large').length;
+            const done = document.querySelectorAll('.checkbox-large.bg-success').length;
+            const pct = Math.round((done / total) * 100);
+            
+            // Update text
+            document.querySelector('.num').textContent = `${done}/${total} étapes`;
+            document.querySelector('.text-xs.text-muted.mt-1').textContent = `${pct}% complété`;
+            
+            // Update button state
+            const finishBtn = document.querySelector('button[disabled]');
+            if (finishBtn) {
+                if (done === total) {
+                    finishBtn.disabled = false;
+                    finishBtn.title = '';
+                } else {
+                    finishBtn.disabled = true;
+                    finishBtn.title = 'Complétez d\'abord toutes les étapes';
+                }
+            }
+        }
+    </script>
+</body>
+</html>

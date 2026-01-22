@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpsTracker - Migration Windows 11 - 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'grotesk': ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        'ink': '#0a0a0a',
+                        'paper': '#f5f5f0',
+                        'cream': '#fafaf5',
+                        'primary': '#2563eb',
+                        'success': '#059669',
+                        'warning': '#d97706',
+                        'danger': '#dc2626',
+                        'complete': '#0d9488',
+                        'muted': '#6b6b6b',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Space Grotesk', sans-serif; }
+        
+        /* Status accent colors */
+        .status-realise { border-left: 4px solid #059669; }
+        .status-planifie { border-left: 4px solid #2563eb; }
+        .status-reporte { border-left: 4px solid #d97706; }
+        .status-remedier { border-left: 4px solid #dc2626; }
+        
+        /* Cards */
+        .card-elevated {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+        }
+        
+        /* Number styling */
+        .num {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.03em;
+        }
+        
+        /* Tab active state */
+        .tab-active {
+            position: relative;
+        }
+        .tab-active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #0a0a0a;
+        }
+        
+        /* Segment row hover */
+        .segment-row {
+            transition: background 0.15s ease;
+        }
+        .segment-row:hover {
+            background: #fafaf5;
+        }
+        
+        /* Live indicator pulse */
+        @keyframes pulse-live {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .live-pulse {
+            animation: pulse-live 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="h-full bg-paper text-ink antialiased">
+    
+<div class="flex h-screen overflow-hidden">
+    
+    <!-- ========================================
+         SIDEBAR
+         ======================================== -->
+    <aside class="w-80 bg-white border-r-4 border-ink flex flex-col flex-shrink-0 relative overflow-hidden">
+        
+        <!-- Éléments géométriques décoratifs -->
+        <div class="absolute -right-16 -top-16 w-48 h-48 bg-primary/5 rounded-full"></div>
+        <div class="absolute left-0 bottom-32 w-3 h-32 bg-success"></div>
+        
+        <!-- Logo -->
+        <div class="relative z-10 p-8">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div class="w-14 h-14 bg-primary flex items-center justify-center">
+                        <span class="text-2xl font-bold text-white">O</span>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-success"></div>
+                </div>
+                <div>
+                    <div class="text-xl font-bold tracking-tight text-ink">OpsTracker</div>
+                    <div class="text-xs text-muted uppercase tracking-widest mt-0.5">CPAM Nanterre</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation -->
+        <nav class="relative z-10 flex-1 px-6 py-4">
+            <div class="space-y-2">
+                <a href="#" class="flex items-center gap-4 px-4 py-3 bg-primary/5 text-ink font-medium relative">
+                    <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+                    <div class="w-8 h-8 bg-primary/10 flex items-center justify-center">
+                        <i data-feather="layers" class="w-4 h-4 text-primary"></i>
+                    </div>
+                    Campagnes
+                </a>
+                <a href="#" class="flex items-center gap-4 px-4 py-3 text-muted hover:text-ink hover:bg-paper transition-colors">
+                    <div class="w-8 h-8 border-2 border-ink/10 flex items-center justify-center">
+                        <i data-feather="users" class="w-4 h-4"></i>
+                    </div>
+                    Équipe
+                </a>
+                <a href="#" class="flex items-center gap-4 px-4 py-3 text-muted hover:text-ink hover:bg-paper transition-colors">
+                    <div class="w-8 h-8 border-2 border-ink/10 flex items-center justify-center">
+                        <i data-feather="settings" class="w-4 h-4"></i>
+                    </div>
+                    Configuration
+                </a>
+            </div>
+            
+            <!-- Épinglés -->
+            <div class="mt-12">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-2 h-2 bg-warning"></div>
+                    <span class="text-[10px] font-semibold text-muted uppercase tracking-[0.2em]">Épinglés</span>
+                </div>
+                <div class="space-y-1 pl-5 border-l-2 border-ink/10">
+                    <a href="#" class="flex items-center gap-3 py-2 text-ink font-medium transition-colors">
+                        <div class="w-2 h-2 bg-success"></div>
+                        <span class="text-sm">Migration W11</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 py-2 text-muted hover:text-ink transition-colors">
+                        <div class="w-2 h-2 bg-success"></div>
+                        <span class="text-sm">Déploiement O365</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3 py-2 text-muted hover:text-ink transition-colors">
+                        <div class="w-2 h-2 bg-warning"></div>
+                        <span class="text-sm">Refresh Équipements</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- User -->
+        <div class="relative z-10 p-6 border-t-2 border-ink/10">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div class="w-12 h-12 bg-primary/10 flex items-center justify-center text-lg font-semibold text-primary">
+                        SM
+                    </div>
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success"></div>
+                </div>
+                <div>
+                    <p class="font-medium text-ink">Sophie Martin</p>
+                    <p class="text-xs text-muted">Gestionnaire</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- ========================================
+         MAIN CONTENT
+         ======================================== -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-cream">
+        
+        <!-- CAMPAIGN HEADER -->
+        <header class="bg-white border-b-4 border-ink">
+            <!-- Top bar -->
+            <div class="px-10 py-6 flex justify-between items-start">
+                <div>
+                    <!-- Breadcrumb -->
+                    <div class="flex items-center gap-2 text-sm text-muted mb-3">
+                        <a href="#" class="hover:text-ink">Campagnes</a>
+                        <i data-feather="chevron-right" class="w-4 h-4"></i>
+                        <span class="text-ink font-medium">Migration Windows 11 - 2026</span>
+                    </div>
+                    
+                    <!-- Title + Status -->
+                    <div class="flex items-center gap-4">
+                        <h1 class="text-3xl font-bold tracking-tight">Migration Windows 11 - 2026</h1>
+                        <span class="px-3 py-1 bg-success text-white text-[10px] font-bold uppercase tracking-wider">En cours</span>
+                    </div>
+                    
+                    <!-- Meta -->
+                    <div class="flex items-center gap-6 mt-3 text-sm text-muted">
+                        <span class="flex items-center gap-2">
+                            <i data-feather="monitor" class="w-4 h-4"></i>
+                            Migration poste de travail
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <i data-feather="calendar" class="w-4 h-4"></i>
+                            15 jan 2026 → 28 fév 2026
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <i data-feather="users" class="w-4 h-4"></i>
+                            4 techniciens
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <i data-feather="target" class="w-4 h-4"></i>
+                            847 opérations
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex items-center gap-3">
+                    <button class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                        <i data-feather="share-2" class="w-4 h-4"></i>
+                        Partager
+                    </button>
+                    <button class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                        <i data-feather="download" class="w-4 h-4"></i>
+                        Export PDF
+                    </button>
+                    <button class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                        <i data-feather="settings" class="w-4 h-4"></i>
+                        Configurer
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Tabs Navigation -->
+            <div class="px-10 flex items-center gap-8">
+                <a href="#" class="py-4 text-sm font-semibold text-ink tab-active">
+                    Dashboard
+                </a>
+                <a href="#" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+                    Opérations
+                </a>
+                <a href="#" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+                    Checklists
+                </a>
+                <a href="#" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+                    Documents
+                </a>
+                <a href="#" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+                    Prérequis
+                </a>
+            </div>
+        </header>
+        
+        <!-- CONTENT -->
+        <div class="flex-1 overflow-auto">
+            <div class="px-10 py-8">
+                
+                <!-- Live indicator -->
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-2 h-2 bg-success rounded-full live-pulse"></div>
+                    <span class="text-xs font-medium text-muted uppercase tracking-wider">Données temps réel</span>
+                    <span class="text-xs text-muted">• Mise à jour il y a 12 secondes</span>
+                </div>
+                
+                <!-- ========================================
+                     4 WIDGETS STATUTS (US-601)
+                     RGAA: icône + couleur + texte
+                     ======================================== -->
+                <div class="grid grid-cols-4 gap-6 mb-10">
+                    
+                    <!-- Widget RÉALISÉ -->
+                    <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-success"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-success/10 flex items-center justify-center">
+                                <i data-feather="check-circle" class="w-6 h-6 text-success"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-success uppercase tracking-wider">+12 aujourd'hui</span>
+                        </div>
+                        <p class="text-5xl font-bold num text-ink mb-1">619</p>
+                        <p class="text-sm font-medium text-muted uppercase tracking-wide">Réalisé</p>
+                        <div class="mt-4 pt-4 border-t border-ink/10">
+                            <div class="h-1.5 bg-paper">
+                                <div class="h-full bg-success" style="width: 73%"></div>
+                            </div>
+                            <p class="text-xs text-muted mt-2">73% du total</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Widget PLANIFIÉ -->
+                    <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-primary/10 flex items-center justify-center">
+                                <i data-feather="clock" class="w-6 h-6 text-primary"></i>
+                            </div>
+                        </div>
+                        <p class="text-5xl font-bold num text-ink mb-1">142</p>
+                        <p class="text-sm font-medium text-muted uppercase tracking-wide">Planifié</p>
+                        <div class="mt-4 pt-4 border-t border-ink/10">
+                            <div class="h-1.5 bg-paper">
+                                <div class="h-full bg-primary" style="width: 17%"></div>
+                            </div>
+                            <p class="text-xs text-muted mt-2">17% du total</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Widget REPORTÉ -->
+                    <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-warning"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-warning/10 flex items-center justify-center">
+                                <i data-feather="pause-circle" class="w-6 h-6 text-warning"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-warning uppercase tracking-wider">+3 cette semaine</span>
+                        </div>
+                        <p class="text-5xl font-bold num text-ink mb-1">52</p>
+                        <p class="text-sm font-medium text-muted uppercase tracking-wide">Reporté</p>
+                        <div class="mt-4 pt-4 border-t border-ink/10">
+                            <div class="h-1.5 bg-paper">
+                                <div class="h-full bg-warning" style="width: 6%"></div>
+                            </div>
+                            <p class="text-xs text-muted mt-2">6% du total</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Widget À REMÉDIER -->
+                    <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-danger"></div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-danger/10 flex items-center justify-center">
+                                <i data-feather="alert-triangle" class="w-6 h-6 text-danger"></i>
+                            </div>
+                            <span class="text-xs font-semibold text-danger uppercase tracking-wider">Action requise</span>
+                        </div>
+                        <p class="text-5xl font-bold num text-ink mb-1">34</p>
+                        <p class="text-sm font-medium text-muted uppercase tracking-wide">À remédier</p>
+                        <div class="mt-4 pt-4 border-t border-ink/10">
+                            <div class="h-1.5 bg-paper">
+                                <div class="h-full bg-danger" style="width: 4%"></div>
+                            </div>
+                            <p class="text-xs text-muted mt-2">4% du total</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- ========================================
+                     GRID: Segments + Activité récente
+                     ======================================== -->
+                <div class="grid grid-cols-12 gap-8">
+                    
+                    <!-- PROGRESSION PAR SEGMENT (US-602) -->
+                    <div class="col-span-8">
+                        <div class="card-elevated border-2 border-ink">
+                            <div class="p-6 border-b-2 border-ink/10">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-3 h-3 bg-primary"></div>
+                                        <h2 class="text-lg font-bold">Progression par segment</h2>
+                                    </div>
+                                    <span class="text-xs text-muted">5 segments • 847 opérations</span>
+                                </div>
+                            </div>
+                            
+                            <div class="divide-y divide-ink/5">
+                                
+                                <!-- Segment 1 - OK -->
+                                <div class="segment-row p-5 cursor-pointer" onclick="window.location='#'">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-3 h-3 bg-success"></div>
+                                            <h3 class="font-semibold text-ink">Bâtiment A — Siège</h3>
+                                            <span class="text-xs text-muted">234 opérations</span>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-2xl font-bold num text-ink">89%</span>
+                                            <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
+                                        </div>
+                                    </div>
+                                    <div class="h-3 bg-paper flex overflow-hidden">
+                                        <div class="bg-success h-full" style="width: 89%"></div>
+                                        <div class="bg-primary h-full" style="width: 5%"></div>
+                                        <div class="bg-warning h-full" style="width: 4%"></div>
+                                        <div class="bg-danger h-full" style="width: 2%"></div>
+                                    </div>
+                                    <div class="flex items-center gap-6 mt-2 text-xs text-muted">
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-success"></span> 208 réalisés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-primary"></span> 12 planifiés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-warning"></span> 9 reportés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-danger"></span> 5 à remédier</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Segment 2 - OK -->
+                                <div class="segment-row p-5 cursor-pointer" onclick="window.location='#'">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-3 h-3 bg-success"></div>
+                                            <h3 class="font-semibold text-ink">Bâtiment B — Annexe Nord</h3>
+                                            <span class="text-xs text-muted">187 opérations</span>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-2xl font-bold num text-ink">76%</span>
+                                            <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
+                                        </div>
+                                    </div>
+                                    <div class="h-3 bg-paper flex overflow-hidden">
+                                        <div class="bg-success h-full" style="width: 76%"></div>
+                                        <div class="bg-primary h-full" style="width: 14%"></div>
+                                        <div class="bg-warning h-full" style="width: 6%"></div>
+                                        <div class="bg-danger h-full" style="width: 4%"></div>
+                                    </div>
+                                    <div class="flex items-center gap-6 mt-2 text-xs text-muted">
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-success"></span> 142 réalisés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-primary"></span> 26 planifiés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-warning"></span> 11 reportés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-danger"></span> 8 à remédier</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Segment 3 - OK -->
+                                <div class="segment-row p-5 cursor-pointer" onclick="window.location='#'">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-3 h-3 bg-success"></div>
+                                            <h3 class="font-semibold text-ink">Bâtiment C — Annexe Sud</h3>
+                                            <span class="text-xs text-muted">156 opérations</span>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-2xl font-bold num text-ink">68%</span>
+                                            <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
+                                        </div>
+                                    </div>
+                                    <div class="h-3 bg-paper flex overflow-hidden">
+                                        <div class="bg-success h-full" style="width: 68%"></div>
+                                        <div class="bg-primary h-full" style="width: 20%"></div>
+                                        <div class="bg-warning h-full" style="width: 8%"></div>
+                                        <div class="bg-danger h-full" style="width: 4%"></div>
+                                    </div>
+                                    <div class="flex items-center gap-6 mt-2 text-xs text-muted">
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-success"></span> 106 réalisés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-primary"></span> 31 planifiés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-warning"></span> 12 reportés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-danger"></span> 7 à remédier</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Segment 4 - EN RETARD -->
+                                <div class="segment-row p-5 cursor-pointer bg-danger/5" onclick="window.location='#'">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-3 h-3 bg-warning"></div>
+                                            <h3 class="font-semibold text-ink">Bâtiment D — Service Technique</h3>
+                                            <span class="text-xs text-muted">145 opérations</span>
+                                            <span class="flex items-center gap-1 px-2 py-0.5 bg-danger text-white text-[10px] font-bold uppercase">
+                                                <i data-feather="alert-triangle" class="w-3 h-3"></i>
+                                                En retard
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-2xl font-bold num text-danger">42%</span>
+                                            <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
+                                        </div>
+                                    </div>
+                                    <div class="h-3 bg-paper flex overflow-hidden">
+                                        <div class="bg-success h-full" style="width: 42%"></div>
+                                        <div class="bg-primary h-full" style="width: 30%"></div>
+                                        <div class="bg-warning h-full" style="width: 18%"></div>
+                                        <div class="bg-danger h-full" style="width: 10%"></div>
+                                    </div>
+                                    <div class="flex items-center gap-6 mt-2 text-xs text-muted">
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-success"></span> 61 réalisés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-primary"></span> 44 planifiés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-warning"></span> 26 reportés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-danger"></span> 14 à remédier</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Segment 5 - OK -->
+                                <div class="segment-row p-5 cursor-pointer" onclick="window.location='#'">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-3 h-3 bg-success"></div>
+                                            <h3 class="font-semibold text-ink">Bâtiment E — Accueil Public</h3>
+                                            <span class="text-xs text-muted">125 opérations</span>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-2xl font-bold num text-ink">82%</span>
+                                            <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
+                                        </div>
+                                    </div>
+                                    <div class="h-3 bg-paper flex overflow-hidden">
+                                        <div class="bg-success h-full" style="width: 82%"></div>
+                                        <div class="bg-primary h-full" style="width: 12%"></div>
+                                        <div class="bg-warning h-full" style="width: 6%"></div>
+                                    </div>
+                                    <div class="flex items-center gap-6 mt-2 text-xs text-muted">
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-success"></span> 102 réalisés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-primary"></span> 15 planifiés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-warning"></span> 8 reportés</span>
+                                        <span class="flex items-center gap-1"><span class="w-2 h-2 bg-danger"></span> 0 à remédier</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- COLONNE DROITE -->
+                    <div class="col-span-4 space-y-6">
+                        
+                        <!-- Activité récente -->
+                        <div class="card-elevated border-2 border-ink">
+                            <div class="p-5 border-b-2 border-ink/10">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 bg-success"></div>
+                                    <h2 class="font-bold">Activité récente</h2>
+                                </div>
+                            </div>
+                            <div class="divide-y divide-ink/5">
+                                <div class="p-4 flex items-start gap-3">
+                                    <div class="w-8 h-8 bg-success/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i data-feather="check" class="w-4 h-4 text-success"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-sm text-ink"><span class="font-semibold">Karim D.</span> a terminé <span class="font-medium">PC-0847</span></p>
+                                        <p class="text-xs text-muted mt-0.5">Bâtiment A • Il y a 3 min</p>
+                                    </div>
+                                </div>
+                                <div class="p-4 flex items-start gap-3">
+                                    <div class="w-8 h-8 bg-success/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i data-feather="check" class="w-4 h-4 text-success"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-sm text-ink"><span class="font-semibold">Marc L.</span> a terminé <span class="font-medium">PC-0652</span></p>
+                                        <p class="text-xs text-muted mt-0.5">Bâtiment B • Il y a 12 min</p>
+                                    </div>
+                                </div>
+                                <div class="p-4 flex items-start gap-3">
+                                    <div class="w-8 h-8 bg-warning/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i data-feather="pause" class="w-4 h-4 text-warning"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-sm text-ink"><span class="font-semibold">Julie R.</span> a reporté <span class="font-medium">PC-0423</span></p>
+                                        <p class="text-xs text-muted mt-0.5">Bâtiment D • Il y a 25 min</p>
+                                    </div>
+                                </div>
+                                <div class="p-4 flex items-start gap-3">
+                                    <div class="w-8 h-8 bg-danger/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i data-feather="alert-triangle" class="w-4 h-4 text-danger"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-sm text-ink"><span class="font-semibold">Karim D.</span> a signalé <span class="font-medium">PC-0291</span></p>
+                                        <p class="text-xs text-muted mt-0.5">Bâtiment D • Il y a 1h</p>
+                                    </div>
+                                </div>
+                                <div class="p-4 flex items-start gap-3">
+                                    <div class="w-8 h-8 bg-success/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <i data-feather="check" class="w-4 h-4 text-success"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-sm text-ink"><span class="font-semibold">Thomas P.</span> a terminé <span class="font-medium">PC-0518</span></p>
+                                        <p class="text-xs text-muted mt-0.5">Bâtiment E • Il y a 1h</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 border-t border-ink/10">
+                                <a href="#" class="text-sm font-medium text-primary hover:underline">Voir toute l'activité →</a>
+                            </div>
+                        </div>
+                        
+                        <!-- Équipe -->
+                        <div class="card-elevated border-2 border-ink">
+                            <div class="p-5 border-b-2 border-ink/10">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-3 h-3 bg-primary"></div>
+                                    <h2 class="font-bold">Équipe assignée</h2>
+                                </div>
+                            </div>
+                            <div class="p-4 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-ink/5 flex items-center justify-center font-semibold text-sm">KD</div>
+                                        <div>
+                                            <p class="font-medium text-sm">Karim Dupont</p>
+                                            <p class="text-xs text-muted">187 assignées • 142 réalisées</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-bold num text-success">76%</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-ink/5 flex items-center justify-center font-semibold text-sm">ML</div>
+                                        <div>
+                                            <p class="font-medium text-sm">Marc Lefebvre</p>
+                                            <p class="text-xs text-muted">234 assignées • 198 réalisées</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-bold num text-success">85%</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-ink/5 flex items-center justify-center font-semibold text-sm">JR</div>
+                                        <div>
+                                            <p class="font-medium text-sm">Julie Robert</p>
+                                            <p class="text-xs text-muted">215 assignées • 156 réalisées</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-bold num text-success">73%</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-ink/5 flex items-center justify-center font-semibold text-sm">TP</div>
+                                        <div>
+                                            <p class="font-medium text-sm">Thomas Petit</p>
+                                            <p class="text-xs text-muted">211 assignées • 123 réalisées</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-bold num text-warning">58%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        feather.replace();
+    });
+</script>
+</body>
+</html>
