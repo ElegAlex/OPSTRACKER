@@ -106,8 +106,8 @@
                     <p class="font-medium text-ink truncate">{{ app.user.prenom }} {{ app.user.nom }}</p>
                     <p class="text-xs text-muted">{{ app.user.roles|first|replace({'ROLE_': ''})|lower|capitalize }}</p>
                 </div>
-                <a href="{{ path('app_logout') }}" class="w-8 h-8 border border-ink/10 flex items-center justify-center text-muted hover:bg-ink hover:text-white hover:border-ink transition-colors">
-                    <i data-feather="log-out" class="w-4 h-4"></i>
+                <a href="{{ path('app_logout') }}" class="w-8 h-8 border border-ink/10 flex items-center justify-center text-muted hover:bg-ink hover:text-white hover:border-ink transition-colors" aria-label="Se deconnecter" title="Se deconnecter">
+                    <i data-feather="log-out" class="w-4 h-4" aria-hidden="true"></i>
                 </a>
             </div>
         </div>

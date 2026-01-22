@@ -16,8 +16,8 @@
 {% block header_left %}
     <div class="flex items-center gap-3">
         {# Bouton retour (44x44 minimum) #}
-        <a href="{{ path('terrain_index') }}" class="w-10 h-10 flex items-center justify-center border-2 border-ink hover:bg-ink hover:text-white transition-colors text-ink">
-            <i data-feather="arrow-left" class="w-6 h-6"></i>
+        <a href="{{ path('terrain_index') }}" class="w-10 h-10 flex items-center justify-center border-2 border-ink hover:bg-ink hover:text-white transition-colors text-ink" aria-label="Retour a la liste" title="Retour a la liste">
+            <i data-feather="arrow-left" class="w-6 h-6" aria-hidden="true"></i>
         </a>
 
         {# Titre #}

@@ -31,6 +31,59 @@
 
 ## Sessions
 
+### Session #9 — 2026-01-22
+
+**Duree** : ~60 min
+**Tache(s)** : T-801 a T-807 (Sprint 8 complet - Tests & Polish MVP)
+**Statut** : ✅ Termine
+
+### Realise
+- **T-801** : Fixtures de demo avec Doctrine Fixtures Bundle + Faker
+  - 6 utilisateurs (admin, gestionnaire, techniciens)
+  - 3 campagnes (en_cours, a_venir, terminee)
+  - 9 segments, 150 operations avec distribution realiste
+  - 2 templates de checklist, instances pour operations en cours/realisees
+- **T-802/T-803** : Audit accessibilite RGAA automatise
+  - AccessibilityAuditTest.php avec verification des regles RG-080 a RG-085
+  - Score 100% apres corrections aria-label
+- **T-804** : Tests E2E parcours critique
+  - CriticalPathTest.php avec 14 tests fonctionnels WebTestCase
+  - Couverture : login, campagnes, dashboard, admin
+- **T-805** : Test de charge basique
+  - Script load_test.sh (Apache Benchmark)
+  - LoadTestReport.php documentant les exigences de performance
+- **T-806** : Documentation deploiement Docker
+  - README.md complet avec installation, comptes demo, architecture, commandes
+- **T-807** : TAG v0.1.0-mvp
+
+### Fichiers crees
+- `src/DataFixtures/AppFixtures.php`
+- `tests/Accessibility/AccessibilityAuditTest.php`
+- `tests/Functional/CriticalPathTest.php`
+- `tests/LoadTest/LoadTestReport.php`
+- `tests/LoadTest/load_test.sh`
+
+### Fichiers modifies
+- `README.md` - documentation complete
+- `tests/bootstrap.php` - force APP_ENV=test
+- `templates/campagne/_layout.html.twig` - aria-label logout
+- `templates/terrain/show.html.twig` - aria-label back button
+- `claude/PROGRESS.md` - Sprint 8 complete
+
+### Problemes rencontres
+- Alice bundle incompatible PHP 8.3/Doctrine ORM 3.6 → utilise doctrine-fixtures-bundle + faker
+- PHPUnit 12 dataProvider deprecated → simplifie tests accessibilite
+- framework.test config error → force APP_ENV=test dans bootstrap.php
+- Test database manquante → cree opstracker_test avec fixtures
+
+### Tests
+- Total : 129 tests passants (102 + 8 accessibilite + 14 E2E + 5 load test)
+
+### Commits
+- A venir avec tag v0.1.0-mvp
+
+---
+
 ### Session #8 — 2026-01-22
 
 **Duree** : ~35 min

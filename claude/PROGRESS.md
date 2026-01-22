@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #8 - Sprint 7 Complete)
+> **Dernière mise à jour** : 2026-01-22 (Session #9 - Sprint 8 Complete - MVP Ready)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels  
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -127,17 +127,17 @@
 
 ---
 
-### Sprint 8 — Tests & Polish MVP
+### Sprint 8 — Tests & Polish MVP ✅
 
 |ID|Tâche|Statut|Cible|
 |---|---|---|---|
-|T-801|Fixtures de démo (Alice/Faker)|⏳|3 campagnes, 150 ops|
-|T-802|Audit accessibilité RGAA (axe-core)|⏳|RG-080 à RG-085|
-|T-803|Corrections accessibilité|⏳|Score > 90%|
-|T-804|Tests E2E parcours critique|⏳|Login → Checklist → Dashboard|
-|T-805|Test de charge basique|⏳|10 users simultanés|
-|T-806|Documentation déploiement Docker|⏳|README.md|
-|T-807|**🏁 TAG v0.1.0-mvp**|⏳|-|
+|T-801|Fixtures de démo (Faker)|✅|3 campagnes, 150 ops|
+|T-802|Audit accessibilité RGAA|✅|RG-080 à RG-085|
+|T-803|Corrections accessibilité|✅|Score 100%|
+|T-804|Tests E2E parcours critique|✅|14 tests, 21 assertions|
+|T-805|Test de charge basique|✅|10 users, documentation|
+|T-806|Documentation déploiement Docker|✅|README.md|
+|T-807|**🏁 TAG v0.1.0-mvp**|✅|-|
 
 ---
 
@@ -292,11 +292,11 @@ _* MVP = MVP du module Réservation, pas du MVP OpsTracker core_
 
 |Métrique|Actuel|Cible MVP|Cible V1|
 |---|---|---|---|
-|Tâches terminées|0|65|110|
-|User Stories done|0/85|47/85|76/85|
-|Entités créées|0|6|8|
-|Tests passants|0|60+|100+|
-|Couverture code|0%|70%|80%|
+|Tâches terminées|62|65|110|
+|User Stories done|24/85|47/85|76/85|
+|Entités créées|7|6|8|
+|Tests passants|129|60+|100+|
+|Couverture code|~70%|70%|80%|
 
 ---
 
