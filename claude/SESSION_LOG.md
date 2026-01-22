@@ -31,6 +31,42 @@
 
 ## Sessions
 
+### Session #8 — 2026-01-22
+
+**Duree** : ~35 min
+**Tache(s)** : T-701 a T-706 (Sprint 7 complet)
+**Statut** : ✅ Termine
+
+### Realise
+- DashboardService avec statistiques KPI, progression par segment, equipe, activite recente
+- DashboardController avec routes dashboard campagne, dashboard global, segments, refresh
+- Templates dashboard Twig basees sur mockup campaign-dashboard.html (design Bauhaus)
+- Turbo Frames pour mise a jour temps reel (RG-040)
+- Triple signalisation RGAA (RG-080) : icone + couleur + texte sur tous les widgets
+- Widgets KPI : realise, planifie, reporte, a remedier avec pourcentages
+- Progression par segment avec detection segments en retard
+- Dashboard global multi-campagnes avec totaux agreges
+- Tests unitaires DashboardService (12 tests, 95 assertions)
+- Total : 102 tests passants, 379 assertions
+
+### Fichiers crees
+- `src/Service/DashboardService.php`
+- `src/Controller/DashboardController.php`
+- `templates/dashboard/campagne.html.twig`
+- `templates/dashboard/global.html.twig`
+- `templates/dashboard/segment.html.twig`
+- `templates/dashboard/_segments.html.twig`
+- `templates/dashboard/_activite.html.twig`
+- `templates/dashboard/_equipe.html.twig`
+- `templates/dashboard/_widget_kpi.html.twig`
+- `templates/dashboard/_turbo_refresh.html.twig`
+- `tests/Unit/Service/DashboardServiceTest.php`
+
+### Commits
+- `e1cd589` [T-701,T-702,T-703,T-704,T-705,T-706] Implement Dashboard Sophie (Sprint 7)
+
+---
+
 ### Session #7 — 2026-01-22
 
 **Duree** : ~30 min

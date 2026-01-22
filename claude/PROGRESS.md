@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #7 - Sprint 6 Complete)
+> **Dernière mise à jour** : 2026-01-22 (Session #8 - Sprint 7 Complete)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels  
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -114,16 +114,16 @@
 
 ---
 
-### Sprint 7 — Dashboard Sophie (EPIC-06 MVP)
+### Sprint 7 — Dashboard Sophie (EPIC-06 MVP) ✅
 
 |ID|US|Titre|Statut|RG|Priorité|
 |---|---|---|---|---|---|
-|T-701|US-601|Voir le dashboard temps réel|⏳|RG-040, RG-080, RG-081|🔴 MVP|
-|T-702|US-602|Voir la progression par segment|⏳|-|🔴 MVP|
-|T-703|US-607|Voir le dashboard global multi-campagnes|⏳|-|🔴 MVP|
-|T-704|-|Turbo Streams pour temps réel|⏳|RG-040|MVP|
-|T-705|-|Widgets KPI (compteurs statuts)|⏳|-|MVP|
-|T-706|-|Tests DashboardController|⏳|-|MVP|
+|T-701|US-601|Voir le dashboard temps réel|✅|RG-040, RG-080, RG-081|🔴 MVP|
+|T-702|US-602|Voir la progression par segment|✅|-|🔴 MVP|
+|T-703|US-607|Voir le dashboard global multi-campagnes|✅|-|🔴 MVP|
+|T-704|-|Turbo Streams pour temps réel|✅|RG-040|MVP|
+|T-705|-|Widgets KPI (compteurs statuts)|✅|-|MVP|
+|T-706|-|Tests DashboardService|✅|-|MVP|
 
 ---
 

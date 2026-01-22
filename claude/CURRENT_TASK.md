@@ -1,13 +1,13 @@
 # CURRENT_TASK.md — Tache en Cours
 
 > **Assigne le** : 2026-01-22
-> **Session** : #7 (terminee)
+> **Session** : #8 (terminee)
 
 ---
 
-## Tache : Sprint 6 — Checklists (EPIC-05 MVP) ✅ COMPLETE
+## Tache : Sprint 7 — Dashboard Sophie (EPIC-06 MVP) ✅ COMPLETE
 
-**Sprint** : 6 - Checklists
+**Sprint** : 7 - Dashboard Sophie
 **Priorite** : MVP
 **Statut** : ✅ TERMINE
 
@@ -15,46 +15,51 @@
 
 ## Taches realisees
 
-| ID    | US     | Titre                                      | Statut | RG     |
-| ----- | ------ | ------------------------------------------ | ------ | ------ |
-| T-601 | US-503 | Creer un template de checklist (Sophie)    | ✅      | RG-030 |
-| T-602 | -      | CRUD Templates EasyAdmin                   | ✅      | -      |
-| T-603 | US-501 | Cocher une etape de checklist (48x48px)    | ✅      | RG-082 |
-| T-604 | US-502 | Voir la progression de la checklist        | ✅      | -      |
-| T-605 | -      | Turbo Frames pour update sans reload       | ✅      | -      |
-| T-606 | -      | Tests ChecklistService                     | ✅      | -      |
+| ID    | US     | Titre                                      | Statut | RG                       |
+| ----- | ------ | ------------------------------------------ | ------ | ------------------------ |
+| T-701 | US-601 | Voir le dashboard temps reel               | ✅      | RG-040, RG-080, RG-081   |
+| T-702 | US-602 | Voir la progression par segment            | ✅      | -                        |
+| T-703 | US-607 | Voir le dashboard global multi-campagnes   | ✅      | -                        |
+| T-704 | -      | Turbo Streams pour temps reel              | ✅      | RG-040                   |
+| T-705 | -      | Widgets KPI (compteurs statuts)            | ✅      | -                        |
+| T-706 | -      | Tests DashboardService                     | ✅      | -                        |
 
 ---
 
 ## Fichiers crees/modifies
 
 ### Service
-- `src/Service/ChecklistService.php` — Gestion templates et instances
+- `src/Service/DashboardService.php` — KPIs, progression segments, equipe, activite
 
 ### Controller
-- `src/Controller/Admin/ChecklistTemplateCrudController.php` — CRUD EasyAdmin
-- `src/Controller/TerrainController.php` — Route toggleEtape ajoutee
+- `src/Controller/DashboardController.php` — Routes dashboard campagne/global/refresh
 
 ### Templates
-- `templates/admin/field/checklist_etapes.html.twig` — Affichage structure template
-- `templates/terrain/_checklist.html.twig` — Composant checklist avec Turbo Frame
-- `templates/terrain/show.html.twig` — Integration checklist
+- `templates/dashboard/campagne.html.twig` — Dashboard principal d'une campagne
+- `templates/dashboard/global.html.twig` — Vue multi-campagnes
+- `templates/dashboard/segment.html.twig` — Detail d'un segment
+- `templates/dashboard/_segments.html.twig` — Composant liste segments
+- `templates/dashboard/_activite.html.twig` — Composant activite recente
+- `templates/dashboard/_equipe.html.twig` — Composant equipe assignee
+- `templates/dashboard/_widget_kpi.html.twig` — Widget KPI individuel
+- `templates/dashboard/_turbo_refresh.html.twig` — Turbo Stream refresh
 
 ### Tests
-- `tests/Unit/Service/ChecklistServiceTest.php` — 19 tests, 69 assertions
+- `tests/Unit/Service/DashboardServiceTest.php` — 12 tests, 95 assertions
 
 ---
 
-## Prochaine tache : Sprint 7 — Dashboard Sophie (EPIC-06 MVP)
+## Prochaine tache : Sprint 8 — Tests & Polish MVP
 
-| ID    | US     | Titre                                  | Statut | RG                       |
-| ----- | ------ | -------------------------------------- | ------ | ------------------------ |
-| T-701 | US-601 | Voir le dashboard temps reel           | ⏳      | RG-040, RG-080, RG-081   |
-| T-702 | US-602 | Voir la progression par segment        | ⏳      | -                        |
-| T-703 | US-607 | Voir le dashboard global multi-campagnes| ⏳     | -                        |
-| T-704 | -      | Turbo Streams pour temps reel          | ⏳      | RG-040                   |
-| T-705 | -      | Widgets KPI (compteurs statuts)        | ⏳      | -                        |
-| T-706 | -      | Tests DashboardController              | ⏳      | -                        |
+| ID    | Tache                                    | Statut | Cible                          |
+| ----- | ---------------------------------------- | ------ | ------------------------------ |
+| T-801 | Fixtures de demo (Alice/Faker)           | ⏳      | 3 campagnes, 150 ops           |
+| T-802 | Audit accessibilite RGAA (axe-core)      | ⏳      | RG-080 a RG-085                |
+| T-803 | Corrections accessibilite                | ⏳      | Score > 90%                    |
+| T-804 | Tests E2E parcours critique              | ⏳      | Login -> Checklist -> Dashboard|
+| T-805 | Test de charge basique                   | ⏳      | 10 users simultanes            |
+| T-806 | Documentation deploiement Docker         | ⏳      | README.md                      |
+| T-807 | **TAG v0.1.0-mvp**                        | ⏳      | -                              |
 
 ---
 
@@ -63,5 +68,5 @@
 ```bash
 # Tous les tests passent
 php bin/phpunit
-# OK, Tests: 90, Assertions: 284
+# OK, Tests: 102, Assertions: 379
 ```
