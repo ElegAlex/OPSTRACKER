@@ -23,10 +23,28 @@
                 <span class="text-muted">/ {{ stats.total }}</span>
             </div>
 
-            <div class="flex items-center gap-2 flex-shrink-0">
-                <button onclick="event.stopPropagation();" class="w-8 h-8 border border-ink/10 flex items-center justify-center text-muted hover:bg-ink hover:text-white hover:border-ink transition-colors">
+            <div class="relative flex-shrink-0" onclick="event.stopPropagation();">
+                <button onclick="closeAllDropdowns(); this.nextElementSibling.classList.toggle('hidden'); this.closest('.card-hover').classList.toggle('dropdown-open')" class="w-8 h-8 border border-ink/10 flex items-center justify-center text-muted hover:bg-ink hover:text-white hover:border-ink transition-colors">
                     <i data-feather="more-horizontal" class="w-4 h-4"></i>
                 </button>
+                <div class="hidden absolute right-0 top-10 w-48 bg-white border-2 border-ink shadow-lg z-50">
+                    <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="flex items-center gap-3 px-4 py-3 text-sm hover:bg-paper transition-colors">
+                        <i data-feather="bar-chart-2" class="w-4 h-4"></i>
+                        Dashboard
+                    </a>
+                    <a href="{{ path('app_campagne_show', {id: campagne.id}) }}" class="flex items-center gap-3 px-4 py-3 text-sm hover:bg-paper transition-colors">
+                        <i data-feather="eye" class="w-4 h-4"></i>
+                        Voir details
+                    </a>
+                    <div class="border-t border-ink/10"></div>
+                    <form action="{{ path('app_campagne_delete', {id: campagne.id}) }}" method="POST" onsubmit="return confirm('Supprimer la campagne « {{ campagne.nom|e('js') }} » et toutes ses operations ?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('campagne_delete_' ~ campagne.id) }}">
+                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-danger hover:bg-danger/10 transition-colors">
+                            <i data-feather="trash-2" class="w-4 h-4"></i>
+                            Supprimer
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

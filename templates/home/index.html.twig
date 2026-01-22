@@ -21,7 +21,7 @@
 
         {# Navigation #}
         <nav class="flex-1 px-6 py-4">
-            <a href="#" class="flex items-center gap-4 px-4 py-3 bg-primary/5 text-ink font-medium relative mb-2">
+            <a href="{{ path('app_campagne_index') }}" class="flex items-center gap-4 px-4 py-3 bg-primary/5 text-ink font-medium relative mb-2">
                 <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
                 <div class="w-8 h-8 bg-primary/10 flex items-center justify-center">
                     <i data-feather="layers" class="w-4 h-4 text-primary"></i>
@@ -29,11 +29,11 @@
                 Campagnes
             </a>
 
-            <a href="#" class="flex items-center gap-4 px-4 py-3 text-muted hover:text-ink hover:bg-paper transition-colors mb-2">
+            <a href="{{ path('app_dashboard_global') }}" class="flex items-center gap-4 px-4 py-3 text-muted hover:text-ink hover:bg-paper transition-colors mb-2">
                 <div class="w-8 h-8 border-2 border-ink/10 flex items-center justify-center">
-                    <i data-feather="users" class="w-4 h-4"></i>
+                    <i data-feather="bar-chart-2" class="w-4 h-4"></i>
                 </div>
-                Equipe
+                Dashboard
             </a>
 
             {% if is_granted('ROLE_ADMIN') %}
@@ -134,10 +134,10 @@
                     Commencez par creer votre premiere campagne.
                 </p>
                 <div class="flex gap-4">
-                    <button class="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                    <a href="{{ path('app_campagne_new') }}" class="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
                         <i data-feather="plus" class="w-4 h-4"></i>
                         Nouvelle campagne
-                    </button>
+                    </a>
                     <button class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
                         <i data-feather="book-open" class="w-4 h-4"></i>
                         Guide de demarrage

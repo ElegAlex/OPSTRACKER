@@ -29,10 +29,15 @@
     /* Hover lift */
     .card-hover {
         transition: transform 0.2s ease, box-shadow 0.2s ease;
+        position: relative;
     }
     .card-hover:hover {
         transform: translateY(-2px);
         box-shadow: 0 12px 40px -12px rgba(0,0,0,0.15);
+    }
+    /* Dropdown open state - high z-index */
+    .card-hover.dropdown-open {
+        z-index: 100;
     }
 
     /* Number styling */
@@ -121,4 +126,20 @@
         {% block main %}{% endblock %}
     </main>
 </div>
+
+<script>
+function closeAllDropdowns() {
+    document.querySelectorAll('.card-hover.dropdown-open').forEach(card => {
+        card.classList.remove('dropdown-open');
+        card.querySelector('.absolute.right-0')?.classList.add('hidden');
+    });
+}
+
+// Fermer les dropdowns en cliquant ailleurs
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.dropdown-open')) {
+        closeAllDropdowns();
+    }
+});
+</script>
 {% endblock %}

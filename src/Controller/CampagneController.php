@@ -182,4 +182,25 @@ class CampagneController extends AbstractController
 
         return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
     }
+
+    /**
+     * Supprime une campagne et toutes ses operations.
+     */
+    #[Route('/{id}/supprimer', name: 'app_campagne_delete', methods: ['POST'])]
+    public function delete(Campagne $campagne, Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('campagne_delete_' . $campagne->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Token CSRF invalide.');
+            return $this->redirectToRoute('app_campagne_index');
+        }
+
+        $nom = $campagne->getNom();
+
+        $this->entityManager->remove($campagne);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', sprintf('Campagne "%s" supprimee.', $nom));
+
+        return $this->redirectToRoute('app_campagne_index');
+    }
 }

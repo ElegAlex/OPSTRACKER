@@ -19,9 +19,9 @@
                        class="w-64 px-5 py-3 text-sm bg-paper border-2 border-transparent focus:border-ink focus:bg-white outline-none transition-all">
                 <i data-feather="search" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"></i>
             </div>
-            <a href="{{ path('app_campagne_new') }}" class="flex items-center gap-3 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
-                <i data-feather="plus" class="w-4 h-4"></i>
-                Nouvelle campagne
+            <a href="{{ path('app_campagne_new') }}" data-turbo="false" class="flex items-center gap-3 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors cursor-pointer">
+                <i data-feather="plus" class="w-4 h-4 pointer-events-none"></i>
+                <span>Nouvelle campagne</span>
             </a>
         </div>
     </div>
