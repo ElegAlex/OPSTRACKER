@@ -1,0 +1,159 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Mapping - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block main %}
+{# HEADER #}
+<header class="bg-white px-12 py-10 border-b-4 border-ink">
+    <div class="flex justify-between items-end">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-3 h-3 bg-primary"></div>
+                <span class="text-xs font-semibold text-muted uppercase tracking-[0.15em]">Etape {{ step }}/4</span>
+            </div>
+            <h1 class="text-4xl font-bold tracking-tight">{{ campagne.nom }}</h1>
+            <p class="text-muted mt-2">Mapping des colonnes</p>
+        </div>
+        <a href="{{ path('app_campagne_index') }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted hover:text-ink transition-colors">
+            <i data-feather="arrow-left" class="w-4 h-4"></i>
+            Retour aux campagnes
+        </a>
+    </div>
+</header>
+
+{# CONTENT #}
+<div class="flex-1 overflow-auto">
+    <div class="max-w-4xl mx-auto px-12 py-10">
+
+        {# Progress steps #}
+        <div class="flex items-center gap-4 mb-12">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-success text-white flex items-center justify-center">
+                    <i data-feather="check" class="w-5 h-5"></i>
+                </div>
+                <span class="text-sm font-medium text-success">Infos</span>
+            </div>
+            <div class="flex-1 h-0.5 bg-success"></div>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-success text-white flex items-center justify-center">
+                    <i data-feather="check" class="w-5 h-5"></i>
+                </div>
+                <span class="text-sm font-medium text-success">Import</span>
+            </div>
+            <div class="flex-1 h-0.5 bg-success"></div>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-primary text-white flex items-center justify-center font-bold">3</div>
+                <span class="text-sm font-medium text-ink">Mapping</span>
+            </div>
+            <div class="flex-1 h-0.5 bg-ink/10"></div>
+            <div class="flex items-center gap-3 opacity-50">
+                <div class="w-10 h-10 border-2 border-ink/20 flex items-center justify-center font-bold text-muted">4</div>
+                <span class="text-sm font-medium text-muted">Config</span>
+            </div>
+        </div>
+
+        {# File info #}
+        <div class="bg-paper border-2 border-ink/10 p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-success/10 flex items-center justify-center">
+                        <i data-feather="file-text" class="w-6 h-6 text-success"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-ink">Fichier CSV analyse</h3>
+                        <p class="text-sm text-muted">
+                            {{ analysis.total_lines }} ligne(s) detectee(s) |
+                            Encodage : {{ analysis.encoding }} |
+                            Separateur : {% if analysis.separator == ';' %}point-virgule{% elseif analysis.separator == ',' %}virgule{% elseif analysis.separator == "\t" %}tabulation{% else %}{{ analysis.separator }}{% endif %}
+                        </p>
+                    </div>
+                </div>
+                <span class="px-3 py-1 text-xs font-semibold bg-success/10 text-success">
+                    {{ analysis.headers|length }} colonnes
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-8">
+            {# Mapping form #}
+            <div class="bg-white border-2 border-ink p-8">
+                <h2 class="text-lg font-bold text-ink mb-2">Correspondance des champs</h2>
+                <p class="text-sm text-muted mb-6">Associez les colonnes de votre fichier aux champs de l'application.</p>
+
+                {{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
+
+                <div class="space-y-4">
+                    <div class="bg-danger/5 border-l-4 border-danger p-3 mb-4">
+                        <p class="text-sm font-semibold text-danger">Champs obligatoires</p>
+                    </div>
+
+                    {{ form_row(form.mapping_matricule) }}
+                    {{ form_row(form.mapping_nom) }}
+
+                    <div class="border-t-2 border-ink/10 pt-4 mt-4">
+                        <p class="text-sm font-semibold text-ink mb-4">Champs optionnels</p>
+                    </div>
+
+                    {{ form_row(form.mapping_segment) }}
+                    {{ form_row(form.mapping_notes) }}
+                    {{ form_row(form.mapping_date_planifiee) }}
+
+                    {{ form_widget(form.csv_encoding) }}
+                    {{ form_widget(form.csv_separator) }}
+                </div>
+
+                <div class="flex justify-between items-center gap-4 pt-6 border-t-2 border-ink/10">
+                    <a href="{{ path('app_campagne_step2', {id: campagne.id}) }}" class="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-muted hover:text-ink transition-colors">
+                        <i data-feather="arrow-left" class="w-4 h-4"></i>
+                        Retour
+                    </a>
+                    <button type="submit" class="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                        Importer
+                        <i data-feather="download" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+
+            {# Preview #}
+            <div class="bg-white border-2 border-ink/10 p-8">
+                <h2 class="text-lg font-bold text-ink mb-2">Apercu des donnees</h2>
+                <p class="text-sm text-muted mb-6">Premieres lignes de votre fichier CSV.</p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs">
+                        <thead>
+                            <tr class="bg-paper">
+                                {% for header in analysis.headers %}
+                                <th class="px-3 py-2 text-left font-semibold text-ink border-b-2 border-ink/10 whitespace-nowrap">
+                                    {{ header }}
+                                </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in analysis.preview %}
+                            <tr class="{% if loop.index is odd %}bg-paper/50{% endif %}">
+                                {% for value in row %}
+                                <td class="px-3 py-2 text-muted border-b border-ink/5 whitespace-nowrap max-w-[150px] truncate" title="{{ value }}">
+                                    {{ value|default('-')|slice(0, 30) }}{% if value|default('')|length > 30 %}...{% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if analysis.total_lines > 5 %}
+                <p class="text-xs text-muted mt-4 text-center">
+                    ... et {{ analysis.total_lines - 5 }} autres ligne(s)
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

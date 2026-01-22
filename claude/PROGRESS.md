@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #9 - Sprint 8 Complete - MVP Ready)
+> **Dernière mise à jour** : 2026-01-22 (Session #10 - Sprint 9 Complete - Import CSV & Export)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels  
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -143,18 +143,18 @@
 
 ## 🟡 PHASE V1 — Sprints 9 à 14
 
-### Sprint 9 — Import CSV & Export (EPIC-02 + EPIC-03 V1)
+### Sprint 9 — Import CSV & Export (EPIC-02 + EPIC-03 V1) ✅
 
 |ID|US|Titre|Statut|RG|Priorité|
 |---|---|---|---|---|---|
-|T-901|US-203|Créer campagne — Étape 2/4 (Upload CSV)|⏳|RG-012, RG-013|🟡 V1|
-|T-902|US-204|Créer campagne — Étape 3/4 (Mapping colonnes)|⏳|RG-012, RG-014|🟡 V1|
-|T-903|-|Service ImportCsv (League\Csv)|⏳|RG-012|V1|
-|T-904|-|Détection encodage + séparateur auto|⏳|RG-012|V1|
-|T-905|-|Gestion erreurs import (log)|⏳|RG-092|V1|
-|T-906|US-307|Exporter les opérations (CSV)|⏳|-|🟡 V1|
-|T-907|US-308|Rechercher une opération (globale)|⏳|-|🟡 V1|
-|T-908|-|Tests ImportService|⏳|-|V1|
+|T-901|US-203|Créer campagne — Étape 2/4 (Upload CSV)|✅|RG-012, RG-013|🟡 V1|
+|T-902|US-204|Créer campagne — Étape 3/4 (Mapping colonnes)|✅|RG-012, RG-014|🟡 V1|
+|T-903|-|Service ImportCsv (League\Csv)|✅|RG-012|V1|
+|T-904|-|Détection encodage + séparateur auto|✅|RG-012|V1|
+|T-905|-|Gestion erreurs import (log)|✅|RG-092|V1|
+|T-906|US-307|Exporter les opérations (CSV)|✅|-|🟡 V1|
+|T-907|US-308|Rechercher une opération (globale)|✅|-|🟡 V1|
+|T-908|-|Tests ImportService|✅|-|V1|
 
 ---
 
@@ -292,11 +292,11 @@ _* MVP = MVP du module Réservation, pas du MVP OpsTracker core_
 
 |Métrique|Actuel|Cible MVP|Cible V1|
 |---|---|---|---|
-|Tâches terminées|62|65|110|
-|User Stories done|24/85|47/85|76/85|
+|Tâches terminées|70|65|110|
+|User Stories done|28/85|47/85|76/85|
 |Entités créées|7|6|8|
-|Tests passants|129|60+|100+|
-|Couverture code|~70%|70%|80%|
+|Tests passants|148|60+|100+|
+|Couverture code|~75%|70%|80%|
 
 ---
 

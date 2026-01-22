@@ -1,0 +1,52 @@
+<?php
+
+namespace App\Form;
+
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
+
+/**
+ * Formulaire de creation de campagne - Etape 2/4 (Upload CSV).
+ *
+ * Regles metier :
+ * - RG-012 : Max 100 000 lignes, encodage auto-detecte
+ * - RG-013 : Fichier .csv uniquement accepte
+ */
+class CampagneStep2Type extends AbstractType
+{
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $builder
+            ->add('csvFile', FileType::class, [
+                'label' => 'Fichier CSV',
+                'help' => 'Formats acceptés : .csv (séparateur auto-détecté). Maximum 100 000 lignes.',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '50M',
+                        'maxSizeMessage' => 'Le fichier est trop volumineux ({{ size }} {{ suffix }}). Maximum autorisé : {{ limit }} {{ suffix }}.',
+                        'mimeTypes' => [
+                            'text/csv',
+                            'text/plain',
+                            'application/csv',
+                            'application/vnd.ms-excel',
+                        ],
+                        'mimeTypesMessage' => 'Veuillez télécharger un fichier CSV valide.',
+                    ]),
+                ],
+                'attr' => [
+                    'accept' => '.csv',
+                    'class' => 'block w-full text-sm file:mr-4 file:py-3 file:px-6 file:border-0 file:text-sm file:font-semibold file:bg-ink file:text-white hover:file:bg-ink/90',
+                ],
+            ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([]);
+    }
+}

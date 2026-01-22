@@ -88,6 +88,15 @@
                     </div>
                     Campagnes
                 </a>
+                <a href="{{ path('app_search') }}" class="flex items-center gap-4 px-4 py-3 {{ app.request.attributes.get('_route') starts with 'app_search' ? 'bg-primary/5 text-ink font-medium' : 'text-muted hover:text-ink hover:bg-paper' }} relative transition-colors">
+                    {% if app.request.attributes.get('_route') starts with 'app_search' %}
+                    <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+                    {% endif %}
+                    <div class="w-8 h-8 {{ app.request.attributes.get('_route') starts with 'app_search' ? 'bg-primary/10' : 'border-2 border-ink/10' }} flex items-center justify-center">
+                        <i data-feather="search" class="w-4 h-4 {{ app.request.attributes.get('_route') starts with 'app_search' ? 'text-primary' : '' }}"></i>
+                    </div>
+                    Recherche
+                </a>
                 <a href="{{ path('admin') }}" class="flex items-center gap-4 px-4 py-3 text-muted hover:text-ink hover:bg-paper transition-colors">
                     <div class="w-8 h-8 border-2 border-ink/10 flex items-center justify-center">
                         <i data-feather="settings" class="w-4 h-4"></i>

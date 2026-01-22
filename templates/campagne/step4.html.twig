@@ -34,16 +34,20 @@
                 <span class="text-sm font-medium text-success">Infos</span>
             </div>
             <div class="flex-1 h-0.5 bg-success"></div>
-            <div class="flex items-center gap-3 opacity-50">
-                <div class="w-10 h-10 border-2 border-ink/20 flex items-center justify-center font-bold text-muted">2</div>
-                <span class="text-sm font-medium text-muted">Import</span>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-success text-white flex items-center justify-center">
+                    <i data-feather="check" class="w-5 h-5"></i>
+                </div>
+                <span class="text-sm font-medium text-success">Import</span>
             </div>
-            <div class="flex-1 h-0.5 bg-ink/10"></div>
-            <div class="flex items-center gap-3 opacity-50">
-                <div class="w-10 h-10 border-2 border-ink/20 flex items-center justify-center font-bold text-muted">3</div>
-                <span class="text-sm font-medium text-muted">Mapping</span>
+            <div class="flex-1 h-0.5 bg-success"></div>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-success text-white flex items-center justify-center">
+                    <i data-feather="check" class="w-5 h-5"></i>
+                </div>
+                <span class="text-sm font-medium text-success">Mapping</span>
             </div>
-            <div class="flex-1 h-0.5 bg-ink/10"></div>
+            <div class="flex-1 h-0.5 bg-success"></div>
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-primary text-white flex items-center justify-center font-bold">4</div>
                 <span class="text-sm font-medium text-ink">Config</span>
@@ -62,6 +66,39 @@
                 </div>
             </div>
         </div>
+
+        {# Import errors if any #}
+        {% if import_errors is defined and import_errors|length > 0 %}
+        <div class="bg-warning/5 border-2 border-warning p-6 mb-8">
+            <div class="flex items-start gap-3 mb-4">
+                <i data-feather="alert-triangle" class="w-5 h-5 text-warning mt-0.5"></i>
+                <div>
+                    <h3 class="font-bold text-warning">{{ import_errors|length }} ligne(s) ignoree(s) lors de l'import</h3>
+                    <p class="text-sm text-muted mt-1">Les lignes ci-dessous contenaient des erreurs et n'ont pas ete importees.</p>
+                </div>
+            </div>
+            <div class="max-h-48 overflow-y-auto bg-white border border-ink/10 p-4">
+                <table class="w-full text-xs">
+                    <thead>
+                        <tr class="text-left">
+                            <th class="pb-2 font-semibold text-ink">Ligne</th>
+                            <th class="pb-2 font-semibold text-ink">Champ</th>
+                            <th class="pb-2 font-semibold text-ink">Erreur</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for error in import_errors %}
+                        <tr class="border-t border-ink/5">
+                            <td class="py-2 text-muted">{{ error.line }}</td>
+                            <td class="py-2 text-muted">{{ error.field }}</td>
+                            <td class="py-2 text-danger">{{ error.message }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
 
         {# Form #}
         <div class="bg-white border-2 border-ink p-8">

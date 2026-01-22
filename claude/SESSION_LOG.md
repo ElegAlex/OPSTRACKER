@@ -31,6 +31,78 @@
 
 ## Sessions
 
+### Session #10 — 2026-01-22
+
+**Duree** : ~45 min
+**Tache(s)** : T-901 a T-908 (Sprint 9 complet - Import CSV & Export)
+**Statut** : ✅ Termine
+
+### Realise
+- **T-903** : Service ImportCsvService avec League\Csv 9.28
+  - Validation fichier (extension, MIME, taille)
+  - Detection encodage auto (UTF-8/ISO-8859-1)
+  - Detection separateur auto (virgule, point-virgule, tabulation)
+  - Analyse et apercu des donnees CSV
+  - Suggestion automatique du mapping
+- **T-904** : Detection encodage et separateur integree au service
+- **T-905** : Gestion erreurs avec ImportResult (skip + log)
+  - Rapport d'erreurs ligne par ligne
+  - Messages de resume
+- **T-901** : Etape 2/4 Upload CSV
+  - Formulaire CampagneStep2Type
+  - Template step2.html.twig (design Bauhaus)
+  - Route /campagnes/{id}/import
+- **T-902** : Etape 3/4 Mapping colonnes
+  - Formulaire CampagneStep3Type avec mapping dynamique
+  - Template step3.html.twig avec apercu donnees
+  - Creation auto des segments (RG-093)
+- **T-906** : Export CSV des operations
+  - ExportCsvService avec StreamedResponse
+  - Support filtres (statut, segment)
+  - Bouton export dans vue campagne
+- **T-907** : Recherche globale
+  - SearchController avec recherche par matricule/nom/notes
+  - API JSON pour autocompletion
+  - Template search/index.html.twig
+  - Lien dans navigation sidebar
+- **T-908** : Tests ImportCsvService (24 tests, 56 assertions)
+
+### Fichiers crees
+- `src/Service/ImportCsvService.php`
+- `src/Service/ImportResult.php`
+- `src/Service/ExportCsvService.php`
+- `src/Form/CampagneStep2Type.php`
+- `src/Form/CampagneStep3Type.php`
+- `src/Controller/SearchController.php`
+- `templates/campagne/step2.html.twig`
+- `templates/campagne/step3.html.twig`
+- `templates/search/index.html.twig`
+- `tests/Unit/Service/ImportCsvServiceTest.php`
+
+### Fichiers modifies
+- `src/Controller/CampagneController.php` - ajout routes step2, step3, export
+- `src/Repository/OperationRepository.php` - ajout searchGlobal()
+- `templates/campagne/_layout.html.twig` - ajout lien recherche
+- `templates/campagne/show.html.twig` - ajout bouton export
+- `templates/campagne/step4.html.twig` - affichage erreurs import
+- `composer.json` - ajout league/csv 9.28
+
+### Regles metier implementees
+- RG-012 : Import CSV max 100k lignes, encodage auto-detecte
+- RG-013 : Fichier .csv uniquement
+- RG-014 : Operations creees avec statut "A planifier"
+- RG-092 : Lignes en erreur ignorees + log
+- RG-093 : Segments auto-crees si colonne mappee
+
+### Tests
+- Total : 148 tests passants (+24 nouveaux)
+- Couverture ImportCsvService : 100%
+
+### Commits
+- A venir avec tag Sprint 9
+
+---
+
 ### Session #9 — 2026-01-22
 
 **Duree** : ~60 min

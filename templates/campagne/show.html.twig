@@ -135,6 +135,10 @@
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-ink">Dernieres operations</h2>
             <div class="flex items-center gap-4">
+                <a href="{{ path('app_campagne_export', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium border-2 border-ink/20 hover:border-ink transition-colors">
+                    <i data-feather="download" class="w-4 h-4"></i>
+                    Exporter CSV
+                </a>
                 <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium border-2 border-ink/20 hover:border-ink transition-colors">
                     <i data-feather="list" class="w-4 h-4"></i>
                     Voir tout

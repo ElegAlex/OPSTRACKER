@@ -213,4 +213,59 @@ class OperationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Recherche globale d'operations (T-907 / US-308)
+     * Recherche dans matricule, nom, notes sur toutes les campagnes non archivees
+     *
+     * @return Operation[]
+     */
+    public function searchGlobal(string $query, int $limit = 50): array
+    {
+        if (empty(trim($query))) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('o')
+            ->leftJoin('o.campagne', 'c')
+            ->leftJoin('o.segment', 's')
+            ->leftJoin('o.technicienAssigne', 't')
+            ->where('c.statut != :archived')
+            ->andWhere(
+                '(LOWER(o.matricule) LIKE LOWER(:query) OR ' .
+                'LOWER(o.nom) LIKE LOWER(:query) OR ' .
+                'LOWER(o.notes) LIKE LOWER(:query))'
+            )
+            ->setParameter('archived', 'archivee')
+            ->setParameter('query', '%' . trim($query) . '%')
+            ->addOrderBy('c.nom', 'ASC')
+            ->addOrderBy('o.matricule', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Compte le nombre total de resultats pour une recherche globale
+     */
+    public function countSearchGlobal(string $query): int
+    {
+        if (empty(trim($query))) {
+            return 0;
+        }
+
+        return (int) $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->leftJoin('o.campagne', 'c')
+            ->where('c.statut != :archived')
+            ->andWhere(
+                '(LOWER(o.matricule) LIKE LOWER(:query) OR ' .
+                'LOWER(o.nom) LIKE LOWER(:query) OR ' .
+                'LOWER(o.notes) LIKE LOWER(:query))'
+            )
+            ->setParameter('archived', 'archivee')
+            ->setParameter('query', '%' . trim($query) . '%')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

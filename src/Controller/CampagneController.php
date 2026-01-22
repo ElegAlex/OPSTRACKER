@@ -5,14 +5,20 @@ namespace App\Controller;
 use App\Entity\Campagne;
 use App\Entity\Operation;
 use App\Form\CampagneStep1Type;
+use App\Form\CampagneStep2Type;
+use App\Form\CampagneStep3Type;
 use App\Form\CampagneStep4Type;
 use App\Form\OperationType;
 use App\Repository\CampagneRepository;
 use App\Service\CampagneService;
+use App\Service\ExportCsvService;
+use App\Service\ImportCsvService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -22,6 +28,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * User Stories :
  * - US-201 : Voir la liste des campagnes (T-301)
  * - US-202 : Creer campagne etape 1/4 (T-302)
+ * - US-203 : Creer campagne etape 2/4 - Upload CSV (T-901)
+ * - US-204 : Creer campagne etape 3/4 - Mapping (T-902)
  * - US-205 : Creer campagne etape 4/4 (T-303)
  * - US-206 : Ajouter une operation manuellement (T-304)
  */
@@ -33,6 +41,8 @@ class CampagneController extends AbstractController
         private readonly CampagneService $campagneService,
         private readonly CampagneRepository $campagneRepository,
         private readonly EntityManagerInterface $entityManager,
+        private readonly ImportCsvService $importCsvService,
+        private readonly ExportCsvService $exportCsvService,
     ) {
     }
 
@@ -79,13 +89,155 @@ class CampagneController extends AbstractController
 
             $this->addFlash('success', 'Campagne creee avec succes.');
 
-            return $this->redirectToRoute('app_campagne_step4', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_campagne_step2', ['id' => $campagne->getId()]);
         }
 
         return $this->render('campagne/new.html.twig', [
             'campagne' => $campagne,
             'form' => $form,
             'step' => 1,
+        ]);
+    }
+
+    /**
+     * T-901 / US-203 : Creer campagne - Etape 2/4 (Upload CSV).
+     * RG-012 : Max 100 000 lignes, encodage auto-detecte
+     * RG-013 : Fichier .csv uniquement accepte
+     */
+    #[Route('/{id}/import', name: 'app_campagne_step2', methods: ['GET', 'POST'])]
+    public function step2(Campagne $campagne, Request $request): Response
+    {
+        $form = $this->createForm(CampagneStep2Type::class);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile|null $csvFile */
+            $csvFile = $form->get('csvFile')->getData();
+
+            if ($csvFile) {
+                // RG-013 : Valider le fichier
+                $validation = $this->importCsvService->validateFile($csvFile);
+                if (!$validation['valid']) {
+                    $this->addFlash('danger', $validation['error']);
+                    return $this->redirectToRoute('app_campagne_step2', ['id' => $campagne->getId()]);
+                }
+
+                // Deplacer le fichier temporairement
+                $tempDir = sys_get_temp_dir() . '/opstracker_imports';
+                if (!is_dir($tempDir)) {
+                    mkdir($tempDir, 0755, true);
+                }
+                $tempFilename = sprintf('%s_%s.csv', $campagne->getId(), uniqid());
+                $csvFile->move($tempDir, $tempFilename);
+
+                // Stocker le chemin en session
+                $request->getSession()->set('csv_import_file_' . $campagne->getId(), $tempDir . '/' . $tempFilename);
+
+                return $this->redirectToRoute('app_campagne_step3', ['id' => $campagne->getId()]);
+            }
+
+            // Pas de fichier = passer directement a l'etape 4
+            return $this->redirectToRoute('app_campagne_step4', ['id' => $campagne->getId()]);
+        }
+
+        return $this->render('campagne/step2.html.twig', [
+            'campagne' => $campagne,
+            'form' => $form,
+            'step' => 2,
+        ]);
+    }
+
+    /**
+     * T-902 / US-204 : Creer campagne - Etape 3/4 (Mapping colonnes).
+     * RG-012 : Mapping colonnes CSV vers champs Operation
+     * RG-092 : Lignes en erreur ignorees, log genere
+     * RG-093 : Segments auto-crees si colonne mappee
+     */
+    #[Route('/{id}/mapping', name: 'app_campagne_step3', methods: ['GET', 'POST'])]
+    public function step3(Campagne $campagne, Request $request): Response
+    {
+        $session = $request->getSession();
+        $csvFilePath = $session->get('csv_import_file_' . $campagne->getId());
+
+        if (!$csvFilePath || !file_exists($csvFilePath)) {
+            $this->addFlash('danger', 'Aucun fichier CSV trouve. Veuillez recommencer l\'import.');
+            return $this->redirectToRoute('app_campagne_step2', ['id' => $campagne->getId()]);
+        }
+
+        // Analyser le fichier CSV
+        $analysis = $this->importCsvService->analyzeFile($csvFilePath);
+        $suggestedMapping = $this->importCsvService->suggestMapping($analysis['headers']);
+
+        $form = $this->createForm(CampagneStep3Type::class, null, [
+            'csv_headers' => $analysis['headers'],
+            'suggested_mapping' => $suggestedMapping,
+            'csv_encoding' => $analysis['encoding'],
+            'csv_separator' => $analysis['separator'],
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+
+            // Construire le mapping
+            $mapping = [
+                'matricule' => $data['mapping_matricule'],
+                'nom' => $data['mapping_nom'],
+                'segment' => $data['mapping_segment'],
+                'notes' => $data['mapping_notes'],
+                'date_planifiee' => $data['mapping_date_planifiee'],
+            ];
+
+            // Validation : matricule et nom obligatoires
+            if ($mapping['matricule'] === null || $mapping['nom'] === null) {
+                $this->addFlash('danger', 'Les colonnes Matricule et Nom sont obligatoires.');
+                return $this->render('campagne/step3.html.twig', [
+                    'campagne' => $campagne,
+                    'form' => $form,
+                    'step' => 3,
+                    'analysis' => $analysis,
+                ]);
+            }
+
+            // Executer l'import
+            $result = $this->importCsvService->import(
+                $campagne,
+                $csvFilePath,
+                $mapping,
+                [],
+                $data['csv_encoding'],
+                $data['csv_separator']
+            );
+
+            // Nettoyer le fichier temporaire
+            @unlink($csvFilePath);
+            $session->remove('csv_import_file_' . $campagne->getId());
+
+            // Messages de resultat
+            if ($result->isSuccess()) {
+                $this->addFlash('success', sprintf(
+                    '%d operation(s) importee(s) avec succes.',
+                    $result->getImportedCount()
+                ));
+            }
+
+            if ($result->hasErrors()) {
+                $this->addFlash('warning', sprintf(
+                    '%d ligne(s) ignoree(s) avec erreurs. Consultez les details ci-dessous.',
+                    $result->getErrorCount()
+                ));
+                // Stocker les erreurs en session pour affichage
+                $session->set('import_errors_' . $campagne->getId(), $result->getErrors());
+            }
+
+            return $this->redirectToRoute('app_campagne_step4', ['id' => $campagne->getId()]);
+        }
+
+        return $this->render('campagne/step3.html.twig', [
+            'campagne' => $campagne,
+            'form' => $form,
+            'step' => 3,
+            'analysis' => $analysis,
         ]);
     }
 
@@ -99,6 +251,11 @@ class CampagneController extends AbstractController
         $form = $this->createForm(CampagneStep4Type::class, $campagne);
         $form->handleRequest($request);
 
+        // Recuperer les eventuelles erreurs d'import
+        $session = $request->getSession();
+        $importErrors = $session->get('import_errors_' . $campagne->getId(), []);
+        $session->remove('import_errors_' . $campagne->getId());
+
         if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
 
@@ -111,6 +268,7 @@ class CampagneController extends AbstractController
             'campagne' => $campagne,
             'form' => $form,
             'step' => 4,
+            'import_errors' => $importErrors,
         ]);
     }
 
@@ -202,5 +360,23 @@ class CampagneController extends AbstractController
         $this->addFlash('success', sprintf('Campagne "%s" supprimee.', $nom));
 
         return $this->redirectToRoute('app_campagne_index');
+    }
+
+    /**
+     * T-906 / US-307 : Exporter les operations d'une campagne en CSV.
+     */
+    #[Route('/{id}/export', name: 'app_campagne_export', methods: ['GET'])]
+    public function export(Campagne $campagne, Request $request): StreamedResponse
+    {
+        // Filtres optionnels depuis les parametres de requete
+        $filters = [];
+        if ($request->query->has('statut')) {
+            $filters['statut'] = $request->query->get('statut');
+        }
+        if ($request->query->has('segment')) {
+            $filters['segment'] = $request->query->get('segment');
+        }
+
+        return $this->exportCsvService->exportCampagne($campagne, null, $filters);
     }
 }
