@@ -16,6 +16,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Regles metier implementees :
  * - RG-010 : 5 statuts (Preparation, A venir, En cours, Terminee, Archivee)
  * - RG-011 : Nom + Dates (debut/fin) obligatoires a la creation
+ * - RG-111 : Proprietaire par defaut = createur
+ * - RG-112 : Visibilite par defaut restreinte au proprietaire + utilisateurs habilites
  */
 #[ORM\Entity(repositoryClass: CampagneRepository::class)]
 #[ORM\Table(name: 'campagne')]
@@ -44,6 +46,15 @@ class Campagne
         self::STATUT_EN_COURS => 'success',
         self::STATUT_TERMINEE => 'complete',
         self::STATUT_ARCHIVEE => 'muted',
+    ];
+
+    // RG-112 : Visibilite campagne
+    public const VISIBILITE_RESTREINTE = 'restreinte';
+    public const VISIBILITE_PUBLIQUE = 'publique';
+
+    public const VISIBILITES = [
+        self::VISIBILITE_RESTREINTE => 'Restreinte (proprietaire + habilites)',
+        self::VISIBILITE_PUBLIQUE => 'Publique (tous les utilisateurs)',
     ];
 
     #[ORM\Id]
@@ -78,6 +89,20 @@ class Campagne
     #[ORM\JoinColumn(nullable: true)]
     private ?Utilisateur $proprietaire = null;
 
+    /**
+     * RG-112 : Visibilite de la campagne (restreinte par defaut)
+     */
+    #[ORM\Column(length: 20)]
+    private string $visibilite = self::VISIBILITE_RESTREINTE;
+
+    /**
+     * RG-112 : Utilisateurs habilites a voir cette campagne (si visibilite restreinte)
+     * @var Collection<int, Utilisateur>
+     */
+    #[ORM\ManyToMany(targetEntity: Utilisateur::class)]
+    #[ORM\JoinTable(name: 'campagne_utilisateurs_habilites')]
+    private Collection $utilisateursHabilites;
+
     #[ORM\ManyToOne(targetEntity: TypeOperation::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?TypeOperation $typeOperation = null;
@@ -109,6 +134,7 @@ class Campagne
         $this->segments = new ArrayCollection();
         $this->operations = new ArrayCollection();
         $this->documents = new ArrayCollection();
+        $this->utilisateursHabilites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -199,6 +225,77 @@ class Campagne
         $this->proprietaire = $proprietaire;
 
         return $this;
+    }
+
+    /**
+     * RG-112 : Visibilite de la campagne
+     */
+    public function getVisibilite(): string
+    {
+        return $this->visibilite;
+    }
+
+    public function setVisibilite(string $visibilite): static
+    {
+        if (!array_key_exists($visibilite, self::VISIBILITES)) {
+            throw new \InvalidArgumentException(sprintf('Visibilite invalide : %s', $visibilite));
+        }
+        $this->visibilite = $visibilite;
+
+        return $this;
+    }
+
+    public function getVisibiliteLabel(): string
+    {
+        return self::VISIBILITES[$this->visibilite] ?? $this->visibilite;
+    }
+
+    public function isPublique(): bool
+    {
+        return $this->visibilite === self::VISIBILITE_PUBLIQUE;
+    }
+
+    /**
+     * @return Collection<int, Utilisateur>
+     */
+    public function getUtilisateursHabilites(): Collection
+    {
+        return $this->utilisateursHabilites;
+    }
+
+    public function addUtilisateurHabilite(Utilisateur $utilisateur): static
+    {
+        if (!$this->utilisateursHabilites->contains($utilisateur)) {
+            $this->utilisateursHabilites->add($utilisateur);
+        }
+
+        return $this;
+    }
+
+    public function removeUtilisateurHabilite(Utilisateur $utilisateur): static
+    {
+        $this->utilisateursHabilites->removeElement($utilisateur);
+
+        return $this;
+    }
+
+    /**
+     * RG-112 : Verifie si un utilisateur peut voir cette campagne
+     */
+    public function isVisiblePar(Utilisateur $utilisateur): bool
+    {
+        // Campagne publique : visible par tous
+        if ($this->isPublique()) {
+            return true;
+        }
+
+        // Proprietaire peut toujours voir
+        if ($this->proprietaire === $utilisateur) {
+            return true;
+        }
+
+        // Utilisateur habilite peut voir
+        return $this->utilisateursHabilites->contains($utilisateur);
     }
 
     public function getTypeOperation(): ?TypeOperation

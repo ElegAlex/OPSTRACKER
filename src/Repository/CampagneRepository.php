@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Campagne;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -54,6 +55,52 @@ class CampagneRepository extends ServiceEntityRepository
     public function findAllGroupedByStatut(): array
     {
         $campagnes = $this->findBy([], ['dateDebut' => 'ASC']);
+
+        $grouped = [];
+        foreach (Campagne::STATUTS as $statut => $label) {
+            $grouped[$statut] = [];
+        }
+
+        foreach ($campagnes as $campagne) {
+            $grouped[$campagne->getStatut()][] = $campagne;
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * RG-112 : Trouve les campagnes visibles par un utilisateur
+     * - Campagnes publiques
+     * - Campagnes dont l'utilisateur est proprietaire
+     * - Campagnes dont l'utilisateur est habilite
+     *
+     * @return Campagne[]
+     */
+    public function findVisiblesPar(Utilisateur $utilisateur): array
+    {
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.utilisateursHabilites', 'uh')
+            ->andWhere('c.visibilite = :publique OR c.proprietaire = :user OR uh = :user')
+            ->setParameter('publique', Campagne::VISIBILITE_PUBLIQUE)
+            ->setParameter('user', $utilisateur)
+            ->orderBy('c.dateDebut', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * RG-112 : Trouve les campagnes visibles groupees par statut
+     *
+     * @return array<string, Campagne[]>
+     */
+    public function findVisiblesGroupedByStatut(Utilisateur $utilisateur, bool $isAdmin = false): array
+    {
+        // Les admins voient tout
+        if ($isAdmin) {
+            return $this->findAllGroupedByStatut();
+        }
+
+        $campagnes = $this->findVisiblesPar($utilisateur);
 
         $grouped = [];
         foreach (Campagne::STATUTS as $statut => $label) {

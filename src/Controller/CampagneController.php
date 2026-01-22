@@ -9,6 +9,8 @@ use App\Form\CampagneStep2Type;
 use App\Form\CampagneStep3Type;
 use App\Form\CampagneStep4Type;
 use App\Form\OperationType;
+use App\Form\TransfertProprietaireType;
+use App\Form\VisibiliteCampagneType;
 use App\Repository\CampagneRepository;
 use App\Service\CampagneService;
 use App\Service\ExportCsvService;
@@ -49,11 +51,16 @@ class CampagneController extends AbstractController
     /**
      * T-301 / US-201 : Liste des campagnes groupee par statut (portfolio).
      * RG-010 : 5 statuts avec couleurs distinctes
+     * RG-112 : Filtrage par visibilite selon l'utilisateur
      */
     #[Route('', name: 'app_campagne_index', methods: ['GET'])]
     public function index(): Response
     {
-        $campagnesGroupees = $this->campagneService->getCampagnesGroupedByStatut();
+        $currentUser = $this->getUser();
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+
+        // RG-112 : Filtrage par visibilite
+        $campagnesGroupees = $this->campagneService->getCampagnesVisiblesGroupedByStatut($currentUser, $isAdmin);
         $statistiques = $this->campagneService->getStatistiquesGlobales();
 
         // Calculer les stats par campagne pour l'affichage
@@ -74,6 +81,7 @@ class CampagneController extends AbstractController
     /**
      * T-302 / US-202 : Creer campagne - Etape 1/4 (Infos generales).
      * RG-011 : Nom + Dates obligatoires
+     * RG-111 : Le createur est proprietaire par defaut
      */
     #[Route('/nouvelle', name: 'app_campagne_new', methods: ['GET', 'POST'])]
     public function new(Request $request): Response
@@ -84,6 +92,9 @@ class CampagneController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // RG-111 : Le createur est automatiquement proprietaire
+            $campagne->setProprietaire($this->getUser());
+
             $this->entityManager->persist($campagne);
             $this->entityManager->flush();
 
@@ -244,10 +255,17 @@ class CampagneController extends AbstractController
     /**
      * T-303 / US-205 : Creer campagne - Etape 4/4 (Workflow & Template).
      * RG-014 : Association TypeOperation + ChecklistTemplate
+     * RG-016 : Interdit si campagne archivee
      */
     #[Route('/{id}/configurer', name: 'app_campagne_step4', methods: ['GET', 'POST'])]
     public function step4(Campagne $campagne, Request $request): Response
     {
+        // RG-016 : Campagne archivee = lecture seule
+        if ($campagne->isReadOnly()) {
+            $this->addFlash('danger', 'Cette campagne est archivee et ne peut pas etre modifiee.');
+            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+        }
+
         $form = $this->createForm(CampagneStep4Type::class, $campagne);
         $form->handleRequest($request);
 
@@ -292,10 +310,17 @@ class CampagneController extends AbstractController
      * T-304 / US-206 : Ajouter une operation manuellement.
      * RG-014 : Statut initial = "A planifier"
      * RG-015 : Donnees personnalisees JSONB
+     * RG-016 : Interdit si campagne archivee
      */
     #[Route('/{id}/operations/nouvelle', name: 'app_campagne_operation_new', methods: ['GET', 'POST'])]
     public function newOperation(Campagne $campagne, Request $request): Response
     {
+        // RG-016 : Campagne archivee = lecture seule
+        if ($campagne->isReadOnly()) {
+            $this->addFlash('danger', 'Cette campagne est archivee et ne peut pas etre modifiee.');
+            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+        }
+
         $operation = new Operation();
         $operation->setCampagne($campagne);
         $operation->setTypeOperation($campagne->getTypeOperation());
@@ -378,5 +403,91 @@ class CampagneController extends AbstractController
         }
 
         return $this->exportCsvService->exportCampagne($campagne, null, $filters);
+    }
+
+    /**
+     * T-1102 / US-210 : Transferer la propriete d'une campagne.
+     * RG-111 : Transfert de propriete possible
+     * RG-016 : Interdit si campagne archivee
+     */
+    #[Route('/{id}/proprietaire', name: 'app_campagne_proprietaire', methods: ['GET', 'POST'])]
+    public function transfertProprietaire(Campagne $campagne, Request $request): Response
+    {
+        // RG-016 : Campagne archivee = lecture seule
+        if ($campagne->isReadOnly()) {
+            $this->addFlash('danger', 'Cette campagne est archivee et ne peut pas etre modifiee.');
+            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+        }
+
+        // Seul le proprietaire ou un admin peut transferer
+        $currentUser = $this->getUser();
+        if ($campagne->getProprietaire() !== $currentUser && !$this->isGranted('ROLE_ADMIN')) {
+            $this->addFlash('danger', 'Seul le proprietaire ou un administrateur peut transferer la propriete.');
+            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+        }
+
+        $form = $this->createForm(TransfertProprietaireType::class, null, [
+            'current_proprietaire' => $campagne->getProprietaire(),
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $nouveauProprietaire = $form->get('nouveauProprietaire')->getData();
+            $ancienProprietaire = $campagne->getProprietaire();
+
+            $campagne->setProprietaire($nouveauProprietaire);
+            $this->entityManager->flush();
+
+            $this->addFlash('success', sprintf(
+                'Propriete transferee a %s %s.',
+                $nouveauProprietaire->getPrenom(),
+                $nouveauProprietaire->getNom()
+            ));
+
+            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+        }
+
+        return $this->render('campagne/proprietaire.html.twig', [
+            'campagne' => $campagne,
+            'form' => $form,
+        ]);
+    }
+
+    /**
+     * T-1103 / US-211 : Configurer la visibilite d'une campagne.
+     * RG-112 : Visibilite par defaut restreinte
+     * RG-016 : Interdit si campagne archivee
+     */
+    #[Route('/{id}/visibilite', name: 'app_campagne_visibilite', methods: ['GET', 'POST'])]
+    public function visibilite(Campagne $campagne, Request $request): Response
+    {
+        // RG-016 : Campagne archivee = lecture seule
+        if ($campagne->isReadOnly()) {
+            $this->addFlash('danger', 'Cette campagne est archivee et ne peut pas etre modifiee.');
+            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+        }
+
+        // Seul le proprietaire ou un admin peut modifier la visibilite
+        $currentUser = $this->getUser();
+        if ($campagne->getProprietaire() !== $currentUser && !$this->isGranted('ROLE_ADMIN')) {
+            $this->addFlash('danger', 'Seul le proprietaire ou un administrateur peut modifier la visibilite.');
+            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+        }
+
+        $form = $this->createForm(VisibiliteCampagneType::class, $campagne);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->entityManager->flush();
+
+            $this->addFlash('success', 'Visibilite mise a jour.');
+
+            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+        }
+
+        return $this->render('campagne/visibilite.html.twig', [
+            'campagne' => $campagne,
+            'form' => $form,
+        ]);
     }
 }

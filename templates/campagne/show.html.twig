@@ -24,6 +24,13 @@
                     {{ campagne.typeOperation.nom }}
                 </span>
                 {% endif %}
+                {# RG-111 : Affichage proprietaire #}
+                {% if campagne.proprietaire %}
+                <span class="flex items-center gap-2">
+                    <i data-feather="user" class="w-4 h-4"></i>
+                    {{ campagne.proprietaire.prenom }} {{ campagne.proprietaire.nom }}
+                </span>
+                {% endif %}
             </div>
         </div>
         <div class="flex items-center gap-4">
@@ -50,6 +57,17 @@
 {# CONTENT #}
 <div class="flex-1 overflow-auto">
     <div class="px-12 py-10">
+
+        {# RG-016 : Avertissement campagne archivee (lecture seule) #}
+        {% if campagne.readOnly %}
+        <div class="mb-6 p-4 border-2 border-warning bg-warning/10 flex items-center gap-3">
+            <i data-feather="archive" class="w-5 h-5 text-warning"></i>
+            <div>
+                <span class="text-sm font-bold text-warning">Campagne archivee</span>
+                <span class="text-sm text-muted ml-2">Cette campagne est en lecture seule. Aucune modification n'est possible.</span>
+            </div>
+        </div>
+        {% endif %}
 
         {# Flash messages #}
         {% for label, messages in app.flashes %}
@@ -95,7 +113,7 @@
         </div>
 
         {# Quick actions #}
-        <div class="grid grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-5 gap-6 mb-8">
             <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
@@ -103,7 +121,7 @@
                     </div>
                     <div>
                         <p class="font-bold text-ink">Operations</p>
-                        <p class="text-sm text-muted">Voir et gerer les {{ statistiques.total }} operations</p>
+                        <p class="text-sm text-muted">{{ statistiques.total }} operations</p>
                     </div>
                 </div>
             </a>
@@ -114,7 +132,7 @@
                     </div>
                     <div>
                         <p class="font-bold text-ink">Segments</p>
-                        <p class="text-sm text-muted">Progression par segment</p>
+                        <p class="text-sm text-muted">Progression</p>
                     </div>
                 </div>
             </a>
@@ -125,10 +143,50 @@
                     </div>
                     <div>
                         <p class="font-bold text-ink">Documents</p>
-                        <p class="text-sm text-muted">{{ campagne.nombreDocuments }} document{{ campagne.nombreDocuments > 1 ? 's' : '' }}</p>
+                        <p class="text-sm text-muted">{{ campagne.nombreDocuments }} fichier{{ campagne.nombreDocuments > 1 ? 's' : '' }}</p>
                     </div>
                 </div>
             </a>
+            {# RG-112 : Lien visibilite (bloque si archivee) #}
+            {% if campagne.readOnly %}
+            <div class="bg-white border-2 border-ink/20 p-6 opacity-50 cursor-not-allowed">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-ink/10 flex items-center justify-center">
+                        <i data-feather="lock" class="w-6 h-6 text-muted"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-muted">Partage</p>
+                        <p class="text-sm text-muted">Lecture seule</p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ path('app_campagne_visibilite', {id: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-complete/10 flex items-center justify-center group-hover:bg-complete group-hover:text-white transition-colors">
+                        <i data-feather="{{ campagne.publique ? 'globe' : 'users' }}" class="w-6 h-6 text-complete group-hover:text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-ink">Partage</p>
+                        <p class="text-sm text-muted">{{ campagne.publique ? 'Publique' : 'Restreinte' }}</p>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+            {# RG-016 : Lien configuration bloque si archivee #}
+            {% if campagne.readOnly %}
+            <div class="bg-white border-2 border-ink/20 p-6 opacity-50 cursor-not-allowed">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-ink/10 flex items-center justify-center">
+                        <i data-feather="lock" class="w-6 h-6 text-muted"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-muted">Configuration</p>
+                        <p class="text-sm text-muted">Lecture seule</p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
             <a href="{{ path('app_campagne_step4', {id: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-ink/10 flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">
@@ -136,10 +194,11 @@
                     </div>
                     <div>
                         <p class="font-bold text-ink">Configuration</p>
-                        <p class="text-sm text-muted">Type et checklist template</p>
+                        <p class="text-sm text-muted">Template</p>
                     </div>
                 </div>
             </a>
+            {% endif %}
         </div>
 
         {# Actions + Operations #}
@@ -154,10 +213,13 @@
                     <i data-feather="list" class="w-4 h-4"></i>
                     Voir tout
                 </a>
+                {# RG-016 : Bouton Ajouter bloque si archivee #}
+                {% if not campagne.readOnly %}
                 <a href="{{ path('app_campagne_operation_new', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
                     <i data-feather="plus" class="w-4 h-4"></i>
                     Ajouter
                 </a>
+                {% endif %}
             </div>
         </div>
 
@@ -211,11 +273,16 @@
                 <i data-feather="inbox" class="w-8 h-8 text-primary"></i>
             </div>
             <h3 class="text-lg font-bold text-ink mb-2">Aucune operation</h3>
+            {% if campagne.readOnly %}
+            {# RG-016 : Message lecture seule #}
+            <p class="text-sm text-muted">Cette campagne est archivee et ne peut pas etre modifiee.</p>
+            {% else %}
             <p class="text-sm text-muted mb-6">Commencez par ajouter des operations a cette campagne.</p>
             <a href="{{ path('app_campagne_operation_new', {id: campagne.id}) }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
                 <i data-feather="plus" class="w-4 h-4"></i>
                 Ajouter une operation
             </a>
+            {% endif %}
         </div>
         {% endif %}
 

@@ -6,6 +6,7 @@ use App\Entity\Campagne;
 use App\Entity\ChecklistTemplate;
 use App\Entity\Operation;
 use App\Entity\TypeOperation;
+use App\Entity\Utilisateur;
 use App\Repository\CampagneRepository;
 use App\Repository\OperationRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -39,6 +40,29 @@ class CampagneService
     public function getCampagnesGroupedByStatut(): array
     {
         $campagnesGrouped = $this->campagneRepository->findAllGroupedByStatut();
+
+        $result = [];
+        foreach (Campagne::STATUTS as $statut => $label) {
+            $campagnes = $campagnesGrouped[$statut] ?? [];
+            $result[$statut] = [
+                'campagnes' => $campagnes,
+                'count' => count($campagnes),
+                'label' => $label,
+                'couleur' => Campagne::STATUTS_COULEURS[$statut] ?? 'muted',
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * RG-112 : Recupere les campagnes visibles par un utilisateur, groupees par statut.
+     *
+     * @return array<string, array{campagnes: Campagne[], count: int, label: string, couleur: string}>
+     */
+    public function getCampagnesVisiblesGroupedByStatut(Utilisateur $utilisateur, bool $isAdmin = false): array
+    {
+        $campagnesGrouped = $this->campagneRepository->findVisiblesGroupedByStatut($utilisateur, $isAdmin);
 
         $result = [];
         foreach (Campagne::STATUTS as $statut => $label) {

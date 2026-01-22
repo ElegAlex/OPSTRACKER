@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #11 - Sprint 10 Complete - Gestion Utilisateurs V1 + Documents)
+> **Dernière mise à jour** : 2026-01-22 (Session #12 - Sprint 11 Complete - Campagnes & Checklists V1)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels  
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -173,17 +173,17 @@
 
 ---
 
-### Sprint 11 — Campagnes & Checklists V1 (EPIC-02 + EPIC-05)
+### Sprint 11 — Campagnes & Checklists V1 (EPIC-02 + EPIC-05) ✅
 
 |ID|US|Titre|Statut|RG|Priorité|
 |---|---|---|---|---|---|
-|T-1101|US-207|Archiver/Désarchiver une campagne|⏳|RG-016|🟡 V1|
-|T-1102|US-210|Définir le propriétaire d'une campagne|⏳|RG-111|🟡 V1|
-|T-1103|US-211|Configurer la visibilité d'une campagne|⏳|RG-112|🟡 V1|
-|T-1104|US-504|Modifier un template avec versioning|⏳|RG-031|🟡 V1|
-|T-1105|US-505|Créer des phases dans un template|⏳|RG-032|🟡 V1|
-|T-1106|US-506|Consulter un document depuis checklist|⏳|-|🟡 V1|
-|T-1107|US-507|Télécharger un script depuis checklist|⏳|-|🟡 V1|
+|T-1101|US-207|Archiver/Désarchiver une campagne|✅|RG-016|🟡 V1|
+|T-1102|US-210|Définir le propriétaire d'une campagne|✅|RG-111|🟡 V1|
+|T-1103|US-211|Configurer la visibilité d'une campagne|✅|RG-112|🟡 V1|
+|T-1104|US-504|Modifier un template avec versioning|✅|RG-031|🟡 V1|
+|T-1105|US-505|Créer des phases dans un template|✅|RG-032|🟡 V1|
+|T-1106|US-506|Consulter un document depuis checklist|✅|-|🟡 V1|
+|T-1107|US-507|Télécharger un script depuis checklist|✅|-|🟡 V1|
 
 ---
 
@@ -292,8 +292,8 @@ _* MVP = MVP du module Réservation, pas du MVP OpsTracker core_
 
 |Métrique|Actuel|Cible MVP|Cible V1|
 |---|---|---|---|
-|Tâches terminées|78|65|110|
-|User Stories done|36/85|47/85|76/85|
+|Tâches terminées|85|65|110|
+|User Stories done|43/85|47/85|76/85|
 |Entités créées|8|6|8|
 |Tests passants|167|60+|100+|
 |Couverture code|~78%|70%|80%|

@@ -88,11 +88,33 @@
                                     {% endif %}
                                 </div>
 
-                                {# Lien document si present #}
+                                {# T-1106, T-1107 : Lien document si present #}
                                 {% if etape.documentId %}
-                                    <a href="#" class="p-2 bg-primary/10 text-primary flex-shrink-0" title="Voir le document">
-                                        <i data-feather="file-text" class="w-5 h-5"></i>
-                                    </a>
+                                    {% set doc = documents[etape.documentId]|default(null) %}
+                                    {% if doc %}
+                                        {% if doc.isScript %}
+                                            {# T-1107 : Script - telechargement direct #}
+                                            <a href="{{ path('terrain_document_download', {id: operation.id, documentId: etape.documentId}) }}"
+                                               class="p-2 bg-warning/10 text-warning flex-shrink-0 touch-target"
+                                               title="Telecharger le script : {{ doc.nomOriginal }}"
+                                               download>
+                                                <i data-feather="terminal" class="w-5 h-5"></i>
+                                            </a>
+                                        {% else %}
+                                            {# T-1106 : Document - affichage inline (PDF) ou telechargement #}
+                                            <a href="{{ path('terrain_document_view', {id: operation.id, documentId: etape.documentId}) }}"
+                                               class="p-2 bg-primary/10 text-primary flex-shrink-0 touch-target"
+                                               title="Voir le document : {{ doc.nomOriginal }}"
+                                               target="_blank">
+                                                <i data-feather="{{ doc.icone }}" class="w-5 h-5"></i>
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        {# Document non trouve - icone desactivee #}
+                                        <span class="p-2 bg-muted/10 text-muted flex-shrink-0" title="Document non disponible">
+                                            <i data-feather="file" class="w-5 h-5"></i>
+                                        </span>
+                                    {% endif %}
                                 {% endif %}
                             </form>
                         </div>

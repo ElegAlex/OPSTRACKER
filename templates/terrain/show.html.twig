@@ -129,7 +129,8 @@
     {# Checklist avec Turbo Frame (T-605) #}
     {% include 'terrain/_checklist.html.twig' with {
         operation: operation,
-        checklist_progression: checklist_progression
+        checklist_progression: checklist_progression,
+        documents: documents|default({})
     } %}
 
     {# Informations campagne #}

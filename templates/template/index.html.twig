@@ -1,0 +1,93 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Templates de checklist - OpsTracker{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-paper">
+    {# HEADER #}
+    <header class="bg-white px-12 py-10 border-b-4 border-ink">
+        <div class="flex justify-between items-end">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-3 h-3 bg-primary"></div>
+                    <span class="text-xs font-semibold text-muted uppercase tracking-[0.15em]">Configuration</span>
+                </div>
+                <h1 class="text-4xl font-bold tracking-tight">Templates de checklist</h1>
+            </div>
+            <a href="{{ path('app_template_new') }}" class="flex items-center gap-3 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                <i data-feather="plus" class="w-4 h-4"></i>
+                Nouveau template
+            </a>
+        </div>
+    </header>
+
+    {# CONTENT #}
+    <div class="px-12 py-10">
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 border-2 border-ink/20 bg-{{ label == 'success' ? 'success' : 'danger' }}/10 flex items-center gap-3">
+                    <i data-feather="{{ label == 'success' ? 'check-circle' : 'alert-circle' }}" class="w-5 h-5 text-{{ label == 'success' ? 'success' : 'danger' }}"></i>
+                    <span class="text-sm font-medium">{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {% if templates|length > 0 %}
+        <div class="space-y-4">
+            {% for template in templates %}
+            <div class="bg-white border-2 border-ink p-6 {{ not template.actif ? 'opacity-60' : '' }}">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-6">
+                        <div class="w-12 h-12 bg-primary/10 flex items-center justify-center">
+                            <i data-feather="check-square" class="w-6 h-6 text-primary"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-3">
+                                <h3 class="font-bold text-ink">{{ template.nom }}</h3>
+                                <span class="px-2 py-0.5 bg-ink/10 text-ink text-xs font-bold">v{{ template.version }}</span>
+                                {% if not template.actif %}
+                                <span class="px-2 py-0.5 bg-warning/10 text-warning text-xs font-bold">Inactif</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-sm text-muted mt-1">
+                                {{ template.nombreEtapes }} etapes |
+                                {{ template.campagnes|length }} campagnes |
+                                {{ template.instances|length }} instances
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <a href="{{ path('app_template_show', {id: template.id}) }}" class="px-4 py-2 text-sm font-medium border-2 border-ink/20 hover:border-ink transition-colors">
+                            Voir
+                        </a>
+                        <a href="{{ path('app_template_edit', {id: template.id}) }}" class="px-4 py-2 text-sm font-medium border-2 border-ink/20 hover:border-ink transition-colors">
+                            Modifier
+                        </a>
+                        <form action="{{ path('app_template_toggle', {id: template.id}) }}" method="POST" class="inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('template_toggle_' ~ template.id) }}">
+                            <button type="submit" class="px-4 py-2 text-sm font-medium border-2 border-ink/20 hover:border-ink transition-colors {{ template.actif ? 'text-warning' : 'text-success' }}">
+                                {{ template.actif ? 'Desactiver' : 'Activer' }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bg-white border-2 border-ink/20 border-dashed p-12 text-center">
+            <div class="w-16 h-16 mx-auto bg-primary/10 flex items-center justify-center mb-4">
+                <i data-feather="check-square" class="w-8 h-8 text-primary"></i>
+            </div>
+            <h3 class="text-lg font-bold text-ink mb-2">Aucun template</h3>
+            <p class="text-sm text-muted mb-6">Commencez par creer votre premier template de checklist.</p>
+            <a href="{{ path('app_template_new') }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                <i data-feather="plus" class="w-4 h-4"></i>
+                Creer un template
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

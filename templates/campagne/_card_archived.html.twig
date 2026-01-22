@@ -1,9 +1,10 @@
-{# Card campagne archivee #}
+{# Card campagne archivee (RG-016 : lecture seule) #}
 <div class="bg-white geo-accent geo-accent-muted opacity-70 hover:opacity-90 cursor-pointer card-hover" onclick="window.location='{{ path('app_campagne_show', {id: campagne.id}) }}'">
     <div class="p-5">
         <div class="flex items-center gap-6">
             <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-4">
+                    <i data-feather="archive" class="w-4 h-4 text-muted flex-shrink-0"></i>
                     <h3 class="font-medium text-muted truncate">{{ campagne.nom }}</h3>
                     <span class="px-2 py-0.5 bg-ink/5 text-muted text-[10px] font-bold uppercase tracking-wider">Archivee</span>
                 </div>
@@ -19,6 +20,15 @@
                         <i data-feather="eye" class="w-4 h-4"></i>
                         Voir details
                     </a>
+                    <div class="border-t border-ink/10"></div>
+                    {# Bouton Desarchiver (US-207) #}
+                    <form action="{{ path('app_campagne_transition', {id: campagne.id, transition: 'restaurer'}) }}" method="POST">
+                        <input type="hidden" name="_token" value="{{ csrf_token('campagne_transition_' ~ campagne.id) }}">
+                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-success hover:bg-success/10 transition-colors">
+                            <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                            Desarchiver
+                        </button>
+                    </form>
                     <div class="border-t border-ink/10"></div>
                     <form action="{{ path('app_campagne_delete', {id: campagne.id}) }}" method="POST" onsubmit="return confirm('Supprimer la campagne « {{ campagne.nom|e('js') }} » et toutes ses operations ?');">
                         <input type="hidden" name="_token" value="{{ csrf_token('campagne_delete_' ~ campagne.id) }}">

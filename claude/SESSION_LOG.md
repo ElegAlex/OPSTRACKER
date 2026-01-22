@@ -31,6 +31,86 @@
 
 ## Sessions
 
+### Session #12 — 2026-01-22
+
+**Duree** : ~35 min
+**Tache(s)** : T-1101 a T-1107 (Sprint 11 complet - Campagnes & Checklists V1)
+**Statut** : ✅ Termine
+
+### Realise
+- **T-1101** : Archiver/Desarchiver une campagne (RG-016)
+  - Bouton "Desarchiver" dans _card_archived.html.twig
+  - Bouton "Archiver" pour campagnes terminees dans _card_compact.html.twig
+  - Avertissement lecture seule dans show.html.twig pour campagnes archivees
+  - Protection RG-016 dans CampagneController (newOperation, step4)
+- **T-1102** : Definir le proprietaire d'une campagne (RG-111)
+  - Auto-assignation du createur comme proprietaire
+  - Route transfertProprietaire dans CampagneController
+  - Formulaire TransfertProprietaireType
+  - Template templates/campagne/proprietaire.html.twig
+- **T-1103** : Configurer la visibilite d'une campagne (RG-112)
+  - Constantes VISIBILITE_RESTREINTE et VISIBILITE_PUBLIQUE dans Campagne
+  - Relation ManyToMany pour utilisateursHabilites
+  - Migration Version20260122205519.php
+  - Methodes findVisiblesPar() dans CampagneRepository
+  - Formulaire VisibiliteCampagneType
+  - Template templates/campagne/visibilite.html.twig
+- **T-1104** : Modifier un template avec versioning (RG-031)
+  - ChecklistTemplateController avec CRUD complet
+  - Avertissement creation nouvelle version si instances existantes
+  - Incrementation automatique de la version
+- **T-1105** : Creer des phases dans un template (RG-032)
+  - Interface JavaScript dynamique pour ajout/suppression phases et etapes
+  - Checkbox verrouillable par phase
+  - Templates index, show, edit, new pour templates
+- **T-1106** : Consulter un document depuis checklist
+  - Route terrain_document_view dans TerrainController
+  - Affichage inline pour PDF, telechargement pour autres formats
+  - Integration dans _checklist.html.twig avec icone appropriee
+- **T-1107** : Telecharger un script depuis checklist
+  - Route terrain_document_download dans TerrainController
+  - Icone terminal pour scripts (ps1, bat, exe)
+  - Telechargement force pour fichiers executables
+
+### Fichiers crees
+- `src/Controller/ChecklistTemplateController.php`
+- `src/Form/TransfertProprietaireType.php`
+- `src/Form/VisibiliteCampagneType.php`
+- `templates/template/index.html.twig`
+- `templates/template/show.html.twig`
+- `templates/template/edit.html.twig`
+- `templates/template/new.html.twig`
+- `templates/campagne/proprietaire.html.twig`
+- `templates/campagne/visibilite.html.twig`
+- `migrations/Version20260122205519.php`
+
+### Fichiers modifies
+- `src/Entity/Campagne.php` - ajout visibilite et utilisateursHabilites
+- `src/Repository/CampagneRepository.php` - ajout methodes visibilite
+- `src/Service/CampagneService.php` - ajout getCampagnesVisiblesGroupedByStatut
+- `src/Controller/CampagneController.php` - ajout routes proprietaire, visibilite, protection RG-016
+- `src/Controller/TerrainController.php` - ajout routes document view/download
+- `templates/campagne/_card_archived.html.twig` - bouton desarchiver
+- `templates/campagne/_card_compact.html.twig` - bouton archiver
+- `templates/campagne/show.html.twig` - liens proprietaire, visibilite, alerte archive
+- `templates/terrain/_checklist.html.twig` - liens documents avec icones
+
+### Regles metier implementees
+- RG-016 : Campagne archivee = lecture seule
+- RG-031 : Modification template = nouvelle version
+- RG-032 : Phases verrouillables
+- RG-111 : Createur = proprietaire par defaut, transfert possible
+- RG-112 : Visibilite restreinte par defaut, publique optionnel
+
+### Tests
+- Total : 167 tests passants (inchanges)
+- Migration appliquee sur base test
+
+### Commits
+- A venir avec tag Sprint 11
+
+---
+
 ### Session #11 — 2026-01-22
 
 **Duree** : ~40 min

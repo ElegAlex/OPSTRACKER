@@ -37,6 +37,15 @@
                         Voir details
                     </a>
                     <div class="border-t border-ink/10"></div>
+                    {# Bouton Archiver (US-207) #}
+                    <form action="{{ path('app_campagne_transition', {id: campagne.id, transition: 'archiver'}) }}" method="POST">
+                        <input type="hidden" name="_token" value="{{ csrf_token('campagne_transition_' ~ campagne.id) }}">
+                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-muted hover:bg-paper transition-colors">
+                            <i data-feather="archive" class="w-4 h-4"></i>
+                            Archiver
+                        </button>
+                    </form>
+                    <div class="border-t border-ink/10"></div>
                     <form action="{{ path('app_campagne_delete', {id: campagne.id}) }}" method="POST" onsubmit="return confirm('Supprimer la campagne « {{ campagne.nom|e('js') }} » et toutes ses operations ?');">
                         <input type="hidden" name="_token" value="{{ csrf_token('campagne_delete_' ~ campagne.id) }}">
                         <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm text-danger hover:bg-danger/10 transition-colors">

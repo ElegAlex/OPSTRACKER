@@ -2,13 +2,18 @@
 
 namespace App\Controller;
 
+use App\Entity\Document;
 use App\Entity\Operation;
+use App\Repository\DocumentRepository;
 use App\Repository\OperationRepository;
 use App\Service\ChecklistService;
+use App\Service\DocumentService;
 use App\Service\OperationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -30,6 +35,8 @@ class TerrainController extends AbstractController
         private readonly OperationRepository $operationRepository,
         private readonly OperationService $operationService,
         private readonly ChecklistService $checklistService,
+        private readonly DocumentRepository $documentRepository,
+        private readonly DocumentService $documentService,
     ) {
     }
 
@@ -77,10 +84,18 @@ class TerrainController extends AbstractController
             $checklistProgression = $this->checklistService->getProgression($operation->getChecklistInstance());
         }
 
+        // T-1106, T-1107 : Charger les documents de la campagne pour la checklist
+        $documents = $this->documentRepository->findByCampagne($operation->getCampagne()->getId());
+        $documentsById = [];
+        foreach ($documents as $doc) {
+            $documentsById[$doc->getId()] = $doc;
+        }
+
         return $this->render('terrain/show.html.twig', [
             'operation' => $operation,
             'transitions' => $transitions,
             'checklist_progression' => $checklistProgression,
+            'documents' => $documentsById,
         ]);
     }
 
@@ -119,15 +134,98 @@ class TerrainController extends AbstractController
         // Calculer la nouvelle progression
         $progression = $this->checklistService->getProgression($instance);
 
+        // T-1106, T-1107 : Charger les documents pour la checklist
+        $documents = $this->documentRepository->findByCampagne($operation->getCampagne()->getId());
+        $documentsById = [];
+        foreach ($documents as $doc) {
+            $documentsById[$doc->getId()] = $doc;
+        }
+
         // T-605 : Si requete Turbo, retourner uniquement le fragment
         if ($request->headers->has('Turbo-Frame')) {
             return $this->render('terrain/_checklist.html.twig', [
                 'operation' => $operation,
                 'checklist_progression' => $progression,
+                'documents' => $documentsById,
             ]);
         }
 
         return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
+    }
+
+    /**
+     * T-1106 : Consulter un document depuis la checklist
+     * Affiche le document inline (PDF) ou force le telechargement (autres formats)
+     */
+    #[Route('/{id}/document/{documentId}', name: 'terrain_document_view', methods: ['GET'])]
+    public function viewDocument(Operation $operation, int $documentId): Response
+    {
+        $this->denyAccessUnlessGranted('view', $operation);
+
+        $document = $this->documentRepository->find($documentId);
+        if (!$document) {
+            throw $this->createNotFoundException('Document non trouve.');
+        }
+
+        // Verifier que le document appartient a la campagne de l'operation
+        if ($document->getCampagne()->getId() !== $operation->getCampagne()->getId()) {
+            throw $this->createAccessDeniedException('Document non accessible.');
+        }
+
+        if (!$this->documentService->fileExists($document)) {
+            throw $this->createNotFoundException('Fichier non trouve sur le serveur.');
+        }
+
+        $filePath = $this->documentService->getFilePath($document);
+        $response = new BinaryFileResponse($filePath);
+
+        // PDF : affichage inline, autres : telechargement
+        if ($document->getExtension() === 'pdf') {
+            $response->setContentDisposition(
+                ResponseHeaderBag::DISPOSITION_INLINE,
+                $document->getNomOriginal()
+            );
+        } else {
+            $response->setContentDisposition(
+                ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+                $document->getNomOriginal()
+            );
+        }
+
+        return $response;
+    }
+
+    /**
+     * T-1107 : Telecharger un script depuis la checklist
+     * Force le telechargement du fichier (pour scripts ps1, bat, exe)
+     */
+    #[Route('/{id}/document/{documentId}/download', name: 'terrain_document_download', methods: ['GET'])]
+    public function downloadDocument(Operation $operation, int $documentId): Response
+    {
+        $this->denyAccessUnlessGranted('view', $operation);
+
+        $document = $this->documentRepository->find($documentId);
+        if (!$document) {
+            throw $this->createNotFoundException('Document non trouve.');
+        }
+
+        // Verifier que le document appartient a la campagne de l'operation
+        if ($document->getCampagne()->getId() !== $operation->getCampagne()->getId()) {
+            throw $this->createAccessDeniedException('Document non accessible.');
+        }
+
+        if (!$this->documentService->fileExists($document)) {
+            throw $this->createNotFoundException('Fichier non trouve sur le serveur.');
+        }
+
+        $filePath = $this->documentService->getFilePath($document);
+        $response = new BinaryFileResponse($filePath);
+        $response->setContentDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            $document->getNomOriginal()
+        );
+
+        return $response;
     }
 
     /**

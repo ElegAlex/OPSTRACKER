@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ template.nom }} - Templates - OpsTracker{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-paper">
+    {# HEADER #}
+    <header class="bg-white px-12 py-10 border-b-4 border-ink">
+        <div class="flex justify-between items-start">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-3 h-3 bg-primary"></div>
+                    <span class="text-xs font-semibold text-muted uppercase tracking-[0.15em]">Template de checklist</span>
+                </div>
+                <h1 class="text-4xl font-bold tracking-tight">{{ template.nom }}</h1>
+                <div class="flex items-center gap-4 mt-3">
+                    <span class="px-3 py-1 bg-ink/10 text-ink text-sm font-bold">v{{ template.version }}</span>
+                    {% if template.actif %}
+                    <span class="px-3 py-1 bg-success/10 text-success text-sm font-bold">Actif</span>
+                    {% else %}
+                    <span class="px-3 py-1 bg-warning/10 text-warning text-sm font-bold">Inactif</span>
+                    {% endif %}
+                    <span class="text-sm text-muted">{{ template.nombreEtapes }} etapes</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="{{ path('app_template_index') }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted hover:text-ink transition-colors">
+                    <i data-feather="arrow-left" class="w-4 h-4"></i>
+                    Retour
+                </a>
+                <a href="{{ path('app_template_edit', {id: template.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                    <i data-feather="edit" class="w-4 h-4"></i>
+                    Modifier
+                </a>
+            </div>
+        </div>
+    </header>
+
+    {# CONTENT #}
+    <div class="px-12 py-10">
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 border-2 border-ink/20 bg-{{ label == 'success' ? 'success' : 'danger' }}/10 flex items-center gap-3">
+                    <i data-feather="{{ label == 'success' ? 'check-circle' : 'alert-circle' }}" class="w-5 h-5 text-{{ label == 'success' ? 'success' : 'danger' }}"></i>
+                    <span class="text-sm font-medium">{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# KPIs #}
+        <div class="grid grid-cols-4 gap-6 mb-10">
+            <div class="bg-white border-2 border-ink p-6">
+                <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Phases</p>
+                <p class="text-4xl font-bold num text-ink">{{ template.phases|length }}</p>
+            </div>
+            <div class="bg-white border-2 border-ink p-6">
+                <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Etapes</p>
+                <p class="text-4xl font-bold num text-ink">{{ template.nombreEtapes }}</p>
+            </div>
+            <div class="bg-white border-2 border-ink p-6">
+                <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Campagnes</p>
+                <p class="text-4xl font-bold num text-primary">{{ campagnes_count }}</p>
+            </div>
+            <div class="bg-white border-2 border-ink p-6">
+                <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Instances</p>
+                <p class="text-4xl font-bold num text-success">{{ instances_count }}</p>
+            </div>
+        </div>
+
+        {# Description #}
+        {% if template.description %}
+        <div class="bg-white border-2 border-ink p-6 mb-8">
+            <h3 class="text-sm font-bold text-muted uppercase tracking-wider mb-3">Description</h3>
+            <p class="text-ink">{{ template.description }}</p>
+        </div>
+        {% endif %}
+
+        {# Structure des phases et etapes #}
+        <div class="bg-white border-2 border-ink">
+            <div class="px-6 py-4 border-b-2 border-ink bg-paper">
+                <h3 class="font-bold text-ink">Structure du template</h3>
+            </div>
+
+            {% for phase in template.phases %}
+            <div class="border-b border-ink/10 last:border-b-0">
+                <div class="px-6 py-4 bg-ink/5 flex items-center gap-4">
+                    <div class="w-8 h-8 bg-primary text-white flex items-center justify-center text-sm font-bold">
+                        {{ phase.ordre }}
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-ink">{{ phase.nom }}</h4>
+                        <p class="text-xs text-muted">
+                            {{ phase.etapes|length }} etape{{ phase.etapes|length > 1 ? 's' : '' }}
+                            {% if phase.verrouillable %}
+                            <span class="ml-2 text-warning"><i data-feather="lock" class="w-3 h-3 inline"></i> Verrouillable</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                {% for etape in phase.etapes %}
+                <div class="px-6 py-3 flex items-start gap-4 border-t border-ink/5 hover:bg-paper/50">
+                    <div class="w-6 h-6 mt-0.5 border-2 border-ink/20 flex items-center justify-center text-xs text-muted flex-shrink-0">
+                        {{ etape.ordre }}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-ink">{{ etape.titre }}</span>
+                            {% if etape.obligatoire %}
+                            <span class="text-xs text-danger">*</span>
+                            {% endif %}
+                            {% if etape.documentId %}
+                            <i data-feather="file-text" class="w-4 h-4 text-primary"></i>
+                            {% endif %}
+                        </div>
+                        {% if etape.description %}
+                        <p class="text-sm text-muted mt-1">{{ etape.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="px-6 py-4 text-sm text-muted italic">
+                    Aucune etape dans cette phase
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="px-6 py-8 text-center text-muted">
+                <i data-feather="inbox" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                <p>Aucune phase definie</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
