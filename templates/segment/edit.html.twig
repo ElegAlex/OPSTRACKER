@@ -1,0 +1,78 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Modifier {{ segment.nom }} - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block main %}
+{# HEADER #}
+<header class="bg-white px-12 py-8 border-b-4 border-ink">
+    <div class="flex justify-between items-start">
+        <div>
+            {# Breadcrumb #}
+            <div class="flex items-center gap-2 text-sm text-muted mb-3">
+                <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_campagne_show', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_segment_index', {campagne: campagne.id}) }}" class="hover:text-ink">Segments</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <span class="text-ink font-medium">Modifier</span>
+            </div>
+
+            {# Title #}
+            <div class="flex items-center gap-4">
+                <div class="w-6 h-6 bg-{{ segment.couleur }}"></div>
+                <h1 class="text-3xl font-bold tracking-tight">{{ segment.nom }}</h1>
+            </div>
+        </div>
+
+        {# Actions #}
+        <a href="{{ path('app_segment_index', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+            <i data-feather="x" class="w-4 h-4"></i>
+            Annuler
+        </a>
+    </div>
+</header>
+
+{# CONTENT #}
+<div class="flex-1 overflow-auto">
+    <div class="px-12 py-8">
+        <div class="max-w-xl">
+            {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+
+            {# Nom #}
+            <div>
+                {{ form_label(form.nom) }}
+                {{ form_widget(form.nom) }}
+                {{ form_errors(form.nom) }}
+            </div>
+
+            {# Couleur #}
+            <div>
+                {{ form_label(form.couleur) }}
+                <div class="flex items-center gap-4 mt-2">
+                    {% for key, choice in form.couleur %}
+                    <label class="cursor-pointer">
+                        <input type="radio" name="{{ form.couleur.vars.full_name }}" value="{{ choice.vars.value }}" {{ choice.vars.checked ? 'checked' : '' }} class="sr-only peer">
+                        <div class="w-10 h-10 bg-{{ choice.vars.value }} peer-checked:ring-2 peer-checked:ring-ink peer-checked:ring-offset-2 transition-all" title="{{ choice.vars.label }}"></div>
+                    </label>
+                    {% endfor %}
+                </div>
+                {{ form_errors(form.couleur) }}
+            </div>
+
+            {# Actions #}
+            <div class="flex items-center gap-4 pt-6">
+                <button type="submit" class="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                    <i data-feather="check" class="w-4 h-4"></i>
+                    Enregistrer
+                </button>
+                <a href="{{ path('app_segment_index', {campagne: campagne.id}) }}" class="px-6 py-3 text-sm font-medium text-muted hover:text-ink transition-colors">
+                    Annuler
+                </a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

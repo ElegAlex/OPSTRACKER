@@ -94,17 +94,54 @@
             </div>
         </div>
 
+        {# Quick actions #}
+        <div class="grid grid-cols-3 gap-6 mb-8">
+            <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+                        <i data-feather="list" class="w-6 h-6 text-primary group-hover:text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-ink">Operations</p>
+                        <p class="text-sm text-muted">Voir et gerer les {{ statistiques.total }} operations</p>
+                    </div>
+                </div>
+            </a>
+            <a href="{{ path('app_segment_index', {campagne: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-success/10 flex items-center justify-center group-hover:bg-success group-hover:text-white transition-colors">
+                        <i data-feather="grid" class="w-6 h-6 text-success group-hover:text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-ink">Segments</p>
+                        <p class="text-sm text-muted">Progression par segment</p>
+                    </div>
+                </div>
+            </a>
+            <a href="{{ path('app_campagne_step4', {id: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-ink/10 flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">
+                        <i data-feather="settings" class="w-6 h-6 text-ink group-hover:text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-ink">Configuration</p>
+                        <p class="text-sm text-muted">Type et checklist template</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
         {# Actions + Operations #}
         <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-ink">Operations</h2>
+            <h2 class="text-xl font-bold text-ink">Dernieres operations</h2>
             <div class="flex items-center gap-4">
-                <a href="{{ path('app_campagne_step4', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium border-2 border-ink/20 hover:border-ink transition-colors">
-                    <i data-feather="settings" class="w-4 h-4"></i>
-                    Configurer
+                <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium border-2 border-ink/20 hover:border-ink transition-colors">
+                    <i data-feather="list" class="w-4 h-4"></i>
+                    Voir tout
                 </a>
                 <a href="{{ path('app_campagne_operation_new', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
                     <i data-feather="plus" class="w-4 h-4"></i>
-                    Ajouter une operation
+                    Ajouter
                 </a>
             </div>
         </div>

@@ -1,0 +1,146 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}{{ segment.nom }} - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .select-inline {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b6b6b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+{# HEADER #}
+<header class="bg-white px-12 py-8 border-b-4 border-ink">
+    <div class="flex justify-between items-start">
+        <div>
+            {# Breadcrumb #}
+            <div class="flex items-center gap-2 text-sm text-muted mb-3">
+                <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_campagne_show', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_segment_index', {campagne: campagne.id}) }}" class="hover:text-ink">Segments</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <span class="text-ink font-medium">{{ segment.nom }}</span>
+            </div>
+
+            {# Title #}
+            <div class="flex items-center gap-4">
+                <div class="w-6 h-6 bg-{{ segment.couleur }}"></div>
+                <h1 class="text-3xl font-bold tracking-tight">{{ segment.nom }}</h1>
+            </div>
+
+            {# Meta #}
+            <div class="flex items-center gap-6 mt-3 text-sm text-muted">
+                <span class="flex items-center gap-2">
+                    <i data-feather="target" class="w-4 h-4"></i>
+                    {{ statistiques.total }} operations
+                </span>
+                <span class="flex items-center gap-2">
+                    <i data-feather="check-circle" class="w-4 h-4 text-success"></i>
+                    {{ statistiques.realises }} realisees ({{ statistiques.progression|round }}%)
+                </span>
+            </div>
+        </div>
+
+        {# Actions #}
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_segment_index', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                <i data-feather="arrow-left" class="w-4 h-4"></i>
+                Retour
+            </a>
+            <a href="{{ path('app_segment_edit', {campagne: campagne.id, id: segment.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold border-2 border-ink hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="edit-2" class="w-4 h-4"></i>
+                Modifier
+            </a>
+        </div>
+    </div>
+</header>
+
+{# CONTENT #}
+<div class="flex-1 overflow-auto">
+    <div class="px-12 py-8">
+
+        {# Progression bar #}
+        <div class="bg-white border-2 border-ink p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-bold">Progression du segment</h2>
+                <span class="text-2xl font-bold num">{{ statistiques.progression|round }}%</span>
+            </div>
+            <div class="h-4 bg-paper flex overflow-hidden">
+                <div class="bg-success h-full" style="width: {{ statistiques.total > 0 ? (statistiques.par_statut.realise|default(0) / statistiques.total * 100) : 0 }}%"></div>
+                <div class="bg-primary h-full" style="width: {{ statistiques.total > 0 ? ((statistiques.par_statut.planifie|default(0) + statistiques.par_statut.en_cours|default(0)) / statistiques.total * 100) : 0 }}%"></div>
+                <div class="bg-warning h-full" style="width: {{ statistiques.total > 0 ? (statistiques.par_statut.reporte|default(0) / statistiques.total * 100) : 0 }}%"></div>
+                <div class="bg-danger h-full" style="width: {{ statistiques.total > 0 ? (statistiques.par_statut.a_remedier|default(0) / statistiques.total * 100) : 0 }}%"></div>
+            </div>
+            <div class="grid grid-cols-6 gap-4 mt-4">
+                {% for statut, label in constant('App\\Entity\\Operation::STATUTS') %}
+                <div class="text-center">
+                    <p class="text-2xl font-bold num text-{{ constant('App\\Entity\\Operation::STATUTS_COULEURS')[statut] }}">{{ statistiques.par_statut[statut]|default(0) }}</p>
+                    <p class="text-xs text-muted">{{ label }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Operations du segment #}
+        <h2 class="text-lg font-bold mb-4">Operations</h2>
+
+        {% if operations|length > 0 %}
+        <div class="bg-white border-2 border-ink overflow-hidden">
+            <table class="w-full">
+                <thead class="bg-paper border-b-2 border-ink">
+                    <tr>
+                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-28">Matricule</th>
+                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider">Nom</th>
+                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-36">Statut</th>
+                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-36">Technicien</th>
+                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-28">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-ink/10">
+                    {% for operation in operations %}
+                    <tr class="hover:bg-paper/50 transition-colors">
+                        <td class="px-4 py-3 text-sm font-medium text-ink">{{ operation.matricule }}</td>
+                        <td class="px-4 py-3 text-sm text-ink">{{ operation.nom }}</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-{{ operation.statutCouleur }}/10 text-{{ operation.statutCouleur }} text-xs font-bold uppercase">
+                                {{ operation.statutLabel }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-muted">
+                            {% if operation.technicienAssigne %}
+                                {{ operation.technicienAssigne.nomComplet }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-muted">
+                            {{ operation.datePlanifiee ? operation.datePlanifiee|date('d/m/Y') : '-' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="bg-white border-2 border-ink/20 border-dashed p-12 text-center">
+            <div class="w-16 h-16 mx-auto bg-muted/10 flex items-center justify-center mb-4">
+                <i data-feather="inbox" class="w-8 h-8 text-muted"></i>
+            </div>
+            <h3 class="text-lg font-bold text-ink mb-2">Aucune operation</h3>
+            <p class="text-sm text-muted">Ce segment ne contient pas encore d'operations.</p>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
