@@ -1,0 +1,124 @@
+{% extends 'base.html.twig' %}
+
+{% block stylesheets %}
+<style>
+    /* BAUHAUS: Bloc geometrique accent */
+    .geo-accent {
+        position: relative;
+    }
+    .geo-accent::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 8px;
+    }
+    .geo-accent-success::before { background: #059669; }
+    .geo-accent-warning::before { background: #d97706; }
+    .geo-accent-complete::before { background: #0d9488; }
+    .geo-accent-primary::before { background: #2563eb; }
+    .geo-accent-muted::before { background: #d4d4d4; }
+    .geo-accent-danger::before { background: #dc2626; }
+
+    /* Section collapsibles */
+    .section-collapsed .section-content { display: none; }
+    .section-collapsed .chevron { transform: rotate(-90deg); }
+    .chevron { transition: transform 0.2s ease; }
+
+    /* Hover lift */
+    .card-hover {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 40px -12px rgba(0,0,0,0.15);
+    }
+
+    /* Number styling */
+    .num {
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.03em;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="flex h-screen overflow-hidden">
+
+    {# ========================================
+       SIDEBAR - Claire avec accents geometriques
+       ======================================== #}
+    <aside class="w-80 bg-white border-r-4 border-ink flex flex-col flex-shrink-0 relative overflow-hidden">
+
+        {# Elements geometriques decoratifs #}
+        <div class="absolute -right-16 -top-16 w-48 h-48 bg-primary/5 rounded-full"></div>
+        <div class="absolute left-0 bottom-32 w-3 h-32 bg-success"></div>
+
+        {# Logo avec bloc de couleur #}
+        <div class="relative z-10 p-8">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div class="w-14 h-14 bg-primary flex items-center justify-center">
+                        <span class="text-2xl font-bold text-white">O</span>
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-success"></div>
+                </div>
+                <div>
+                    <div class="text-xl font-bold tracking-tight text-ink">OpsTracker</div>
+                    <div class="text-xs text-muted uppercase tracking-widest mt-0.5">CPAM</div>
+                </div>
+            </div>
+        </div>
+
+        {# Navigation #}
+        <nav class="relative z-10 flex-1 px-6 py-4">
+            <div class="space-y-2">
+                <a href="{{ path('app_campagne_index') }}" class="flex items-center gap-4 px-4 py-3 {{ app.request.attributes.get('_route') starts with 'app_campagne' ? 'bg-primary/5 text-ink font-medium' : 'text-muted hover:text-ink hover:bg-paper' }} relative transition-colors">
+                    {% if app.request.attributes.get('_route') starts with 'app_campagne' %}
+                    <div class="absolute left-0 top-0 w-1 h-full bg-primary"></div>
+                    {% endif %}
+                    <div class="w-8 h-8 {{ app.request.attributes.get('_route') starts with 'app_campagne' ? 'bg-primary/10' : 'border-2 border-ink/10' }} flex items-center justify-center">
+                        <i data-feather="layers" class="w-4 h-4 {{ app.request.attributes.get('_route') starts with 'app_campagne' ? 'text-primary' : '' }}"></i>
+                    </div>
+                    Campagnes
+                </a>
+                <a href="{{ path('admin') }}" class="flex items-center gap-4 px-4 py-3 text-muted hover:text-ink hover:bg-paper transition-colors">
+                    <div class="w-8 h-8 border-2 border-ink/10 flex items-center justify-center">
+                        <i data-feather="settings" class="w-4 h-4"></i>
+                    </div>
+                    Administration
+                </a>
+            </div>
+        </nav>
+
+        {# User #}
+        {% if app.user %}
+        <div class="relative z-10 p-6 border-t-2 border-ink/10">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <div class="w-12 h-12 bg-primary/10 flex items-center justify-center text-lg font-semibold text-primary">
+                        {{ app.user.prenom|first|upper }}{{ app.user.nom|first|upper }}
+                    </div>
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-medium text-ink truncate">{{ app.user.prenom }} {{ app.user.nom }}</p>
+                    <p class="text-xs text-muted">{{ app.user.roles|first|replace({'ROLE_': ''})|lower|capitalize }}</p>
+                </div>
+                <a href="{{ path('app_logout') }}" class="w-8 h-8 border border-ink/10 flex items-center justify-center text-muted hover:bg-ink hover:text-white hover:border-ink transition-colors">
+                    <i data-feather="log-out" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </aside>
+
+    {# ========================================
+       MAIN CONTENT
+       ======================================== #}
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-cream">
+        {% block main %}{% endblock %}
+    </main>
+</div>
+{% endblock %}

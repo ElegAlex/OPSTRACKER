@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #3 - Sprint 2 Complete)
+> **Dernière mise à jour** : 2026-01-22 (Session #4 - Sprint 3 Complete)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels  
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -60,17 +60,17 @@
 
 ---
 
-### Sprint 3 — Campagnes CRUD (EPIC-02 MVP)
+### Sprint 3 — Campagnes CRUD (EPIC-02 MVP) ✅
 
 |ID|US|Titre|Statut|RG|Priorité|
 |---|---|---|---|---|---|
-|T-301|US-201|Voir la liste des campagnes (groupée par statut)|⏳|RG-010|🔴 MVP|
-|T-302|US-202|Créer campagne — Étape 1/4 (Infos générales)|⏳|RG-011|🔴 MVP|
-|T-303|US-205|Créer campagne — Étape 4/4 (Workflow & Template)|⏳|RG-014|🔴 MVP|
-|T-304|US-206|Ajouter une opération manuellement|⏳|RG-014, RG-015|🔴 MVP|
-|T-305|US-801|Créer un type d'opération (config EasyAdmin)|⏳|RG-060|🔴 MVP|
-|T-306|-|CRUD Campagne EasyAdmin|⏳|-|MVP|
-|T-307|-|Tests CampagneService|⏳|-|MVP|
+|T-301|US-201|Voir la liste des campagnes (groupée par statut)|✅|RG-010|🔴 MVP|
+|T-302|US-202|Créer campagne — Étape 1/4 (Infos générales)|✅|RG-011|🔴 MVP|
+|T-303|US-205|Créer campagne — Étape 4/4 (Workflow & Template)|✅|RG-014|🔴 MVP|
+|T-304|US-206|Ajouter une opération manuellement|✅|RG-014, RG-015|🔴 MVP|
+|T-305|US-801|Créer un type d'opération (config EasyAdmin)|✅|RG-060|🔴 MVP|
+|T-306|-|CRUD Campagne EasyAdmin|✅|-|MVP|
+|T-307|-|Tests CampagneService|✅|-|MVP|
 
 ---
 

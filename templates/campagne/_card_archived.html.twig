@@ -1,0 +1,24 @@
+{# Card campagne archivee #}
+<div class="bg-white geo-accent geo-accent-muted opacity-70 hover:opacity-90 cursor-pointer" onclick="window.location='{{ path('app_campagne_show', {id: campagne.id}) }}'">
+    <div class="p-5">
+        <div class="flex items-center gap-6">
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-4">
+                    <h3 class="font-medium text-muted truncate">{{ campagne.nom }}</h3>
+                    <span class="px-2 py-0.5 bg-ink/5 text-muted text-[10px] font-bold uppercase tracking-wider">Archivee</span>
+                </div>
+                <p class="text-sm text-muted/70 mt-1">{{ campagne.dateDebut|date('d M Y') }} - {{ campagne.dateFin|date('d M Y') }} | {{ stats.total }} operations</p>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <button onclick="event.stopPropagation();" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted hover:text-ink hover:bg-ink/5 transition-colors">
+                    <i data-feather="rotate-ccw" class="w-4 h-4"></i>
+                    Restaurer
+                </button>
+                <button onclick="event.stopPropagation();" class="w-8 h-8 border border-ink/10 flex items-center justify-center text-muted hover:bg-ink hover:text-white hover:border-ink transition-colors">
+                    <i data-feather="more-horizontal" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

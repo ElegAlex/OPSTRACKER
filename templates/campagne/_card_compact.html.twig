@@ -1,0 +1,33 @@
+{# Card campagne terminee (compact) #}
+<div class="bg-white geo-accent geo-accent-complete opacity-90 hover:opacity-100 card-hover cursor-pointer" onclick="window.location='{{ path('app_campagne_show', {id: campagne.id}) }}'">
+    <div class="p-5">
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+                <button onclick="event.stopPropagation();" class="w-8 h-8 border border-ink/10 flex items-center justify-center text-muted hover:text-warning transition-colors flex-shrink-0">
+                    <i data-feather="star" class="w-4 h-4"></i>
+                </button>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-4">
+                        <h3 class="font-semibold text-ink truncate">{{ campagne.nom }}</h3>
+                        <span class="px-2 py-0.5 bg-complete/10 text-complete text-[10px] font-bold uppercase tracking-wider">Terminee</span>
+                    </div>
+                    <p class="text-sm text-muted mt-1">{{ campagne.dateDebut|date('d M') }} - {{ campagne.dateFin|date('d M Y') }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-sm flex-shrink-0">
+                <div class="w-8 h-8 bg-complete/10 flex items-center justify-center">
+                    <i data-feather="check" class="w-4 h-4 text-complete"></i>
+                </div>
+                <span class="font-bold num text-ink">{{ stats.realises }}</span>
+                <span class="text-muted">/ {{ stats.total }}</span>
+            </div>
+
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <button onclick="event.stopPropagation();" class="w-8 h-8 border border-ink/10 flex items-center justify-center text-muted hover:bg-ink hover:text-white hover:border-ink transition-colors">
+                    <i data-feather="more-horizontal" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

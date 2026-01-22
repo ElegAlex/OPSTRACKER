@@ -31,6 +31,31 @@
 
 ## Sessions
 
+### Session #4 — 2026-01-22
+
+**Duree** : ~30 min
+**Tache(s)** : T-301 a T-307 (Sprint 3 complet)
+**Statut** : ✅ Termine
+
+### Realise
+- CampagneService avec logique metier (statistiques, workflow, CRUD)
+- CampagneController avec routes portfolio, creation, configuration
+- Formulaires CampagneStep1Type, CampagneStep4Type, OperationType
+- Templates Twig basees sur mockup portfolio.html (design Bauhaus)
+- Composants cards campagne (active, terminee, archivee)
+- CRUD EasyAdmin TypeOperationCrudController (T-305)
+- CRUD EasyAdmin CampagneCrudController (T-306)
+- Tests unitaires CampagneServiceTest (9 tests, 47 assertions)
+- Integration dans DashboardController admin
+
+### Problemes rencontres
+- Autowiring WorkflowInterface → resolu avec #[Target('campagne')]
+
+### Commits
+- A venir apres validation
+
+---
+
 ### Session #3 — 2026-01-22
 
 **Duree** : ~25 min

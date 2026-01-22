@@ -2,6 +2,8 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Campagne;
+use App\Entity\TypeOperation;
 use App\Entity\Utilisateur;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -21,8 +23,8 @@ class DashboardController extends AbstractDashboardController
     {
         $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
 
-        // Rediriger vers la liste des utilisateurs par défaut
-        return $this->redirect($adminUrlGenerator->setController(UtilisateurCrudController::class)->generateUrl());
+        // Rediriger vers la liste des campagnes par defaut
+        return $this->redirect($adminUrlGenerator->setController(CampagneCrudController::class)->generateUrl());
     }
 
     public function configureDashboard(): Dashboard
@@ -38,6 +40,13 @@ class DashboardController extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Tableau de bord', 'fa fa-home');
+
+        yield MenuItem::section('Campagnes');
+        yield MenuItem::linkToCrud('Campagnes', 'fa fa-layers-group', Campagne::class);
+        yield MenuItem::linkToRoute('Portfolio', 'fa fa-chart-pie', 'app_campagne_index');
+
+        yield MenuItem::section('Configuration');
+        yield MenuItem::linkToCrud('Types d\'operation', 'fa fa-cogs', TypeOperation::class);
 
         yield MenuItem::section('Utilisateurs');
         yield MenuItem::linkToCrud('Utilisateurs', 'fa fa-users', Utilisateur::class);
