@@ -113,7 +113,7 @@
         </div>
 
         {# Quick actions #}
-        <div class="grid grid-cols-5 gap-6 mb-8">
+        <div class="grid grid-cols-6 gap-6 mb-8">
             <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
@@ -147,6 +147,18 @@
                     </div>
                 </div>
             </a>
+            {# RG-070 : Lien historique audit #}
+            <a href="{{ path('audit_campagne', {id: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-muted/10 flex items-center justify-center group-hover:bg-muted group-hover:text-white transition-colors">
+                        <i data-feather="clock" class="w-6 h-6 text-muted group-hover:text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-ink">Historique</p>
+                        <p class="text-sm text-muted">Modifications</p>
+                    </div>
+                </div>
+            </a>
             {# RG-112 : Lien visibilite (bloque si archivee) #}
             {% if campagne.readOnly %}
             <div class="bg-white border-2 border-ink/20 p-6 opacity-50 cursor-not-allowed">
@@ -169,6 +181,20 @@
                     <div>
                         <p class="font-bold text-ink">Partage</p>
                         <p class="text-sm text-muted">{{ campagne.publique ? 'Publique' : 'Restreinte' }}</p>
+                    </div>
+                </div>
+            </a>
+            {% endif %}
+            {# RG-115 : Lien habilitations (visible si droit configurer) #}
+            {% if is_granted('CAMPAGNE_CONFIGURER', campagne) %}
+            <a href="{{ path('app_campagne_habilitations', {id: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-danger/10 flex items-center justify-center group-hover:bg-danger group-hover:text-white transition-colors">
+                        <i data-feather="shield" class="w-6 h-6 text-danger group-hover:text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-ink">Habilitations</p>
+                        <p class="text-sm text-muted">{{ campagne.habilitations|length }} utilisateur{{ campagne.habilitations|length > 1 ? 's' : '' }}</p>
                     </div>
                 </div>
             </a>

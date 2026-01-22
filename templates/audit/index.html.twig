@@ -1,0 +1,114 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Historique des modifications{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    {# En-tête #}
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-ink">Historique des modifications</h1>
+        <p class="text-muted mt-2">
+            <span class="inline-flex items-center px-2 py-1 bg-paper border-2 border-ink">
+                RG-070
+            </span>
+            Audit trail complet : qui, quoi, quand
+        </p>
+    </div>
+
+    {# Filtres #}
+    <form method="GET" class="bg-white border-2 border-ink p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1">Type d'entité</label>
+                <select name="type" class="w-full px-3 py-2 border-2 border-ink focus:outline-none focus:border-primary">
+                    <option value="">Tous</option>
+                    {% for type in historique.entityTypes %}
+                        <option value="{{ type }}" {{ filtres.type == type ? 'selected' : '' }}>
+                            {{ type|replace({'_': ' '})|capitalize }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1">Utilisateur</label>
+                <input type="text" name="utilisateur" value="{{ filtres.utilisateur }}"
+                       class="w-full px-3 py-2 border-2 border-ink focus:outline-none focus:border-primary"
+                       placeholder="Email...">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1">Date début</label>
+                <input type="date" name="date_debut" value="{{ filtres.date_debut }}"
+                       class="w-full px-3 py-2 border-2 border-ink focus:outline-none focus:border-primary">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1">Date fin</label>
+                <input type="date" name="date_fin" value="{{ filtres.date_fin }}"
+                       class="w-full px-3 py-2 border-2 border-ink focus:outline-none focus:border-primary">
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-2">
+            <a href="{{ path('audit_index') }}"
+               class="px-4 py-2 border-2 border-ink text-ink font-medium hover:bg-paper">
+                Réinitialiser
+            </a>
+            <button type="submit"
+                    class="px-4 py-2 bg-primary border-2 border-ink text-white font-medium hover:bg-primary/90">
+                Filtrer
+            </button>
+        </div>
+    </form>
+
+    {# Résumé #}
+    <div class="mb-4 text-sm text-muted">
+        {{ historique.total }} modification(s) trouvée(s)
+        {% if historique.totalPages > 1 %}
+            — Page {{ historique.page }}/{{ historique.totalPages }}
+        {% endif %}
+    </div>
+
+    {# Liste des modifications #}
+    {% if historique.entries|length > 0 %}
+        <div class="space-y-4">
+            {% for entry in historique.entries %}
+                {% include 'audit/_entry.html.twig' with {entry: entry, showEntity: true} %}
+            {% endfor %}
+        </div>
+
+        {# Pagination #}
+        {% if historique.totalPages > 1 %}
+            <div class="flex justify-center mt-8">
+                <nav class="inline-flex border-2 border-ink">
+                    {% if historique.page > 1 %}
+                        <a href="{{ path('audit_index', filtres|merge({page: historique.page - 1})) }}"
+                           class="px-4 py-2 border-r-2 border-ink hover:bg-paper">
+                            &laquo; Précédent
+                        </a>
+                    {% endif %}
+
+                    <span class="px-4 py-2 bg-paper">
+                        {{ historique.page }} / {{ historique.totalPages }}
+                    </span>
+
+                    {% if historique.page < historique.totalPages %}
+                        <a href="{{ path('audit_index', filtres|merge({page: historique.page + 1})) }}"
+                           class="px-4 py-2 border-l-2 border-ink hover:bg-paper">
+                            Suivant &raquo;
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-12 bg-white border-2 border-ink">
+            <svg class="w-12 h-12 mx-auto mb-4 text-muted/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p class="text-muted">Aucune modification trouvée.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

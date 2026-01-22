@@ -31,6 +31,104 @@
 
 ## Sessions
 
+### Session #13 — 2026-01-22
+
+**Duree** : ~45 min
+**Tache(s)** : T-1201 a T-1206 (Sprint 12 complet - Configuration & Admin V1)
+**Statut** : ✅ Termine
+
+### Realise
+- **T-1206** : Installer auditor-bundle pour audit trail (RG-070)
+  - Installation damienharper/auditor-bundle v6.x
+  - Configuration dh_auditor.yaml pour 8 entites auditees
+  - AuditSecurityProvider pour identifier l'utilisateur connecte
+  - Migration Version20260122210923.php pour les tables audit
+- **T-1201** : Definir les champs personnalises (RG-061, RG-015)
+  - ChampPersonnaliseService avec 5 types de champs (texte_court, texte_long, nombre, date, liste)
+  - Validation des definitions et valeurs
+  - Generation HTML pour formulaires
+  - ChampPersonnaliseController pour configuration par TypeOperation
+  - Template templates/admin/type_operation/champs.html.twig
+  - 24 tests unitaires pour ChampPersonnaliseService
+- **T-1202** : Voir l'historique des modifications (Audit)
+  - AuditService pour recuperer l'historique depuis auditor-bundle
+  - AuditController avec routes /audit, /audit/campagne/{id}, /audit/operation/{id}
+  - Templates audit/index.html.twig, _entry.html.twig, campagne.html.twig, operation.html.twig
+  - Lien Historique dans page campagne et menu admin
+- **T-1203** : Exporter/Importer la configuration (RG-100, RG-101)
+  - ConfigurationService avec export ZIP et import
+  - Export : types_operations.csv, templates_checklists.csv, segments.csv, config_metadata.json
+  - Import avec modes de conflit : remplacer, ignorer, creer_nouveaux
+  - ConfigurationController avec interface admin
+  - Template templates/admin/configuration/index.html.twig
+- **T-1204** : Creer un profil Coordinateur (RG-114)
+  - Ajout ROLE_COORDINATEUR dans Utilisateur
+  - Methode isCoordinateur()
+  - Integration dans UtilisateurCrudController (choix et filtres)
+  - Methode createCoordinateur() dans UtilisateurService
+- **T-1205** : Gerer les habilitations par campagne (RG-115)
+  - Entite HabilitationCampagne avec 4 droits (voir, positionner, configurer, exporter)
+  - HabilitationCampagneRepository avec methodes de recherche
+  - Relation habilitations dans Campagne
+  - CampagneVoter pour verifier les permissions granulaires
+  - HabilitationController pour gestion des habilitations
+  - Template templates/habilitation/index.html.twig avec grille de checkboxes
+  - Migration Version20260122211957.php pour la table habilitation_campagne
+  - Lien Habilitations dans page campagne (si droit configurer)
+
+### Fichiers crees
+- `config/packages/dh_auditor.yaml`
+- `src/Security/AuditSecurityProvider.php`
+- `src/Service/ChampPersonnaliseService.php`
+- `src/Service/AuditService.php`
+- `src/Service/ConfigurationService.php`
+- `src/Controller/Admin/ChampPersonnaliseController.php`
+- `src/Controller/AuditController.php`
+- `src/Controller/Admin/ConfigurationController.php`
+- `src/Controller/HabilitationController.php`
+- `src/Entity/HabilitationCampagne.php`
+- `src/Repository/HabilitationCampagneRepository.php`
+- `src/Security/Voter/CampagneVoter.php`
+- `templates/admin/type_operation/champs.html.twig`
+- `templates/audit/index.html.twig`
+- `templates/audit/_entry.html.twig`
+- `templates/audit/campagne.html.twig`
+- `templates/audit/operation.html.twig`
+- `templates/admin/configuration/index.html.twig`
+- `templates/habilitation/index.html.twig`
+- `migrations/Version20260122210923.php`
+- `migrations/Version20260122211957.php`
+- `tests/Unit/Service/ChampPersonnaliseServiceTest.php`
+
+### Fichiers modifies
+- `config/bundles.php` - ajout DHAuditorBundle
+- `config/services.yaml` - services auditor
+- `src/Entity/Utilisateur.php` - ajout ROLE_COORDINATEUR et isCoordinateur()
+- `src/Entity/Campagne.php` - ajout relation habilitations
+- `src/Service/UtilisateurService.php` - ajout createCoordinateur()
+- `src/Controller/Admin/UtilisateurCrudController.php` - ajout role Coordinateur
+- `src/Controller/Admin/TypeOperationCrudController.php` - action champs
+- `src/Controller/Admin/DashboardController.php` - menus Historique et Configuration
+- `templates/campagne/show.html.twig` - lien Habilitations
+
+### Regles metier implementees
+- RG-061 : 5 types de champs personnalises
+- RG-015 : Champs personnalises stockes en JSONB
+- RG-070 : Audit trail via auditor-bundle
+- RG-100 : Export configuration en ZIP
+- RG-101 : Import configuration avec gestion conflits
+- RG-114 : Role Coordinateur
+- RG-115 : Habilitations granulaires par campagne (voir, positionner, configurer, exporter)
+
+### Tests
+- Total : 191 tests passants (+24 nouveaux)
+- Couverture ChampPersonnaliseService : 100%
+
+### Commits
+- A venir avec tag Sprint 12
+
+---
+
 ### Session #12 — 2026-01-22
 
 **Duree** : ~35 min

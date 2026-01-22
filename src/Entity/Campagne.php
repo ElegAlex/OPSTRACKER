@@ -123,6 +123,13 @@ class Campagne
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'campagne', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $documents;
 
+    /**
+     * RG-115 : Habilitations granulaires par utilisateur
+     * @var Collection<int, HabilitationCampagne>
+     */
+    #[ORM\OneToMany(targetEntity: HabilitationCampagne::class, mappedBy: 'campagne', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $habilitations;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -135,6 +142,7 @@ class Campagne
         $this->operations = new ArrayCollection();
         $this->documents = new ArrayCollection();
         $this->utilisateursHabilites = new ArrayCollection();
+        $this->habilitations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -476,6 +484,50 @@ class Campagne
     public function getNombreDocuments(): int
     {
         return $this->documents->count();
+    }
+
+    /**
+     * RG-115 : Habilitations granulaires
+     * @return Collection<int, HabilitationCampagne>
+     */
+    public function getHabilitations(): Collection
+    {
+        return $this->habilitations;
+    }
+
+    public function addHabilitation(HabilitationCampagne $habilitation): static
+    {
+        if (!$this->habilitations->contains($habilitation)) {
+            $this->habilitations->add($habilitation);
+            $habilitation->setCampagne($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHabilitation(HabilitationCampagne $habilitation): static
+    {
+        if ($this->habilitations->removeElement($habilitation)) {
+            if ($habilitation->getCampagne() === $this) {
+                $habilitation->setCampagne(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * RG-115 : Trouve l'habilitation d'un utilisateur
+     */
+    public function getHabilitationPour(Utilisateur $utilisateur): ?HabilitationCampagne
+    {
+        foreach ($this->habilitations as $habilitation) {
+            if ($habilitation->getUtilisateur() === $utilisateur) {
+                return $habilitation;
+            }
+        }
+
+        return null;
     }
 
     public function __toString(): string

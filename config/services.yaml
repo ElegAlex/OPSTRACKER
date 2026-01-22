@@ -26,3 +26,8 @@ services:
     App\Service\DocumentService:
         arguments:
             $uploadDirectory: '%upload_directory%'
+
+    # Auditor security provider (RG-070)
+    App\Security\AuditSecurityProvider:
+        tags:
+            - { name: 'dh_auditor.security_provider' }

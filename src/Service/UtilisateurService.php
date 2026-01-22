@@ -137,6 +137,25 @@ class UtilisateurService
     }
 
     /**
+     * Cree un coordinateur (RG-114).
+     * Peut positionner des agents sans lien hierarchique.
+     */
+    public function createCoordinateur(
+        string $email,
+        string $plainPassword,
+        string $nom,
+        string $prenom,
+    ): Utilisateur {
+        return $this->createUtilisateur(
+            $email,
+            $plainPassword,
+            $nom,
+            $prenom,
+            [Utilisateur::ROLE_COORDINATEUR],
+        );
+    }
+
+    /**
      * Met à jour le mot de passe d'un utilisateur.
      */
     public function updatePassword(Utilisateur $utilisateur, string $newPlainPassword): void
@@ -286,6 +305,7 @@ class UtilisateurService
             Utilisateur::ROLE_ADMIN,
             Utilisateur::ROLE_GESTIONNAIRE,
             Utilisateur::ROLE_TECHNICIEN,
+            Utilisateur::ROLE_COORDINATEUR,
         ];
 
         foreach ($roles as $role) {

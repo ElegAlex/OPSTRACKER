@@ -1,0 +1,75 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Historique - {{ operation.nom }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    {# En-tête #}
+    <div class="mb-8">
+        <a href="{{ path('campagne_operations', {id: operation.campagne.id}) }}"
+           class="inline-flex items-center text-muted hover:text-ink mb-4">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Retour aux opérations
+        </a>
+
+        <h1 class="text-2xl font-bold text-ink">Historique des modifications</h1>
+        <p class="text-muted mt-2">
+            Opération : <span class="font-semibold">{{ operation.nom }}</span>
+            {% if operation.matricule %}
+                <span class="text-sm">({{ operation.matricule }})</span>
+            {% endif %}
+        </p>
+    </div>
+
+    {# Résumé #}
+    <div class="mb-4 text-sm text-muted">
+        {{ historique.total }} modification(s)
+        {% if historique.totalPages > 1 %}
+            — Page {{ historique.page }}/{{ historique.totalPages }}
+        {% endif %}
+    </div>
+
+    {# Liste des modifications #}
+    {% if historique.entries|length > 0 %}
+        <div class="space-y-4">
+            {% for entry in historique.entries %}
+                {% include 'audit/_entry.html.twig' with {entry: entry} %}
+            {% endfor %}
+        </div>
+
+        {# Pagination #}
+        {% if historique.totalPages > 1 %}
+            <div class="flex justify-center mt-8">
+                <nav class="inline-flex border-2 border-ink">
+                    {% if historique.page > 1 %}
+                        <a href="{{ path('audit_operation', {id: operation.id, page: historique.page - 1}) }}"
+                           class="px-4 py-2 border-r-2 border-ink hover:bg-paper">
+                            &laquo; Précédent
+                        </a>
+                    {% endif %}
+
+                    <span class="px-4 py-2 bg-paper">
+                        {{ historique.page }} / {{ historique.totalPages }}
+                    </span>
+
+                    {% if historique.page < historique.totalPages %}
+                        <a href="{{ path('audit_operation', {id: operation.id, page: historique.page + 1}) }}"
+                           class="px-4 py-2 border-l-2 border-ink hover:bg-paper">
+                            Suivant &raquo;
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-12 bg-white border-2 border-ink">
+            <svg class="w-12 h-12 mx-auto mb-4 text-muted/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p class="text-muted">Aucune modification enregistrée pour cette opération.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

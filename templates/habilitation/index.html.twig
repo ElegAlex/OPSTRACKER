@@ -1,0 +1,183 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Habilitations - {{ campagne.nom }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    {# En-tête #}
+    <div class="mb-8">
+        <a href="{{ path('campagne_show', {id: campagne.id}) }}"
+           class="inline-flex items-center text-muted hover:text-ink mb-4">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Retour à la campagne
+        </a>
+
+        <h1 class="text-2xl font-bold text-ink">Gestion des habilitations</h1>
+        <p class="text-muted mt-2">
+            Campagne : <span class="font-semibold">{{ campagne.nom }}</span>
+        </p>
+        <p class="text-sm text-muted mt-1">
+            <span class="inline-flex items-center px-2 py-1 bg-paper border-2 border-ink">
+                RG-115
+            </span>
+            Droits granulaires : Voir, Positionner, Configurer, Exporter
+        </p>
+    </div>
+
+    {# Messages flash #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="mb-6 p-4 border-2
+                {% if label == 'success' %}border-success bg-success/10{% elseif label == 'warning' %}border-warning bg-warning/10{% else %}border-danger bg-danger/10{% endif %}">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2 {% if label == 'success' %}text-success{% elseif label == 'warning' %}text-warning{% else %}text-danger{% endif %}" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="text-sm font-medium">{{ message }}</span>
+                </div>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {# Formulaire d'ajout #}
+        <div class="lg:col-span-1">
+            <div class="bg-white border-2 border-ink p-6">
+                <h2 class="text-lg font-bold text-ink mb-4">Ajouter une habilitation</h2>
+
+                {% if utilisateurs|length > 0 %}
+                    <form action="{{ path('app_campagne_habilitation_add', {id: campagne.id}) }}" method="POST">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-ink mb-1">Utilisateur</label>
+                            <select name="utilisateur_id" required
+                                    class="w-full px-3 py-2 border-2 border-ink focus:outline-none focus:border-primary">
+                                <option value="">-- Sélectionner --</option>
+                                {% for utilisateur in utilisateurs %}
+                                    <option value="{{ utilisateur.id }}">
+                                        {{ utilisateur.nomComplet }} ({{ utilisateur.email }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-ink mb-2">Droits</label>
+                            <div class="space-y-2">
+                                {% for code, label in droits %}
+                                    <label class="flex items-center">
+                                        <input type="checkbox" name="droit_{{ code }}"
+                                               class="mr-2 w-4 h-4 border-2 border-ink"
+                                               {{ code == 'voir' ? 'checked' : '' }}>
+                                        <span class="text-sm">{{ label }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                                class="w-full px-4 py-2 bg-primary border-2 border-ink text-white font-medium hover:bg-primary/90">
+                            Ajouter
+                        </button>
+                    </form>
+                {% else %}
+                    <p class="text-sm text-muted">Tous les utilisateurs ont déjà une habilitation.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Liste des habilitations #}
+        <div class="lg:col-span-2">
+            <div class="bg-white border-2 border-ink">
+                <div class="px-6 py-4 border-b-2 border-ink">
+                    <h2 class="text-lg font-bold text-ink">Utilisateurs habilités</h2>
+                    <p class="text-sm text-muted">{{ habilitations|length }} habilitation(s)</p>
+                </div>
+
+                {% if habilitations|length > 0 %}
+                    <table class="w-full">
+                        <thead class="bg-paper border-b-2 border-ink">
+                            <tr>
+                                <th class="text-left px-6 py-3 text-xs font-bold text-ink uppercase">Utilisateur</th>
+                                <th class="text-center px-3 py-3 text-xs font-bold text-ink uppercase">Voir</th>
+                                <th class="text-center px-3 py-3 text-xs font-bold text-ink uppercase">Position.</th>
+                                <th class="text-center px-3 py-3 text-xs font-bold text-ink uppercase">Config.</th>
+                                <th class="text-center px-3 py-3 text-xs font-bold text-ink uppercase">Export</th>
+                                <th class="px-6 py-3"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-ink/10">
+                            {% for habilitation in habilitations %}
+                                <tr>
+                                    <td class="px-6 py-4">
+                                        <div class="font-medium text-ink">{{ habilitation.utilisateur.nomComplet }}</div>
+                                        <div class="text-xs text-muted">{{ habilitation.utilisateur.email }}</div>
+                                    </td>
+                                    <form action="{{ path('app_campagne_habilitation_edit', {id: campagne.id, habilitationId: habilitation.id}) }}" method="POST" class="contents">
+                                        <td class="text-center px-3 py-4">
+                                            <input type="checkbox" name="droit_voir"
+                                                   class="w-4 h-4 border-2 border-ink"
+                                                   {{ habilitation.peutVoir ? 'checked' : '' }}
+                                                   onchange="this.form.submit()">
+                                        </td>
+                                        <td class="text-center px-3 py-4">
+                                            <input type="checkbox" name="droit_positionner"
+                                                   class="w-4 h-4 border-2 border-ink"
+                                                   {{ habilitation.peutPositionner ? 'checked' : '' }}
+                                                   onchange="this.form.submit()">
+                                        </td>
+                                        <td class="text-center px-3 py-4">
+                                            <input type="checkbox" name="droit_configurer"
+                                                   class="w-4 h-4 border-2 border-ink"
+                                                   {{ habilitation.peutConfigurer ? 'checked' : '' }}
+                                                   onchange="this.form.submit()">
+                                        </td>
+                                        <td class="text-center px-3 py-4">
+                                            <input type="checkbox" name="droit_exporter"
+                                                   class="w-4 h-4 border-2 border-ink"
+                                                   {{ habilitation.peutExporter ? 'checked' : '' }}
+                                                   onchange="this.form.submit()">
+                                        </td>
+                                    </form>
+                                    <td class="px-6 py-4 text-right">
+                                        <form action="{{ path('app_campagne_habilitation_delete', {id: campagne.id, habilitationId: habilitation.id}) }}"
+                                              method="POST" class="inline"
+                                              onsubmit="return confirm('Supprimer l\'habilitation de {{ habilitation.utilisateur.nomComplet }} ?')">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_habilitation_' ~ habilitation.id) }}">
+                                            <button type="submit" class="text-danger hover:text-danger/80">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="text-center py-12">
+                        <svg class="w-12 h-12 mx-auto mb-4 text-muted/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        <p class="text-muted">Aucune habilitation définie.</p>
+                        <p class="text-sm text-muted">Seul le propriétaire peut accéder à cette campagne.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Légende #}
+            <div class="mt-4 p-4 bg-paper border-2 border-ink/20">
+                <h3 class="text-sm font-bold text-ink mb-2">Légende des droits</h3>
+                <ul class="text-sm text-muted space-y-1">
+                    <li><strong>Voir</strong> : Accéder à la campagne et voir les opérations</li>
+                    <li><strong>Positionner</strong> : Positionner des agents sur des créneaux</li>
+                    <li><strong>Configurer</strong> : Modifier la configuration et les habilitations</li>
+                    <li><strong>Exporter</strong> : Télécharger les exports CSV</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

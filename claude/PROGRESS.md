@@ -1,5 +1,5 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #12 - Sprint 11 Complete - Campagnes & Checklists V1)
-> **Source** : P4.1 - Backlog & Requirements Fonctionnels  
+> **Dernière mise à jour** : 2026-01-22 (Session #13 - Sprint 12 Complete - Configuration & Admin V1)
+> **Source** : P4.1 - Backlog & Requirements Fonctionnels
 > **Total** : 85 User Stories | 12 EPICs
 
 ---
@@ -187,16 +187,16 @@
 
 ---
 
-### Sprint 12 — Configuration & Admin (EPIC-08 V1)
+### Sprint 12 — Configuration & Admin (EPIC-08 V1) ✅
 
 |ID|US|Titre|Statut|RG|Priorité|
 |---|---|---|---|---|---|
-|T-1201|US-802|Définir les champs personnalisés|⏳|RG-061, RG-015|🟡 V1|
-|T-1202|US-804|Voir l'historique des modifications (Audit)|⏳|RG-070|🟡 V1|
-|T-1203|US-806|Exporter/Importer la configuration|⏳|RG-100|🟡 V1|
-|T-1204|US-807|Créer un profil "Coordinateur"|⏳|RG-114|🟡 V1|
-|T-1205|US-808|Gérer les habilitations par campagne|⏳|RG-115|🟡 V1|
-|T-1206|-|Installer auditor-bundle|⏳|RG-070|V1|
+|T-1201|US-802|Définir les champs personnalisés|✅|RG-061, RG-015|🟡 V1|
+|T-1202|US-804|Voir l'historique des modifications (Audit)|✅|RG-070|🟡 V1|
+|T-1203|US-806|Exporter/Importer la configuration|✅|RG-100|🟡 V1|
+|T-1204|US-807|Créer un profil "Coordinateur"|✅|RG-114|🟡 V1|
+|T-1205|US-808|Gérer les habilitations par campagne|✅|RG-115|🟡 V1|
+|T-1206|-|Installer auditor-bundle|✅|RG-070|V1|
 
 ---
 
@@ -292,11 +292,11 @@ _* MVP = MVP du module Réservation, pas du MVP OpsTracker core_
 
 |Métrique|Actuel|Cible MVP|Cible V1|
 |---|---|---|---|
-|Tâches terminées|85|65|110|
-|User Stories done|43/85|47/85|76/85|
-|Entités créées|8|6|8|
-|Tests passants|167|60+|100+|
-|Couverture code|~78%|70%|80%|
+|Tâches terminées|91|65|110|
+|User Stories done|48/85|47/85|76/85|
+|Entités créées|9|6|8|
+|Tests passants|191|60+|100+|
+|Couverture code|~80%|70%|80%|
 
 ---
 

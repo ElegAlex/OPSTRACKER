@@ -64,6 +64,7 @@ class UtilisateurCrudController extends AbstractCrudController
                     'Admin' => Utilisateur::ROLE_ADMIN,
                     'Gestionnaire' => Utilisateur::ROLE_GESTIONNAIRE,
                     'Technicien' => Utilisateur::ROLE_TECHNICIEN,
+                    'Coordinateur' => Utilisateur::ROLE_COORDINATEUR,
                 ]))
         ;
     }
@@ -116,6 +117,7 @@ class UtilisateurCrudController extends AbstractCrudController
             'Administrateur' => Utilisateur::ROLE_ADMIN,
             'Gestionnaire' => Utilisateur::ROLE_GESTIONNAIRE,
             'Technicien' => Utilisateur::ROLE_TECHNICIEN,
+            'Coordinateur (RG-114)' => Utilisateur::ROLE_COORDINATEUR,
         ];
 
         yield IdField::new('id')->hideOnForm();
@@ -143,6 +145,7 @@ class UtilisateurCrudController extends AbstractCrudController
                     'ROLE_ADMIN' => 'Admin',
                     'ROLE_GESTIONNAIRE' => 'Gestionnaire',
                     'ROLE_TECHNICIEN' => 'Technicien',
+                    'ROLE_COORDINATEUR' => 'Coordinateur',
                     'ROLE_USER' => '',
                 ];
                 $result = [];

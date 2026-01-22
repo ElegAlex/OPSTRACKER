@@ -53,6 +53,10 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::section('Utilisateurs');
         yield MenuItem::linkToCrud('Utilisateurs', 'fa fa-users', Utilisateur::class);
 
+        yield MenuItem::section('Audit & Config');
+        yield MenuItem::linkToRoute('Historique (RG-070)', 'fa fa-history', 'audit_index');
+        yield MenuItem::linkToRoute('Export/Import (RG-100)', 'fa fa-exchange-alt', 'admin_configuration_index');
+
         yield MenuItem::section('');
         yield MenuItem::linkToRoute('Retour a OpsTracker', 'fa fa-arrow-left', 'app_home');
         yield MenuItem::linkToLogout('Deconnexion', 'fa fa-sign-out');

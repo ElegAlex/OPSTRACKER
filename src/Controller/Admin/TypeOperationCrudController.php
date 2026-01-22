@@ -7,7 +7,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
+use EasyCorp\Bundle\EasyAdminBundle\Context\AdminContext;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\ArrayField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
@@ -15,6 +17,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
+use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * CRUD EasyAdmin pour TypeOperation.
@@ -51,8 +55,16 @@ class TypeOperationCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
+        $champsAction = Action::new('champs', 'Champs personnalisés', 'fa fa-list')
+            ->linkToRoute('admin_type_operation_champs', function (TypeOperation $entity): array {
+                return ['id' => $entity->getId()];
+            })
+            ->setCssClass('btn btn-secondary');
+
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->add(Crud::PAGE_INDEX, $champsAction)
+            ->add(Crud::PAGE_DETAIL, $champsAction)
             ->update(Crud::PAGE_INDEX, Action::NEW, function (Action $action) {
                 return $action->setLabel('Nouveau type');
             })
@@ -91,6 +103,14 @@ class TypeOperationCrudController extends AbstractCrudController
 
         yield BooleanField::new('actif', 'Actif')
             ->renderAsSwitch($pageName !== Crud::PAGE_INDEX);
+
+        // Afficher le nombre de champs personnalises (RG-061)
+        yield TextField::new('champsCount', 'Champs')
+            ->formatValue(function ($value, TypeOperation $entity) {
+                $count = count($entity->getChampsPersonnalises() ?? []);
+                return $count > 0 ? sprintf('%d champ(s)', $count) : '-';
+            })
+            ->hideOnForm();
 
         yield DateTimeField::new('createdAt', 'Cree le')
             ->hideOnForm()

@@ -26,6 +26,7 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public const ROLE_ADMIN = 'ROLE_ADMIN';
     public const ROLE_GESTIONNAIRE = 'ROLE_GESTIONNAIRE';
     public const ROLE_TECHNICIEN = 'ROLE_TECHNICIEN';
+    public const ROLE_COORDINATEUR = 'ROLE_COORDINATEUR';
 
     public const MAX_FAILED_ATTEMPTS = 5;
     public const LOCKOUT_DURATION_MINUTES = 15;
@@ -181,6 +182,14 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     public function isTechnicien(): bool
     {
         return $this->hasRole(self::ROLE_TECHNICIEN);
+    }
+
+    /**
+     * Verifie si l'utilisateur est coordinateur (RG-114).
+     */
+    public function isCoordinateur(): bool
+    {
+        return $this->hasRole(self::ROLE_COORDINATEUR);
     }
 
     /**

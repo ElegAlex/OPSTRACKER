@@ -1,0 +1,35 @@
+# Configuration auditor-bundle v6.x pour OpsTracker
+# RG-070 : Audit trail complet (qui, quoi, quand)
+# RG-071 : Rétention 2 ans minimum
+
+dh_auditor:
+    enabled: true
+    timezone: 'Europe/Paris'
+
+    providers:
+        doctrine:
+            table_prefix: 'audit_'
+            table_suffix: ''
+            viewer: true
+            ignored_columns:
+                - 'created_at'
+                - 'updated_at'
+
+            entities:
+                # Entités auditées
+                App\Entity\Campagne:
+                    enabled: true
+                App\Entity\Operation:
+                    enabled: true
+                App\Entity\Utilisateur:
+                    enabled: true
+                App\Entity\TypeOperation:
+                    enabled: true
+                App\Entity\ChecklistTemplate:
+                    enabled: true
+                App\Entity\ChecklistInstance:
+                    enabled: true
+                App\Entity\Segment:
+                    enabled: true
+                App\Entity\Document:
+                    enabled: true

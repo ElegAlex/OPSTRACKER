@@ -1,0 +1,152 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Configuration - Export/Import{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    {# En-tête #}
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-ink">Export / Import de Configuration</h1>
+        <p class="text-muted mt-2">
+            <span class="inline-flex items-center px-2 py-1 bg-paper border-2 border-ink">
+                RG-100
+            </span>
+            Sauvegardez ou restaurez la configuration de votre instance OpsTracker.
+        </p>
+    </div>
+
+    {# Messages flash #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="mb-6 p-4 border-2
+                {% if label == 'success' %}border-success bg-success/10{% elseif label == 'warning' %}border-warning bg-warning/10{% else %}border-danger bg-danger/10{% endif %}">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2 {% if label == 'success' %}text-success{% elseif label == 'warning' %}text-warning{% else %}text-danger{% endif %}" fill="currentColor" viewBox="0 0 20 20">
+                        {% if label == 'success' %}
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        {% elseif label == 'warning' %}
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        {% else %}
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        {% endif %}
+                    </svg>
+                    <span class="text-sm font-medium">{{ message }}</span>
+                </div>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {# Export #}
+        <div class="bg-white border-2 border-ink p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-success/10 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-ink">Exporter la configuration</h2>
+                    <p class="text-sm text-muted">Télécharger un fichier ZIP</p>
+                </div>
+            </div>
+
+            <p class="text-sm text-muted mb-4">
+                L'export contient :
+            </p>
+            <ul class="text-sm text-muted mb-6 space-y-1">
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Types d'opération
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Templates de checklist
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Noms des segments
+                </li>
+                <li class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Métadonnées de version
+                </li>
+            </ul>
+
+            <a href="{{ path('admin_configuration_export') }}"
+               class="block w-full px-6 py-3 bg-success border-2 border-ink text-white font-medium text-center hover:bg-success/90">
+                Télécharger l'export ZIP
+            </a>
+        </div>
+
+        {# Import #}
+        <div class="bg-white border-2 border-ink p-6">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-primary/10 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-ink">Importer une configuration</h2>
+                    <p class="text-sm text-muted">Restaurer depuis un fichier ZIP</p>
+                </div>
+            </div>
+
+            <form action="{{ path('admin_configuration_import') }}" method="POST" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-ink mb-1">Fichier ZIP</label>
+                    <input type="file" name="config_file" accept=".zip"
+                           class="w-full px-3 py-2 border-2 border-ink focus:outline-none focus:border-primary"
+                           required>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-ink mb-1">Mode de gestion des conflits</label>
+                    <select name="mode" class="w-full px-3 py-2 border-2 border-ink focus:outline-none focus:border-primary">
+                        {% for modeCode, modeLabel in modes %}
+                            <option value="{{ modeCode }}" {{ modeCode == 'creer_nouveaux' ? 'selected' : '' }}>
+                                {{ modeLabel }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <p class="text-xs text-muted mt-1">
+                        <strong>Remplacer</strong> : Écrase les éléments existants<br>
+                        <strong>Ignorer</strong> : Conserve les existants, importe les nouveaux<br>
+                        <strong>Créer nouveaux</strong> : Importe uniquement ce qui n'existe pas
+                    </p>
+                </div>
+
+                <button type="submit"
+                        class="w-full px-6 py-3 bg-primary border-2 border-ink text-white font-medium hover:bg-primary/90">
+                    Importer la configuration
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {# Avertissement #}
+    <div class="mt-8 p-4 bg-warning/10 border-2 border-warning">
+        <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-warning mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            <div>
+                <p class="font-semibold text-warning">Attention</p>
+                <p class="text-sm text-muted">
+                    L'import en mode "Remplacer" peut modifier des configurations existantes.
+                    Il est recommandé d'exporter votre configuration actuelle avant d'importer.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
