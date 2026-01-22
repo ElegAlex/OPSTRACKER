@@ -31,6 +31,42 @@
 
 ## Sessions
 
+### Session #7 — 2026-01-22
+
+**Duree** : ~30 min
+**Tache(s)** : T-601 a T-606 (Sprint 6 complet)
+**Statut** : ✅ Termine
+
+### Realise
+- ChecklistService pour gestion templates et instances (RG-030, RG-031, RG-032, RG-033)
+- CRUD EasyAdmin pour ChecklistTemplate avec affichage structure phases/etapes
+- Interface checklist terrain avec checkboxes 48x48px (RG-082)
+- Turbo Frames pour update sans rechargement page (T-605)
+- Barre de progression segmentee avec pourcentage
+- Phases verrouillables : phase N accessible si phase N-1 complete
+- Triple signalisation visuelle (cochee/non cochee/verrouillee)
+- Tests unitaires ChecklistService (19 tests, 69 assertions)
+- Total : 90 tests passants, 284 assertions
+
+### Fichiers crees
+- `src/Service/ChecklistService.php`
+- `src/Controller/Admin/ChecklistTemplateCrudController.php`
+- `templates/admin/field/checklist_etapes.html.twig`
+- `templates/terrain/_checklist.html.twig`
+- `tests/Unit/Service/ChecklistServiceTest.php`
+
+### Fichiers modifies
+- `src/Controller/TerrainController.php` - ajout toggleEtape + progression
+- `src/Controller/Admin/DashboardController.php` - menu templates
+- `templates/terrain/show.html.twig` - inclusion checklist
+
+### Commits
+- `79c0960` [T-601,T-606] Add ChecklistService with comprehensive tests
+- `787204b` [T-602] Add ChecklistTemplate CRUD in EasyAdmin
+- `b5315b3` [T-603,T-604,T-605] Implement checklist UI with Turbo Frames
+
+---
+
 ### Session #6 — 2026-01-22
 
 **Duree** : ~40 min

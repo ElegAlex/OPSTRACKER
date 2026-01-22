@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #6 - Sprint 5 Complete)
+> **Dernière mise à jour** : 2026-01-22 (Session #7 - Sprint 6 Complete)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels  
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -101,16 +101,16 @@
 
 ---
 
-### Sprint 6 — Checklists (EPIC-05 MVP)
+### Sprint 6 — Checklists (EPIC-05 MVP) ✅
 
 |ID|US|Titre|Statut|RG|Priorité|
 |---|---|---|---|---|---|
-|T-601|US-503|Créer un template de checklist (Sophie)|⏳|RG-030|🔴 MVP|
-|T-602|-|CRUD Templates EasyAdmin|⏳|-|MVP|
-|T-603|US-501|Cocher une étape de checklist (48x48px)|⏳|RG-082|🔴 MVP|
-|T-604|US-502|Voir la progression de la checklist|⏳|-|🔴 MVP|
-|T-605|-|Turbo Frames pour update sans reload|⏳|-|MVP|
-|T-606|-|Tests ChecklistService|⏳|-|MVP|
+|T-601|US-503|Créer un template de checklist (Sophie)|✅|RG-030|🔴 MVP|
+|T-602|-|CRUD Templates EasyAdmin|✅|-|MVP|
+|T-603|US-501|Cocher une étape de checklist (48x48px)|✅|RG-082|🔴 MVP|
+|T-604|US-502|Voir la progression de la checklist|✅|-|🔴 MVP|
+|T-605|-|Turbo Frames pour update sans reload|✅|-|MVP|
+|T-606|-|Tests ChecklistService|✅|-|MVP|
 
 ---
 

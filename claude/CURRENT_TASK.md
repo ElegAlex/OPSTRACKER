@@ -1,13 +1,13 @@
 # CURRENT_TASK.md — Tache en Cours
 
 > **Assigne le** : 2026-01-22
-> **Session** : #6 (terminee)
+> **Session** : #7 (terminee)
 
 ---
 
-## Tache : Sprint 5 — Interface Terrain Karim (EPIC-04) ✅ COMPLETE
+## Tache : Sprint 6 — Checklists (EPIC-05 MVP) ✅ COMPLETE
 
-**Sprint** : 5 - Interface Terrain Karim
+**Sprint** : 6 - Checklists
 **Priorite** : MVP
 **Statut** : ✅ TERMINE
 
@@ -15,48 +15,46 @@
 
 ## Taches realisees
 
-| ID    | US     | Titre                                      | Statut | RG                       |
-| ----- | ------ | ------------------------------------------ | ------ | ------------------------ |
-| T-501 | -      | Layout mobile responsive (Twig base)       | ✅      | RG-082                   |
-| T-502 | US-401 | Voir "Mes interventions" (vue filtree)     | ✅      | RG-020, RG-080, RG-082   |
-| T-503 | US-402 | Ouvrir le detail d'une intervention        | ✅      | -                        |
-| T-504 | US-403 | Changer le statut en 1 clic (56px buttons) | ✅      | RG-017, RG-021, RG-082   |
-| T-505 | US-404 | Retour automatique apres action            | ✅      | -                        |
-| T-506 | -      | Tests TerrainController (OperationVoter)   | ✅      | -                        |
+| ID    | US     | Titre                                      | Statut | RG     |
+| ----- | ------ | ------------------------------------------ | ------ | ------ |
+| T-601 | US-503 | Creer un template de checklist (Sophie)    | ✅      | RG-030 |
+| T-602 | -      | CRUD Templates EasyAdmin                   | ✅      | -      |
+| T-603 | US-501 | Cocher une etape de checklist (48x48px)    | ✅      | RG-082 |
+| T-604 | US-502 | Voir la progression de la checklist        | ✅      | -      |
+| T-605 | -      | Turbo Frames pour update sans reload       | ✅      | -      |
+| T-606 | -      | Tests ChecklistService                     | ✅      | -      |
 
 ---
 
 ## Fichiers crees/modifies
 
-### Controller
-- `src/Controller/TerrainController.php` — Routes terrain (index, show, transitions)
+### Service
+- `src/Service/ChecklistService.php` — Gestion templates et instances
 
-### Security
-- `src/Security/Voter/OperationVoter.php` — Controle d'acces aux operations
+### Controller
+- `src/Controller/Admin/ChecklistTemplateCrudController.php` — CRUD EasyAdmin
+- `src/Controller/TerrainController.php` — Route toggleEtape ajoutee
 
 ### Templates
-- `templates/terrain/_layout.html.twig` — Layout mobile responsive
-- `templates/terrain/index.html.twig` — Liste "Mes interventions"
-- `templates/terrain/show.html.twig` — Detail intervention avec actions
-- `templates/terrain/_status_badge.html.twig` — Badge statut RGAA
-- `templates/terrain/_operation_card.html.twig` — Card operation
-- `templates/terrain/_operation_card_compact.html.twig` — Card compacte
+- `templates/admin/field/checklist_etapes.html.twig` — Affichage structure template
+- `templates/terrain/_checklist.html.twig` — Composant checklist avec Turbo Frame
+- `templates/terrain/show.html.twig` — Integration checklist
 
 ### Tests
-- `tests/Unit/Security/OperationVoterTest.php` — 14 tests, 17 assertions
+- `tests/Unit/Service/ChecklistServiceTest.php` — 19 tests, 69 assertions
 
 ---
 
-## Prochaine tache : Sprint 6 — Checklists (EPIC-05 MVP)
+## Prochaine tache : Sprint 7 — Dashboard Sophie (EPIC-06 MVP)
 
-| ID    | US     | Titre                                        | Statut | RG     |
-| ----- | ------ | -------------------------------------------- | ------ | ------ |
-| T-601 | US-503 | Creer un template de checklist (Sophie)      | ⏳      | RG-030 |
-| T-602 | -      | CRUD Templates EasyAdmin                     | ⏳      | -      |
-| T-603 | US-501 | Cocher une etape de checklist (48x48px)      | ⏳      | RG-082 |
-| T-604 | US-502 | Voir la progression de la checklist          | ⏳      | -      |
-| T-605 | -      | Turbo Frames pour update sans reload         | ⏳      | -      |
-| T-606 | -      | Tests ChecklistService                       | ⏳      | -      |
+| ID    | US     | Titre                                  | Statut | RG                       |
+| ----- | ------ | -------------------------------------- | ------ | ------------------------ |
+| T-701 | US-601 | Voir le dashboard temps reel           | ⏳      | RG-040, RG-080, RG-081   |
+| T-702 | US-602 | Voir la progression par segment        | ⏳      | -                        |
+| T-703 | US-607 | Voir le dashboard global multi-campagnes| ⏳     | -                        |
+| T-704 | -      | Turbo Streams pour temps reel          | ⏳      | RG-040                   |
+| T-705 | -      | Widgets KPI (compteurs statuts)        | ⏳      | -                        |
+| T-706 | -      | Tests DashboardController              | ⏳      | -                        |
 
 ---
 
@@ -65,5 +63,5 @@
 ```bash
 # Tous les tests passent
 php bin/phpunit
-# OK, Tests: 71, Assertions: 215
+# OK, Tests: 90, Assertions: 284
 ```
