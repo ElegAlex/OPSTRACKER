@@ -1,0 +1,36 @@
+{# Equipe assignee a une campagne #}
+<div class="card-elevated border-2 border-ink">
+    <div class="p-5 border-b-2 border-ink/10">
+        <div class="flex items-center gap-3">
+            <div class="w-3 h-3 bg-primary"></div>
+            <h2 class="font-bold">Equipe assignee</h2>
+        </div>
+    </div>
+
+    {% if equipe|length == 0 %}
+    <div class="p-6 text-center text-muted">
+        <i data-feather="users" class="w-8 h-8 mx-auto mb-2 text-ink/20"></i>
+        <p class="text-sm">Aucun technicien assigne</p>
+    </div>
+    {% else %}
+    <div class="p-4 space-y-3">
+        {% for tech in equipe %}
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-ink/5 flex items-center justify-center font-semibold text-sm">
+                    {{ tech.initiales }}
+                </div>
+                <div>
+                    <p class="font-medium text-sm">{{ tech.prenom }} {{ tech.nom }}</p>
+                    <p class="text-xs text-muted">{{ tech.assignees }} assignee{{ tech.assignees > 1 ? 's' : '' }} • {{ tech.realisees }} realisee{{ tech.realisees > 1 ? 's' : '' }}</p>
+                </div>
+            </div>
+            {# Progression avec couleur conditionnelle #}
+            <span class="text-sm font-bold num {{ tech.progression >= 70 ? 'text-success' : (tech.progression >= 40 ? 'text-warning' : 'text-danger') }}">
+                {{ tech.progression }}%
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>

@@ -1,0 +1,101 @@
+{# T-704 : Turbo Streams pour temps reel - RG-040 #}
+
+{# Mise a jour de l'indicateur temps reel #}
+<turbo-stream action="replace" target="live-indicator">
+    <template>
+        <div class="flex items-center gap-2 mb-6">
+            <div class="w-2 h-2 bg-success rounded-full live-pulse"></div>
+            <span class="text-xs font-medium text-muted uppercase tracking-wider">Donnees temps reel</span>
+            <span class="text-xs text-muted" id="last-update">• Mise a jour a {{ timestamp|date('H:i:s') }}</span>
+        </div>
+    </template>
+</turbo-stream>
+
+{# Mise a jour des widgets KPI #}
+<turbo-stream action="replace" target="kpi-widgets">
+    <template>
+        <div class="grid grid-cols-4 gap-6 mb-10">
+
+            {# Widget REALISE #}
+            <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-success"></div>
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 bg-success/10 flex items-center justify-center">
+                        <i data-feather="check-circle" class="w-6 h-6 text-success"></i>
+                    </div>
+                    {% if kpi.realise.today > 0 %}
+                    <span class="text-xs font-semibold text-success uppercase tracking-wider">+{{ kpi.realise.today }} aujourd'hui</span>
+                    {% endif %}
+                </div>
+                <p class="text-5xl font-bold num text-ink mb-1">{{ kpi.realise.count }}</p>
+                <p class="text-sm font-medium text-muted uppercase tracking-wide">{{ kpi.realise.label }}</p>
+                <div class="mt-4 pt-4 border-t border-ink/10">
+                    <div class="h-1.5 bg-paper">
+                        <div class="h-full bg-success" style="width: {{ kpi.realise.percentage }}%"></div>
+                    </div>
+                    <p class="text-xs text-muted mt-2">{{ kpi.realise.percentage }}% du total</p>
+                </div>
+            </div>
+
+            {# Widget PLANIFIE #}
+            <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 bg-primary/10 flex items-center justify-center">
+                        <i data-feather="clock" class="w-6 h-6 text-primary"></i>
+                    </div>
+                </div>
+                <p class="text-5xl font-bold num text-ink mb-1">{{ kpi.planifie.count }}</p>
+                <p class="text-sm font-medium text-muted uppercase tracking-wide">{{ kpi.planifie.label }}</p>
+                <div class="mt-4 pt-4 border-t border-ink/10">
+                    <div class="h-1.5 bg-paper">
+                        <div class="h-full bg-primary" style="width: {{ kpi.planifie.percentage }}%"></div>
+                    </div>
+                    <p class="text-xs text-muted mt-2">{{ kpi.planifie.percentage }}% du total</p>
+                </div>
+            </div>
+
+            {# Widget REPORTE #}
+            <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-warning"></div>
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 bg-warning/10 flex items-center justify-center">
+                        <i data-feather="pause-circle" class="w-6 h-6 text-warning"></i>
+                    </div>
+                    {% if kpi.reporte.week > 0 %}
+                    <span class="text-xs font-semibold text-warning uppercase tracking-wider">+{{ kpi.reporte.week }} cette semaine</span>
+                    {% endif %}
+                </div>
+                <p class="text-5xl font-bold num text-ink mb-1">{{ kpi.reporte.count }}</p>
+                <p class="text-sm font-medium text-muted uppercase tracking-wide">{{ kpi.reporte.label }}</p>
+                <div class="mt-4 pt-4 border-t border-ink/10">
+                    <div class="h-1.5 bg-paper">
+                        <div class="h-full bg-warning" style="width: {{ kpi.reporte.percentage }}%"></div>
+                    </div>
+                    <p class="text-xs text-muted mt-2">{{ kpi.reporte.percentage }}% du total</p>
+                </div>
+            </div>
+
+            {# Widget A REMEDIER #}
+            <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-danger"></div>
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-12 h-12 bg-danger/10 flex items-center justify-center">
+                        <i data-feather="alert-triangle" class="w-6 h-6 text-danger"></i>
+                    </div>
+                    {% if kpi.a_remedier.count > 0 %}
+                    <span class="text-xs font-semibold text-danger uppercase tracking-wider">Action requise</span>
+                    {% endif %}
+                </div>
+                <p class="text-5xl font-bold num text-ink mb-1">{{ kpi.a_remedier.count }}</p>
+                <p class="text-sm font-medium text-muted uppercase tracking-wide">{{ kpi.a_remedier.label }}</p>
+                <div class="mt-4 pt-4 border-t border-ink/10">
+                    <div class="h-1.5 bg-paper">
+                        <div class="h-full bg-danger" style="width: {{ kpi.a_remedier.percentage }}%"></div>
+                    </div>
+                    <p class="text-xs text-muted mt-2">{{ kpi.a_remedier.percentage }}% du total</p>
+                </div>
+            </div>
+        </div>
+    </template>
+</turbo-stream>

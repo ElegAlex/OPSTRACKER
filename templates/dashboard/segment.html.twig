@@ -1,0 +1,163 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}{{ segment.segment.nom }} - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .card-elevated {
+        background: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+{# HEADER #}
+<header class="bg-white border-b-4 border-ink">
+    <div class="px-10 py-6">
+        {# Breadcrumb #}
+        <div class="flex items-center gap-2 text-sm text-muted mb-3">
+            <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
+            <i data-feather="chevron-right" class="w-4 h-4"></i>
+            <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
+            <i data-feather="chevron-right" class="w-4 h-4"></i>
+            <span class="text-ink font-medium">{{ segment.segment.nom }}</span>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="w-10 h-10 border-2 border-ink/10 flex items-center justify-center hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="arrow-left" class="w-5 h-5"></i>
+            </a>
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight">{{ segment.segment.nom }}</h1>
+                <p class="text-muted mt-1">{{ segment.total }} operation{{ segment.total > 1 ? 's' : '' }} dans ce segment</p>
+            </div>
+        </div>
+    </div>
+</header>
+
+{# CONTENT #}
+<div class="flex-1 overflow-auto">
+    <div class="px-10 py-8">
+
+        {# Statistiques du segment #}
+        <div class="grid grid-cols-5 gap-6 mb-10">
+            {# Total #}
+            <div class="card-elevated border-2 border-ink p-6">
+                <div class="w-10 h-10 bg-ink/5 flex items-center justify-center mb-3">
+                    <i data-feather="target" class="w-5 h-5 text-ink"></i>
+                </div>
+                <p class="text-4xl font-bold num text-ink">{{ segment.total }}</p>
+                <p class="text-sm font-medium text-muted uppercase tracking-wide">Total</p>
+            </div>
+
+            {# Realise #}
+            <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-success"></div>
+                <div class="w-10 h-10 bg-success/10 flex items-center justify-center mb-3">
+                    <i data-feather="check-circle" class="w-5 h-5 text-success"></i>
+                </div>
+                <p class="text-4xl font-bold num text-ink">{{ segment.realise }}</p>
+                <p class="text-sm font-medium text-muted uppercase tracking-wide">Realise</p>
+            </div>
+
+            {# Planifie #}
+            <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-primary"></div>
+                <div class="w-10 h-10 bg-primary/10 flex items-center justify-center mb-3">
+                    <i data-feather="clock" class="w-5 h-5 text-primary"></i>
+                </div>
+                <p class="text-4xl font-bold num text-ink">{{ segment.planifie }}</p>
+                <p class="text-sm font-medium text-muted uppercase tracking-wide">Planifie</p>
+            </div>
+
+            {# Reporte #}
+            <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-warning"></div>
+                <div class="w-10 h-10 bg-warning/10 flex items-center justify-center mb-3">
+                    <i data-feather="pause-circle" class="w-5 h-5 text-warning"></i>
+                </div>
+                <p class="text-4xl font-bold num text-ink">{{ segment.reporte }}</p>
+                <p class="text-sm font-medium text-muted uppercase tracking-wide">Reporte</p>
+            </div>
+
+            {# A remedier #}
+            <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-danger"></div>
+                <div class="w-10 h-10 bg-danger/10 flex items-center justify-center mb-3">
+                    <i data-feather="alert-triangle" class="w-5 h-5 text-danger"></i>
+                </div>
+                <p class="text-4xl font-bold num text-ink">{{ segment.a_remedier }}</p>
+                <p class="text-sm font-medium text-muted uppercase tracking-wide">A remedier</p>
+            </div>
+        </div>
+
+        {# Barre de progression globale #}
+        <div class="card-elevated border-2 border-ink p-6 mb-10">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-bold text-lg">Progression globale</h2>
+                <span class="text-3xl font-bold num {{ segment.progression >= 70 ? 'text-success' : (segment.progression >= 40 ? 'text-warning' : 'text-danger') }}">
+                    {{ segment.progression|round }}%
+                </span>
+            </div>
+
+            <div class="h-6 bg-paper flex overflow-hidden">
+                {% set realise_pct = segment.total > 0 ? (segment.realise / segment.total * 100) : 0 %}
+                {% set planifie_pct = segment.total > 0 ? (segment.planifie / segment.total * 100) : 0 %}
+                {% set reporte_pct = segment.total > 0 ? (segment.reporte / segment.total * 100) : 0 %}
+                {% set remedier_pct = segment.total > 0 ? (segment.a_remedier / segment.total * 100) : 0 %}
+                <div class="bg-success h-full flex items-center justify-center text-white text-xs font-bold" style="width: {{ realise_pct }}%">
+                    {% if realise_pct > 10 %}{{ segment.realise }}{% endif %}
+                </div>
+                <div class="bg-primary h-full flex items-center justify-center text-white text-xs font-bold" style="width: {{ planifie_pct }}%">
+                    {% if planifie_pct > 10 %}{{ segment.planifie }}{% endif %}
+                </div>
+                <div class="bg-warning h-full flex items-center justify-center text-white text-xs font-bold" style="width: {{ reporte_pct }}%">
+                    {% if reporte_pct > 10 %}{{ segment.reporte }}{% endif %}
+                </div>
+                <div class="bg-danger h-full flex items-center justify-center text-white text-xs font-bold" style="width: {{ remedier_pct }}%">
+                    {% if remedier_pct > 10 %}{{ segment.a_remedier }}{% endif %}
+                </div>
+            </div>
+
+            {# Legende - RG-080 Triple signalisation #}
+            <div class="flex items-center gap-8 mt-4 text-sm">
+                <span class="flex items-center gap-2">
+                    <span class="w-3 h-3 bg-success"></span>
+                    <span class="text-muted">Realise</span>
+                    <span class="font-semibold">{{ segment.realise }}</span>
+                </span>
+                <span class="flex items-center gap-2">
+                    <span class="w-3 h-3 bg-primary"></span>
+                    <span class="text-muted">Planifie</span>
+                    <span class="font-semibold">{{ segment.planifie }}</span>
+                </span>
+                <span class="flex items-center gap-2">
+                    <span class="w-3 h-3 bg-warning"></span>
+                    <span class="text-muted">Reporte</span>
+                    <span class="font-semibold">{{ segment.reporte }}</span>
+                </span>
+                <span class="flex items-center gap-2">
+                    <span class="w-3 h-3 bg-danger"></span>
+                    <span class="text-muted">A remedier</span>
+                    <span class="font-semibold">{{ segment.a_remedier }}</span>
+                </span>
+            </div>
+        </div>
+
+        {# Actions #}
+        <div class="flex items-center gap-4">
+            <a href="{{ path('app_operation_index', {id: campagne.id, segment: segment.segment.id}) }}" class="flex items-center gap-2 px-6 py-3 bg-ink text-white font-semibold hover:bg-ink/90 transition-colors">
+                <i data-feather="list" class="w-4 h-4"></i>
+                Voir les operations
+            </a>
+            <a href="{{ path('app_segment_edit', {id: campagne.id, segmentId: segment.segment.id}) }}" class="flex items-center gap-2 px-6 py-3 border-2 border-ink text-ink font-medium hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="edit-2" class="w-4 h-4"></i>
+                Modifier le segment
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
