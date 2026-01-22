@@ -136,6 +136,19 @@ class Campagne
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    /**
+     * RG-041 : Token unique pour URL de partage en lecture seule
+     * Format: 12 caracteres alphanumeriques
+     */
+    #[ORM\Column(length: 12, nullable: true, unique: true)]
+    private ?string $shareToken = null;
+
+    /**
+     * RG-041 : Date de creation du lien de partage
+     */
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $shareTokenCreatedAt = null;
+
     public function __construct()
     {
         $this->segments = new ArrayCollection();
@@ -528,6 +541,41 @@ class Campagne
         }
 
         return null;
+    }
+
+    /**
+     * RG-041 : Token pour URL de partage
+     */
+    public function getShareToken(): ?string
+    {
+        return $this->shareToken;
+    }
+
+    public function setShareToken(?string $shareToken): static
+    {
+        $this->shareToken = $shareToken;
+
+        return $this;
+    }
+
+    public function getShareTokenCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->shareTokenCreatedAt;
+    }
+
+    public function setShareTokenCreatedAt(?\DateTimeImmutable $shareTokenCreatedAt): static
+    {
+        $this->shareTokenCreatedAt = $shareTokenCreatedAt;
+
+        return $this;
+    }
+
+    /**
+     * RG-041 : Verifie si la campagne a un lien de partage actif
+     */
+    public function hasShareLink(): bool
+    {
+        return $this->shareToken !== null;
     }
 
     public function __toString(): string

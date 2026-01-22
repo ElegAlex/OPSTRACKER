@@ -1,13 +1,13 @@
 # CURRENT_TASK.md — Tache en Cours
 
 > **Assigne le** : 2026-01-22
-> **Session** : #11 (terminee)
+> **Session** : #14 (terminee)
 
 ---
 
-## Tache : Sprint 10 — Gestion Utilisateurs V1 + Documents (EPIC-01 + EPIC-07) ✅ COMPLETE
+## Tache : Sprint 13 — Prerequis & Dashboard V1 (EPIC-09 + EPIC-06) ✅ COMPLETE
 
-**Sprint** : 10 - Gestion Utilisateurs V1 + Documents
+**Sprint** : 13 - Prerequis & Dashboard V1
 **Priorite** : V1
 **Statut** : ✅ TERMINE
 
@@ -15,74 +15,81 @@
 
 ## Taches realisees
 
-| ID     | US     | Titre                              | Statut | RG     |
-| ------ | ------ | ---------------------------------- | ------ | ------ |
-| T-1001 | US-104 | Modifier un utilisateur (Admin)    | ✅      | RG-004 |
-| T-1002 | US-105 | Desactiver un utilisateur (Admin)  | ✅      | RG-005 |
-| T-1003 | US-106 | Voir les statistiques utilisateur  | ✅      | -      |
-| T-1004 | US-107 | Modifier son propre mot de passe   | ✅      | RG-001 |
-| T-1005 | US-701 | Voir la liste des documents        | ✅      | -      |
-| T-1006 | US-702 | Uploader un document (50Mo max)    | ✅      | RG-050 |
-| T-1007 | US-703 | Lier un document a une campagne    | ✅      | RG-051 |
-| T-1008 | US-704 | Supprimer un document              | ✅      | -      |
+| ID     | US     | Titre                                       | Statut | RG     |
+| ------ | ------ | ------------------------------------------- | ------ | ------ |
+| T-1301 | US-901 | Voir les prerequis globaux d'une campagne   | ✅      | RG-090 |
+| T-1302 | US-902 | Ajouter/modifier un prerequis global        | ✅      | RG-090 |
+| T-1303 | US-903 | Voir les prerequis par segment              | ✅      | RG-091 |
+| T-1304 | US-904 | Ajouter un prerequis par segment            | ✅      | RG-091 |
+| T-1305 | US-604 | Exporter le dashboard en PDF                | ✅      | -      |
+| T-1306 | US-605 | Partager une URL lecture seule              | ✅      | RG-041 |
+| T-1307 | US-608 | Filtrer le dashboard global par statut      | ✅      | -      |
 
 ---
 
 ## Fichiers crees/modifies
 
 ### Entites
-- `src/Entity/Document.php` — Entite Document (RG-050, RG-051)
+- `src/Entity/Prerequis.php` — Entite Prerequis (RG-090, RG-091)
+- `src/Entity/Campagne.php` — Ajout shareToken, shareTokenCreatedAt (RG-041)
 
 ### Repositories
-- `src/Repository/DocumentRepository.php` — Requetes documents
-- `src/Repository/OperationRepository.php` — Ajout methodes statistiques technicien
+- `src/Repository/PrerequisRepository.php` — Requetes prerequis globaux/segment
+- `src/Repository/CampagneRepository.php` — Ajout findOneByShareToken, findByStatuts
 
 ### Services
-- `src/Service/DocumentService.php` — Upload, suppression, statistiques
-- `src/Service/UtilisateurService.php` — Ajout getStatistiques, updateProfile, updateRoles
+- `src/Service/PrerequisService.php` — CRUD prerequis, progression
+- `src/Service/PdfExportService.php` — Export PDF dashboard (dompdf)
+- `src/Service/ShareService.php` — Gestion liens de partage
+- `src/Service/DashboardService.php` — Ajout filtrage par statut
 
 ### Controllers
-- `src/Controller/DocumentController.php` — CRUD documents
-- `src/Controller/ProfileController.php` — Page profil et changement mot de passe
-- `src/Controller/Admin/UtilisateurCrudController.php` — Actions toggle, unlock, stats
+- `src/Controller/PrerequisController.php` — CRUD prerequis, changement statut inline
+- `src/Controller/DashboardController.php` — Export PDF, filtrage global
+- `src/Controller/ShareController.php` — Liens de partage lecture seule
 
 ### Formulaires
-- `src/Form/DocumentUploadType.php` — Upload fichier (RG-050)
-- `src/Form/ChangePasswordType.php` — Changement mot de passe (RG-001)
+- `src/Form/PrerequisType.php` — Formulaire prerequis
 
 ### Templates
-- `templates/document/index.html.twig` — Liste documents
-- `templates/document/upload.html.twig` — Upload document
-- `templates/profile/index.html.twig` — Page profil
-- `templates/profile/password.html.twig` — Changement mot de passe
-- `templates/admin/utilisateur/stats.html.twig` — Statistiques utilisateur
+- `templates/prerequis/index.html.twig` — Liste prerequis globaux + par segment
+- `templates/prerequis/new_global.html.twig` — Ajout prerequis global
+- `templates/prerequis/new_segment.html.twig` — Ajout prerequis segment
+- `templates/prerequis/edit.html.twig` — Edition prerequis
+- `templates/prerequis/_row.html.twig` — Ligne prerequis (Turbo)
+- `templates/prerequis/_turbo_statut.html.twig` — Update statut inline
+- `templates/pdf/dashboard.html.twig` — Template PDF A4 paysage
+- `templates/share/dashboard.html.twig` — Dashboard lecture seule
+- `templates/share/_modal.html.twig` — Modal partage
+- `templates/dashboard/campagne.html.twig` — Ajout boutons PDF, partage, onglet prerequis
+- `templates/dashboard/global.html.twig` — Ajout filtres par statut
 
 ### Tests
-- `tests/Unit/Service/DocumentServiceTest.php` — 19 tests, 48 assertions
+- `tests/Unit/Service/PrerequisServiceTest.php` — 11 tests, 48 assertions
+
+### Migrations
+- `migrations/Version20260122213209.php` — Table prerequis
+- `migrations/Version20260122213720.php` — Colonnes share_token sur campagne
 
 ---
 
 ## Regles metier implementees
 
-- **RG-001** : Mot de passe securise (8 car, 1 maj, 1 chiffre, 1 special)
-- **RG-004** : Un admin ne peut pas retrograder son propre role
-- **RG-005** : Desactivation conserve l'historique
-- **RG-050** : Formats documents (PDF, DOCX, PS1, BAT, ZIP, EXE), taille max 50 Mo
-- **RG-051** : Tout document doit etre associe a une campagne
+- **RG-090** : Prerequis globaux de campagne (A faire / En cours / Fait) - indicateur declaratif NON bloquant
+- **RG-091** : Prerequis specifiques a un segment - indicateur declaratif NON bloquant
+- **RG-041** : URLs partagees (/share/xxx) = consultation uniquement, aucune action
 
 ---
 
-## Prochaine tache : Sprint 11 — Campagnes & Checklists V1
+## Prochaine tache : Sprint 14 — Polish V1 & Tag
 
-| ID     | US     | Titre                              | Statut | RG     | Priorite |
-| ------ | ------ | ---------------------------------- | ------ | ------ | -------- |
-| T-1101 | US-207 | Archiver/Desarchiver une campagne  | ⏳      | RG-016 | 🟡 V1    |
-| T-1102 | US-210 | Definir le proprietaire            | ⏳      | RG-111 | 🟡 V1    |
-| T-1103 | US-211 | Configurer la visibilite           | ⏳      | RG-112 | 🟡 V1    |
-| T-1104 | US-504 | Modifier un template (versioning)  | ⏳      | RG-031 | 🟡 V1    |
-| T-1105 | US-505 | Creer des phases dans un template  | ⏳      | RG-032 | 🟡 V1    |
-| T-1106 | US-506 | Consulter document depuis checklist| ⏳      | -      | 🟡 V1    |
-| T-1107 | US-507 | Telecharger script depuis checklist| ⏳      | -      | 🟡 V1    |
+| ID     | Tache                              | Statut | Cible             |
+| ------ | ---------------------------------- | ------ | ----------------- |
+| T-1401 | Completer couverture tests (80%)   | ⏳      | Services          |
+| T-1402 | Test de charge V1                  | ⏳      | 50 users, 10k ops |
+| T-1403 | Audit securite (OWASP basics)      | ⏳      | -                 |
+| T-1404 | Documentation utilisateur          | ⏳      | Guide Sophie      |
+| T-1405 | **TAG v1.0.0**                     | ⏳      | -                 |
 
 ---
 
@@ -91,5 +98,5 @@
 ```bash
 # Tous les tests passent
 php bin/phpunit
-# OK, Tests: 167, Assertions: 524
+# OK, Tests: 202, Assertions: 642
 ```

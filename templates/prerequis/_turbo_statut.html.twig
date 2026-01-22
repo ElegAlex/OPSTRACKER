@@ -1,0 +1,6 @@
+{# Turbo Stream pour mise a jour inline du statut #}
+<turbo-stream action="replace" target="prerequis-row-{{ prerequis.id }}">
+    <template>
+        {% include 'prerequis/_row.html.twig' with {prerequis: prerequis, campagne: campagne} %}
+    </template>
+</turbo-stream>

@@ -1,0 +1,81 @@
+{# Modal de partage de lien - US-605, RG-041 #}
+<div class="bg-white border-2 border-ink p-6 max-w-lg">
+    <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-bold">Partager le dashboard</h3>
+        <button type="button" onclick="this.closest('[data-modal]').remove()" class="w-8 h-8 flex items-center justify-center text-muted hover:text-ink">
+            <i data-feather="x" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    {% if campagne.hasShareLink %}
+        {# Lien existant #}
+        <div class="mb-6">
+            <label class="block text-sm font-medium mb-2">Lien de partage</label>
+            <div class="flex gap-2">
+                <input type="text" id="share-url" value="{{ shareUrl }}" readonly
+                       class="flex-1 px-4 py-2 border-2 border-ink bg-paper text-sm font-mono">
+                <button type="button" onclick="copyShareUrl()" class="px-4 py-2 bg-ink text-white font-medium hover:bg-ink/90 transition-colors">
+                    <i data-feather="copy" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <p class="text-xs text-muted mt-2">
+                Cree le {{ campagne.shareTokenCreatedAt|date('d/m/Y') }} a {{ campagne.shareTokenCreatedAt|date('H:i') }}
+            </p>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <a href="{{ shareUrl }}" target="_blank" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary border-2 border-primary hover:bg-primary hover:text-white transition-colors">
+                <i data-feather="external-link" class="w-4 h-4"></i>
+                Ouvrir le lien
+            </a>
+            <form action="{{ path('app_share_revoke', {id: campagne.id}) }}" method="POST"
+                  onsubmit="return confirm('Revoquer ce lien de partage ? Il ne sera plus accessible.')">
+                <input type="hidden" name="_token" value="{{ csrf_token('revoke' ~ campagne.id) }}">
+                <button type="submit" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-danger hover:bg-danger/10 transition-colors">
+                    <i data-feather="x-circle" class="w-4 h-4"></i>
+                    Revoquer le lien
+                </button>
+            </form>
+        </div>
+    {% else %}
+        {# Pas de lien - formulaire de creation #}
+        <div class="mb-6">
+            <p class="text-muted">
+                Generez un lien de partage pour permettre a des utilisateurs sans compte de consulter le dashboard de cette campagne.
+            </p>
+            <div class="mt-4 p-4 bg-paper border border-ink/10">
+                <p class="text-sm">
+                    <i data-feather="info" class="w-4 h-4 inline mr-2"></i>
+                    <strong>Note :</strong> Le lien donne un acces en lecture seule. Aucune modification n'est possible.
+                </p>
+            </div>
+        </div>
+
+        <form action="{{ path('app_share_generate', {id: campagne.id}) }}" method="POST">
+            <input type="hidden" name="_token" value="{{ csrf_token('share' ~ campagne.id) }}">
+            <button type="submit" class="flex items-center gap-2 px-6 py-3 bg-ink text-white font-semibold hover:bg-ink/90 transition-colors">
+                <i data-feather="link" class="w-4 h-4"></i>
+                Generer un lien de partage
+            </button>
+        </form>
+    {% endif %}
+</div>
+
+<script>
+function copyShareUrl() {
+    const input = document.getElementById('share-url');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(input.value);
+
+    // Feedback visuel
+    const btn = input.nextElementSibling;
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i data-feather="check" class="w-4 h-4"></i>';
+    feather.replace();
+    setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        feather.replace();
+    }, 2000);
+}
+</script>

@@ -105,6 +105,15 @@
 
         {# Actions #}
         <div class="flex items-center gap-3">
+            {# Partager - US-605, RG-041 #}
+            <button type="button" onclick="openShareModal()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors" title="Partager">
+                <i data-feather="share-2" class="w-4 h-4"></i>
+                Partager
+            </button>
+            <a href="{{ path('app_dashboard_export_pdf', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors" title="Exporter en PDF">
+                <i data-feather="download" class="w-4 h-4"></i>
+                Export PDF
+            </a>
             <a href="{{ path('app_operation_index', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
                 <i data-feather="list" class="w-4 h-4"></i>
                 Operations
@@ -126,6 +135,9 @@
         </a>
         <a href="{{ path('app_segment_index', {id: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
             Segments
+        </a>
+        <a href="{{ path('app_prerequis_index', {campagneId: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+            Prerequis
         </a>
     </div>
 </header>
@@ -262,4 +274,32 @@
 
     </div>
 </div>
+
+{# Modal de partage - US-605, RG-041 #}
+<div id="share-modal-container" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-ink/50" onclick="closeShareModal()"></div>
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div class="pointer-events-auto" data-modal>
+            <turbo-frame id="share-modal" src="{{ path('app_share_modal', {id: campagne.id}) }}">
+                <div class="bg-white border-2 border-ink p-8 text-center">
+                    <div class="animate-spin w-8 h-8 border-2 border-ink border-t-transparent rounded-full mx-auto"></div>
+                    <p class="mt-4 text-muted">Chargement...</p>
+                </div>
+            </turbo-frame>
+        </div>
+    </div>
+</div>
+
+<script>
+function openShareModal() {
+    document.getElementById('share-modal-container').classList.remove('hidden');
+}
+function closeShareModal() {
+    document.getElementById('share-modal-container').classList.add('hidden');
+}
+// Fermer avec Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeShareModal();
+});
+</script>
 {% endblock %}

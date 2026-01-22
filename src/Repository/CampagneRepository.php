@@ -128,4 +128,32 @@ class CampagneRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * RG-041 : Trouve une campagne par son token de partage
+     */
+    public function findOneByShareToken(string $token): ?Campagne
+    {
+        return $this->findOneBy(['shareToken' => $token]);
+    }
+
+    /**
+     * T-1307 : Trouve les campagnes actives filtrees par statuts
+     *
+     * @param string[] $statuts
+     * @return Campagne[]
+     */
+    public function findByStatuts(array $statuts): array
+    {
+        if (empty($statuts)) {
+            return $this->findActives();
+        }
+
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.statut IN (:statuts)')
+            ->setParameter('statuts', $statuts)
+            ->orderBy('c.dateDebut', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

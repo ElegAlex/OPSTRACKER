@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2026-01-22 (Session #13 - Sprint 12 Complete - Configuration & Admin V1)
+> **Dernière mise à jour** : 2026-01-22 (Session #14 - Sprint 13 Complete - Prérequis & Dashboard V1)
 > **Source** : P4.1 - Backlog & Requirements Fonctionnels
 > **Total** : 85 User Stories | 12 EPICs
 
@@ -200,17 +200,17 @@
 
 ---
 
-### Sprint 13 — Prérequis & Dashboard V1 (EPIC-09 + EPIC-06)
+### Sprint 13 — Prérequis & Dashboard V1 (EPIC-09 + EPIC-06) ✅
 
 |ID|US|Titre|Statut|RG|Priorité|
 |---|---|---|---|---|---|
-|T-1301|US-901|Voir les prérequis globaux d'une campagne|⏳|RG-090|🟡 V1|
-|T-1302|US-902|Ajouter/modifier un prérequis global|⏳|RG-090|🟡 V1|
-|T-1303|US-903|Voir les prérequis par segment|⏳|RG-091|🟡 V1|
-|T-1304|US-904|Ajouter un prérequis par segment|⏳|RG-091|🟡 V1|
-|T-1305|US-604|Exporter le dashboard en PDF|⏳|-|🟡 V1|
-|T-1306|US-605|Partager une URL lecture seule|⏳|RG-041|🟡 V1|
-|T-1307|US-608|Filtrer le dashboard global par statut|⏳|-|🟡 V1|
+|T-1301|US-901|Voir les prérequis globaux d'une campagne|✅|RG-090|🟡 V1|
+|T-1302|US-902|Ajouter/modifier un prérequis global|✅|RG-090|🟡 V1|
+|T-1303|US-903|Voir les prérequis par segment|✅|RG-091|🟡 V1|
+|T-1304|US-904|Ajouter un prérequis par segment|✅|RG-091|🟡 V1|
+|T-1305|US-604|Exporter le dashboard en PDF|✅|-|🟡 V1|
+|T-1306|US-605|Partager une URL lecture seule|✅|RG-041|🟡 V1|
+|T-1307|US-608|Filtrer le dashboard global par statut|✅|-|🟡 V1|
 
 ---
 
@@ -292,10 +292,10 @@ _* MVP = MVP du module Réservation, pas du MVP OpsTracker core_
 
 |Métrique|Actuel|Cible MVP|Cible V1|
 |---|---|---|---|
-|Tâches terminées|91|65|110|
-|User Stories done|48/85|47/85|76/85|
-|Entités créées|9|6|8|
-|Tests passants|191|60+|100+|
+|Tâches terminées|98|65|110|
+|User Stories done|55/85|47/85|76/85|
+|Entités créées|10|6|8|
+|Tests passants|202|60+|100+|
 |Couverture code|~80%|70%|80%|
 
 ---

@@ -31,6 +31,53 @@
 
 ## Sessions
 
+### Session #14 — 2026-01-22
+
+**Duree** : ~60 min
+**Tache(s)** : T-1301 a T-1307 (Sprint 13 complet - Prerequis & Dashboard V1)
+**Statut** : ✅ Termine
+
+### Realise
+- **T-1301/T-1302** : Prerequis globaux de campagne (RG-090)
+  - Entite Prerequis avec statuts (A faire / En cours / Fait)
+  - PrerequisRepository avec calcul progression
+  - PrerequisService pour CRUD et gestion
+  - PrerequisController avec changement statut inline (Turbo)
+  - Templates prerequis/index.html.twig avec liste + barre de progression
+
+- **T-1303/T-1304** : Prerequis par segment (RG-091)
+  - Support des prerequis lies a un segment (champ segment nullable)
+  - Accordeon par segment avec progression individuelle
+  - Badge alerte pour segments a 0%
+
+- **T-1305** : Export PDF du dashboard
+  - Installation dompdf/dompdf
+  - PdfExportService pour generation PDF
+  - Template PDF A4 paysage avec KPIs et progression
+  - Bouton Export PDF dans le dashboard
+
+- **T-1306** : Partage URL lecture seule (RG-041)
+  - Champs shareToken et shareTokenCreatedAt sur Campagne
+  - ShareService pour generer/revoquer tokens
+  - ShareController avec route /share/{token} (sans auth)
+  - Template share/dashboard.html.twig lecture seule
+  - Modal de partage avec copie URL
+
+- **T-1307** : Filtrer dashboard global par statut
+  - Ajout parametre statutsFilter a getDashboardGlobal()
+  - findByStatuts() dans CampagneRepository
+  - Checkboxes de filtre dans le header du dashboard global
+
+### Tests
+- 11 nouveaux tests dans PrerequisServiceTest
+- Total : 202 tests, 642 assertions
+- Audit RGAA : 63 templates, 0 problemes
+
+### Commits
+- A venir apres validation
+
+---
+
 ### Session #13 — 2026-01-22
 
 **Duree** : ~45 min

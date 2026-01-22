@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - {{ campagne.nom }}</title>
+    <style>
+        /* Reset et base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 11pt;
+            color: #0a0a0a;
+            background: #ffffff;
+            padding: 20px 30px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #0a0a0a;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-box {
+            width: 40px;
+            height: 40px;
+            background: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18pt;
+        }
+
+        .logo-text {
+            font-size: 16pt;
+            font-weight: bold;
+        }
+
+        .logo-sub {
+            font-size: 8pt;
+            color: #6b6b6b;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .meta {
+            text-align: right;
+            font-size: 9pt;
+            color: #6b6b6b;
+        }
+
+        /* Title section */
+        .title-section {
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 22pt;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            font-size: 8pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: white;
+        }
+
+        .status-badge.en_cours { background: #059669; }
+        .status-badge.preparation { background: #d97706; }
+        .status-badge.a_venir { background: #2563eb; }
+        .status-badge.terminee { background: #0d9488; }
+        .status-badge.archivee { background: #6b6b6b; }
+
+        .campaign-info {
+            margin-top: 10px;
+            font-size: 10pt;
+            color: #6b6b6b;
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: table;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        .kpi-row {
+            display: table-row;
+        }
+
+        .kpi-card {
+            display: table-cell;
+            width: 25%;
+            padding: 0 8px;
+            vertical-align: top;
+        }
+
+        .kpi-inner {
+            background: #f5f5f0;
+            padding: 15px;
+            border-left: 4px solid #6b6b6b;
+        }
+
+        .kpi-inner.success { border-left-color: #059669; }
+        .kpi-inner.primary { border-left-color: #2563eb; }
+        .kpi-inner.warning { border-left-color: #d97706; }
+        .kpi-inner.danger { border-left-color: #dc2626; }
+
+        .kpi-value {
+            font-size: 28pt;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 9pt;
+            color: #6b6b6b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .kpi-percent {
+            font-size: 10pt;
+            color: #6b6b6b;
+            margin-top: 3px;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #0a0a0a;
+            margin-bottom: 12px;
+        }
+
+        /* Segments table */
+        .segments-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .segments-table th {
+            background: #f5f5f0;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 8pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6b6b6b;
+            border-bottom: 2px solid #0a0a0a;
+        }
+
+        .segments-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 10pt;
+        }
+
+        .segments-table tr:last-child td {
+            border-bottom: 2px solid #0a0a0a;
+        }
+
+        .segment-color {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #059669;
+        }
+
+        .color-primary { background: #2563eb; }
+        .color-success { background: #059669; }
+        .color-warning { background: #d97706; }
+        .color-danger { background: #dc2626; }
+        .color-complete { background: #0d9488; }
+        .color-muted { background: #6b6b6b; }
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            left: 30px;
+            right: 30px;
+            padding-top: 10px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 8pt;
+            color: #6b6b6b;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Summary row */
+        .summary-row {
+            background: #f5f5f0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    {# Header #}
+    <div class="header">
+        <div class="logo">
+            <div class="logo-box">O</div>
+            <div>
+                <div class="logo-text">OpsTracker</div>
+                <div class="logo-sub">CPAM</div>
+            </div>
+        </div>
+        <div class="meta">
+            <div>Genere le {{ generatedAt|date('d/m/Y') }} a {{ generatedAt|date('H:i') }}</div>
+            <div>Document confidentiel</div>
+        </div>
+    </div>
+
+    {# Title #}
+    <div class="title-section">
+        <h1>{{ campagne.nom }}</h1>
+        <span class="status-badge {{ campagne.statut }}">{{ campagne.statutLabel }}</span>
+
+        <div class="campaign-info">
+            Periode : {{ campagne.dateDebut|date('d/m/Y') }} - {{ campagne.dateFin|date('d/m/Y') }}
+            {% if campagne.typeOperation %}
+                | Type : {{ campagne.typeOperation.nom }}
+            {% endif %}
+            | {{ kpi.total }} operations | {{ equipe|length }} technicien{{ equipe|length > 1 ? 's' : '' }}
+        </div>
+    </div>
+
+    {# KPI Cards #}
+    <div class="kpi-grid">
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-inner success">
+                    <div class="kpi-value">{{ kpi.realise.count }}</div>
+                    <div class="kpi-label">Realise</div>
+                    <div class="kpi-percent">{{ kpi.total > 0 ? ((kpi.realise.count / kpi.total) * 100)|round }}%</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-inner primary">
+                    <div class="kpi-value">{{ kpi.planifie.count + kpi.en_cours.count }}</div>
+                    <div class="kpi-label">Planifie / En cours</div>
+                    <div class="kpi-percent">{{ kpi.total > 0 ? (((kpi.planifie.count + kpi.en_cours.count) / kpi.total) * 100)|round }}%</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-inner warning">
+                    <div class="kpi-value">{{ kpi.reporte.count }}</div>
+                    <div class="kpi-label">Reporte</div>
+                    <div class="kpi-percent">{{ kpi.total > 0 ? ((kpi.reporte.count / kpi.total) * 100)|round }}%</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-inner danger">
+                    <div class="kpi-value">{{ kpi.a_remedier.count }}</div>
+                    <div class="kpi-label">A remedier</div>
+                    <div class="kpi-percent">{{ kpi.total > 0 ? ((kpi.a_remedier.count / kpi.total) * 100)|round }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Progression par segment #}
+    <div class="section">
+        <div class="section-title">Progression par segment</div>
+
+        {% if segments|length > 0 %}
+        <table class="segments-table">
+            <thead>
+                <tr>
+                    <th style="width: 25%">Segment</th>
+                    <th style="width: 10%">Total</th>
+                    <th style="width: 10%">Realise</th>
+                    <th style="width: 10%">Planifie</th>
+                    <th style="width: 10%">Reporte</th>
+                    <th style="width: 10%">Remedier</th>
+                    <th style="width: 25%">Progression</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for segmentData in segments %}
+                <tr>
+                    <td>
+                        <span class="segment-color color-{{ segmentData.segment.couleur }}"></span>
+                        {{ segmentData.segment.nom }}
+                    </td>
+                    <td>{{ segmentData.total }}</td>
+                    <td>{{ segmentData.realise }}</td>
+                    <td>{{ segmentData.planifie + segmentData.en_cours }}</td>
+                    <td>{{ segmentData.reporte }}</td>
+                    <td>{{ segmentData.a_remedier }}</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ segmentData.pourcentage }}%"></div>
+                        </div>
+                        <span style="font-size: 9pt; color: #6b6b6b;">{{ segmentData.pourcentage }}%</span>
+                    </td>
+                </tr>
+                {% endfor %}
+
+                {# Summary row #}
+                <tr class="summary-row">
+                    <td>TOTAL</td>
+                    <td>{{ kpi.total }}</td>
+                    <td>{{ kpi.realise.count }}</td>
+                    <td>{{ kpi.planifie.count + kpi.en_cours.count }}</td>
+                    <td>{{ kpi.reporte.count }}</td>
+                    <td>{{ kpi.a_remedier.count }}</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ kpi.total > 0 ? ((kpi.realise.count / kpi.total) * 100)|round : 0 }}%"></div>
+                        </div>
+                        <span style="font-size: 9pt;">{{ kpi.total > 0 ? ((kpi.realise.count / kpi.total) * 100)|round : 0 }}%</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        {% else %}
+        <p style="color: #6b6b6b; font-style: italic;">Aucun segment defini</p>
+        {% endif %}
+    </div>
+
+    {# Footer #}
+    <div class="footer">
+        <div>OpsTracker - Dashboard {{ campagne.nom }}</div>
+        <div>Page 1/1</div>
+    </div>
+
+</body>
+</html>

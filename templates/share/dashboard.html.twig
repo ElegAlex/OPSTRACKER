@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{{ campagne.nom }} - Dashboard (Lecture seule)</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>&#9632;</text></svg>">
+
+        {# Google Font - Space Grotesk #}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+        {# Tailwind CSS via CDN (dev) #}
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            'grotesk': ['Space Grotesk', 'system-ui', 'sans-serif'],
+                        },
+                        colors: {
+                            'ink': '#0a0a0a',
+                            'paper': '#f5f5f0',
+                            'cream': '#fafaf5',
+                            'primary': '#2563eb',
+                            'success': '#059669',
+                            'warning': '#d97706',
+                            'danger': '#dc2626',
+                            'complete': '#0d9488',
+                            'muted': '#6b6b6b',
+                        }
+                    }
+                }
+            }
+        </script>
+
+        {# Feather Icons #}
+        <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
+        <style>
+            /* Cards */
+            .card-elevated {
+                background: white;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+            }
+
+            /* Segment row hover */
+            .segment-row {
+                transition: background 0.15s ease;
+            }
+            .segment-row:hover {
+                background: #fafaf5;
+            }
+
+            /* Number styling */
+            .num {
+                font-variant-numeric: tabular-nums;
+                letter-spacing: -0.03em;
+            }
+        </style>
+    </head>
+    <body class="font-grotesk bg-paper min-h-screen text-ink antialiased">
+        <div class="min-h-screen flex flex-col">
+
+            {# ========================================
+               HEADER - Lecture seule indicator
+               ======================================== #}
+            <header class="bg-white border-b-4 border-ink">
+                <div class="px-10 py-6">
+                    {# Read-only banner #}
+                    <div class="flex items-center gap-2 text-sm text-muted mb-4 bg-paper/50 px-4 py-2 -mx-4 border-b border-ink/10">
+                        <i data-feather="eye" class="w-4 h-4"></i>
+                        <span>Vue partagee en lecture seule</span>
+                        <span class="mx-2">•</span>
+                        <span>Mise a jour : {{ "now"|date('d/m/Y H:i') }}</span>
+                    </div>
+
+                    {# Title + Status #}
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="relative">
+                                <div class="w-14 h-14 bg-primary flex items-center justify-center">
+                                    <span class="text-2xl font-bold text-white">O</span>
+                                </div>
+                                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-success"></div>
+                            </div>
+                            <div>
+                                <div class="text-xs text-muted uppercase tracking-widest mb-1">Dashboard</div>
+                                <h1 class="text-3xl font-bold tracking-tight">{{ campagne.nom }}</h1>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 bg-{{ campagne.statutCouleur }} text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                            {% if campagne.statut == 'en_cours' %}
+                                <i data-feather="play-circle" class="w-3 h-3"></i>
+                            {% elseif campagne.statut == 'terminee' %}
+                                <i data-feather="check-circle" class="w-3 h-3"></i>
+                            {% else %}
+                                <i data-feather="clock" class="w-3 h-3"></i>
+                            {% endif %}
+                            {{ campagne.statutLabel }}
+                        </span>
+                    </div>
+
+                    {# Meta #}
+                    <div class="flex items-center gap-6 mt-3 text-sm text-muted">
+                        {% if campagne.typeOperation %}
+                        <span class="flex items-center gap-2">
+                            <i data-feather="monitor" class="w-4 h-4"></i>
+                            {{ campagne.typeOperation.nom }}
+                        </span>
+                        {% endif %}
+                        <span class="flex items-center gap-2">
+                            <i data-feather="calendar" class="w-4 h-4"></i>
+                            {{ campagne.dateDebut|date('d M Y') }} &rarr; {{ campagne.dateFin|date('d M Y') }}
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <i data-feather="users" class="w-4 h-4"></i>
+                            {{ equipe|length }} technicien{{ equipe|length > 1 ? 's' : '' }}
+                        </span>
+                        <span class="flex items-center gap-2">
+                            <i data-feather="target" class="w-4 h-4"></i>
+                            {{ kpi.total }} operation{{ kpi.total > 1 ? 's' : '' }}
+                        </span>
+                    </div>
+                </div>
+            </header>
+
+            {# ========================================
+               CONTENT
+               ======================================== #}
+            <div class="flex-1 overflow-auto bg-cream">
+                <div class="px-10 py-8">
+
+                    {# ========================================
+                       4 WIDGETS STATUTS
+                       ======================================== #}
+                    <div class="grid grid-cols-4 gap-6 mb-8">
+                        {# Realise #}
+                        <div class="card-elevated border-2 border-ink p-6 border-l-8 border-l-success">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted uppercase tracking-wider">Realise</p>
+                                    <p class="text-4xl font-bold mt-2 num">{{ kpi.realise.count }}</p>
+                                </div>
+                                <div class="w-12 h-12 bg-success/10 flex items-center justify-center">
+                                    <i data-feather="check-circle" class="w-6 h-6 text-success"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm text-muted">
+                                {{ kpi.total > 0 ? ((kpi.realise.count / kpi.total) * 100)|round }}% du total
+                            </div>
+                        </div>
+
+                        {# Planifie / En cours #}
+                        <div class="card-elevated border-2 border-ink p-6 border-l-8 border-l-primary">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted uppercase tracking-wider">Planifie</p>
+                                    <p class="text-4xl font-bold mt-2 num">{{ kpi.planifie.count + kpi.en_cours.count }}</p>
+                                </div>
+                                <div class="w-12 h-12 bg-primary/10 flex items-center justify-center">
+                                    <i data-feather="calendar" class="w-6 h-6 text-primary"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm text-muted">
+                                {{ kpi.total > 0 ? (((kpi.planifie.count + kpi.en_cours.count) / kpi.total) * 100)|round }}% du total
+                            </div>
+                        </div>
+
+                        {# Reporte #}
+                        <div class="card-elevated border-2 border-ink p-6 border-l-8 border-l-warning">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted uppercase tracking-wider">Reporte</p>
+                                    <p class="text-4xl font-bold mt-2 num">{{ kpi.reporte.count }}</p>
+                                </div>
+                                <div class="w-12 h-12 bg-warning/10 flex items-center justify-center">
+                                    <i data-feather="pause-circle" class="w-6 h-6 text-warning"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm text-muted">
+                                {{ kpi.total > 0 ? ((kpi.reporte.count / kpi.total) * 100)|round }}% du total
+                            </div>
+                        </div>
+
+                        {# A remedier #}
+                        <div class="card-elevated border-2 border-ink p-6 border-l-8 border-l-danger">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-muted uppercase tracking-wider">A remedier</p>
+                                    <p class="text-4xl font-bold mt-2 num">{{ kpi.a_remedier.count }}</p>
+                                </div>
+                                <div class="w-12 h-12 bg-danger/10 flex items-center justify-center">
+                                    <i data-feather="alert-circle" class="w-6 h-6 text-danger"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-sm text-muted">
+                                {{ kpi.total > 0 ? ((kpi.a_remedier.count / kpi.total) * 100)|round }}% du total
+                            </div>
+                        </div>
+                    </div>
+
+                    {# ========================================
+                       PROGRESSION PAR SEGMENT
+                       ======================================== #}
+                    <div class="card-elevated border-2 border-ink">
+                        <div class="p-6 border-b-2 border-ink flex items-center justify-between">
+                            <h2 class="text-xl font-bold">Progression par segment</h2>
+                            <span class="text-sm text-muted">{{ segments|length }} segments</span>
+                        </div>
+
+                        {% if segments|length > 0 %}
+                        <div class="divide-y divide-ink/10">
+                            {% for segmentData in segments %}
+                            <div class="segment-row grid grid-cols-12 gap-4 px-6 py-4 items-center">
+                                {# Segment name #}
+                                <div class="col-span-3 flex items-center gap-3">
+                                    <div class="w-4 h-4 bg-{{ segmentData.segment.couleur }}"></div>
+                                    <span class="font-medium">{{ segmentData.segment.nom }}</span>
+                                </div>
+
+                                {# Stats #}
+                                <div class="col-span-5 flex items-center gap-6 text-sm">
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-success"></span>
+                                        <span class="text-muted">Realise:</span>
+                                        <span class="font-semibold">{{ segmentData.realise }}</span>
+                                    </span>
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-primary"></span>
+                                        <span class="text-muted">Planifie:</span>
+                                        <span class="font-semibold">{{ segmentData.planifie + segmentData.en_cours }}</span>
+                                    </span>
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-warning"></span>
+                                        <span class="text-muted">Reporte:</span>
+                                        <span class="font-semibold">{{ segmentData.reporte }}</span>
+                                    </span>
+                                </div>
+
+                                {# Progress bar #}
+                                <div class="col-span-3">
+                                    <div class="h-3 bg-paper border border-ink/10">
+                                        <div class="h-full bg-success transition-all" style="width: {{ segmentData.pourcentage }}%"></div>
+                                    </div>
+                                </div>
+
+                                {# Percentage #}
+                                <div class="col-span-1 text-right">
+                                    <span class="text-lg font-bold num">{{ segmentData.pourcentage }}%</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="p-8 text-center text-muted">
+                            <i data-feather="folder" class="w-12 h-12 mx-auto mb-4"></i>
+                            <p>Aucun segment defini</p>
+                        </div>
+                        {% endif %}
+
+                        {# Total row #}
+                        <div class="grid grid-cols-12 gap-4 px-6 py-4 items-center bg-paper border-t-2 border-ink">
+                            <div class="col-span-3 font-bold">TOTAL</div>
+                            <div class="col-span-5 flex items-center gap-6 text-sm">
+                                <span class="font-semibold">{{ kpi.realise.count }} realise</span>
+                                <span>•</span>
+                                <span>{{ kpi.total }} operations</span>
+                            </div>
+                            <div class="col-span-3">
+                                <div class="h-3 bg-white border border-ink/10">
+                                    <div class="h-full bg-success transition-all" style="width: {{ kpi.total > 0 ? ((kpi.realise.count / kpi.total) * 100)|round : 0 }}%"></div>
+                                </div>
+                            </div>
+                            <div class="col-span-1 text-right">
+                                <span class="text-lg font-bold num">{{ kpi.total > 0 ? ((kpi.realise.count / kpi.total) * 100)|round : 0 }}%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {# ========================================
+               FOOTER
+               ======================================== #}
+            <footer class="bg-white border-t-2 border-ink py-4 px-10">
+                <div class="flex items-center justify-between text-sm text-muted">
+                    <div class="flex items-center gap-4">
+                        <span class="font-semibold text-ink">OpsTracker</span>
+                        <span>•</span>
+                        <span>Lien partage en lecture seule</span>
+                    </div>
+                    <div>
+                        Document genere le {{ "now"|date('d/m/Y') }} a {{ "now"|date('H:i') }}
+                    </div>
+                </div>
+            </footer>
+
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            });
+        </script>
+    </body>
+</html>

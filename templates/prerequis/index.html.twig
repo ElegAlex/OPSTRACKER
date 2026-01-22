@@ -1,0 +1,304 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Prerequis - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    /* Progress bar */
+    .progress-bar {
+        height: 8px;
+        background: #e5e7eb;
+        position: relative;
+    }
+    .progress-fill {
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    .progress-fill-success { background: #059669; }
+    .progress-fill-warning { background: #d97706; }
+    .progress-fill-muted { background: #9ca3af; }
+
+    /* Accordion */
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    .accordion-open .accordion-content {
+        max-height: 2000px;
+    }
+    .accordion-chevron {
+        transition: transform 0.2s ease;
+    }
+    .accordion-open .accordion-chevron {
+        transform: rotate(180deg);
+    }
+
+    /* Tab styles */
+    .tab-active {
+        position: relative;
+    }
+    .tab-active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #0a0a0a;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+{# ========================================
+   CAMPAIGN HEADER
+   ======================================== #}
+<header class="bg-white border-b-4 border-ink">
+    {# Top bar #}
+    <div class="px-10 py-6 flex justify-between items-start">
+        <div>
+            {# Breadcrumb #}
+            <div class="flex items-center gap-2 text-sm text-muted mb-3">
+                <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <span class="text-ink font-medium">{{ campagne.nom }}</span>
+            </div>
+
+            {# Title #}
+            <div class="flex items-center gap-4">
+                <h1 class="text-3xl font-bold tracking-tight">Prerequis</h1>
+                <span class="px-3 py-1 bg-{{ campagne.statutCouleur }} text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                    {{ campagne.statutLabel }}
+                </span>
+            </div>
+
+            {# Meta #}
+            <div class="flex items-center gap-6 mt-3 text-sm text-muted">
+                <span class="flex items-center gap-2">
+                    <i data-feather="check-square" class="w-4 h-4"></i>
+                    {{ data.progressionGenerale.faits }}/{{ data.progressionGenerale.total }} prerequis completes
+                </span>
+                {% if data.enRetard > 0 %}
+                <span class="flex items-center gap-2 text-warning">
+                    <i data-feather="alert-triangle" class="w-4 h-4"></i>
+                    {{ data.enRetard }} en retard
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Actions #}
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                <i data-feather="bar-chart-2" class="w-4 h-4"></i>
+                Dashboard
+            </a>
+            {% if not campagne.isReadOnly %}
+            <a href="{{ path('app_prerequis_global_new', {campagneId: campagne.id}) }}" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                <i data-feather="plus" class="w-4 h-4"></i>
+                Ajouter un prerequis
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Tabs Navigation #}
+    <div class="px-10 flex items-center gap-8">
+        <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+            Dashboard
+        </a>
+        <a href="{{ path('app_operation_index', {id: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+            Operations
+        </a>
+        <a href="{{ path('app_segment_index', {id: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+            Segments
+        </a>
+        <a href="{{ path('app_prerequis_index', {campagneId: campagne.id}) }}" class="py-4 text-sm font-semibold text-ink tab-active">
+            Prerequis
+        </a>
+    </div>
+</header>
+
+{# ========================================
+   CONTENT
+   ======================================== #}
+<div class="flex-1 overflow-auto">
+    <div class="px-10 py-8">
+
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 border-2 border-ink bg-{{ label == 'success' ? 'success' : (label == 'error' ? 'danger' : 'primary') }}/10">
+                    <div class="flex items-center gap-3">
+                        <i data-feather="{{ label == 'success' ? 'check-circle' : (label == 'error' ? 'alert-circle' : 'info') }}" class="w-5 h-5 text-{{ label == 'success' ? 'success' : (label == 'error' ? 'danger' : 'primary') }}"></i>
+                        <p class="font-medium">{{ message }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# Progress Overview #}
+        <div class="bg-white border-2 border-ink p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold">Progression generale</h2>
+                <span class="text-2xl font-bold num">{{ data.progressionGenerale.pourcentage }}%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill {{ data.progressionGenerale.pourcentage == 100 ? 'progress-fill-success' : (data.progressionGenerale.pourcentage >= 50 ? 'progress-fill-warning' : 'progress-fill-muted') }}"
+                     style="width: {{ data.progressionGenerale.pourcentage }}%"></div>
+            </div>
+            <p class="mt-2 text-sm text-muted">{{ data.progressionGenerale.faits }} sur {{ data.progressionGenerale.total }} prerequis completes</p>
+        </div>
+
+        {# ========================================
+           PREREQUIS GLOBAUX (RG-090)
+           ======================================== #}
+        <turbo-frame id="prerequis-globaux">
+        <section class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-xl font-bold">Prerequis globaux</h2>
+                    {% if data.globaux.progression.total > 0 %}
+                    <span class="px-3 py-1 bg-paper text-sm font-medium">
+                        {{ data.globaux.progression.faits }}/{{ data.globaux.progression.total }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% if not campagne.isReadOnly %}
+                <a href="{{ path('app_prerequis_global_new', {campagneId: campagne.id}) }}" class="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
+                    <i data-feather="plus" class="w-4 h-4"></i>
+                    Ajouter un prerequis global
+                </a>
+                {% endif %}
+            </div>
+
+            {% if data.globaux.prerequis|length > 0 %}
+            <div class="bg-white border-2 border-ink">
+                {# Header #}
+                <div class="grid grid-cols-12 gap-4 px-4 py-3 border-b-2 border-ink bg-paper text-xs font-bold uppercase tracking-wider text-muted">
+                    <div class="col-span-1 text-center">#</div>
+                    <div class="col-span-4">Prerequis</div>
+                    <div class="col-span-2">Responsable</div>
+                    <div class="col-span-2">Date cible</div>
+                    <div class="col-span-2">Statut</div>
+                    <div class="col-span-1"></div>
+                </div>
+
+                {# Rows #}
+                {% for prerequis in data.globaux.prerequis %}
+                <turbo-frame id="prerequis-row-{{ prerequis.id }}">
+                    {% include 'prerequis/_row.html.twig' with {prerequis: prerequis, campagne: campagne} %}
+                </turbo-frame>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="bg-white border-2 border-dashed border-ink/30 p-8 text-center">
+                <i data-feather="clipboard" class="w-12 h-12 mx-auto text-muted mb-4"></i>
+                <p class="text-muted">Aucun prerequis global defini</p>
+                {% if not campagne.isReadOnly %}
+                <a href="{{ path('app_prerequis_global_new', {campagneId: campagne.id}) }}" class="inline-flex items-center gap-2 mt-4 px-4 py-2 text-sm font-medium text-primary border-2 border-primary hover:bg-primary hover:text-white transition-colors">
+                    <i data-feather="plus" class="w-4 h-4"></i>
+                    Ajouter le premier prerequis
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </section>
+        </turbo-frame>
+
+        {# ========================================
+           PREREQUIS PAR SEGMENT (RG-091)
+           ======================================== #}
+        <section>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold">Prerequis par segment</h2>
+            </div>
+
+            {% if data.parSegment|length > 0 %}
+            <div class="space-y-4">
+                {% for segmentId, segmentData in data.parSegment %}
+                <div class="bg-white border-2 border-ink accordion-open" data-controller="accordion">
+                    {# Accordion Header #}
+                    <button type="button" class="w-full px-4 py-4 flex items-center justify-between hover:bg-paper transition-colors" onclick="this.closest('[data-controller]').classList.toggle('accordion-open')">
+                        <div class="flex items-center gap-4">
+                            <div class="w-4 h-4 bg-{{ segmentData.segment.couleur }}"></div>
+                            <span class="font-semibold">{{ segmentData.segment.nom }}</span>
+                            {% if segmentData.progression.total > 0 %}
+                            <span class="text-sm text-muted">{{ segmentData.progression.faits }}/{{ segmentData.progression.total }}</span>
+                            {% if segmentData.progression.faits == 0 and segmentData.progression.total > 0 %}
+                            <span class="px-2 py-0.5 bg-warning/10 text-warning text-xs font-medium flex items-center gap-1">
+                                <i data-feather="alert-triangle" class="w-3 h-3"></i>
+                                0%
+                            </span>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center gap-4">
+                            {% if segmentData.progression.total > 0 %}
+                            <div class="w-32 progress-bar">
+                                <div class="progress-fill {{ segmentData.progression.pourcentage == 100 ? 'progress-fill-success' : (segmentData.progression.pourcentage >= 50 ? 'progress-fill-warning' : 'progress-fill-muted') }}"
+                                     style="width: {{ segmentData.progression.pourcentage }}%"></div>
+                            </div>
+                            <span class="font-bold num w-12 text-right">{{ segmentData.progression.pourcentage }}%</span>
+                            {% endif %}
+                            <i data-feather="chevron-down" class="w-5 h-5 text-muted accordion-chevron"></i>
+                        </div>
+                    </button>
+
+                    {# Accordion Content #}
+                    <div class="accordion-content">
+                        <div class="border-t-2 border-ink">
+                            {% if segmentData.prerequis|length > 0 %}
+                                {# Header #}
+                                <div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-ink/10 bg-paper text-xs font-bold uppercase tracking-wider text-muted">
+                                    <div class="col-span-1 text-center">#</div>
+                                    <div class="col-span-4">Prerequis</div>
+                                    <div class="col-span-2">Responsable</div>
+                                    <div class="col-span-2">Date cible</div>
+                                    <div class="col-span-2">Statut</div>
+                                    <div class="col-span-1"></div>
+                                </div>
+
+                                {# Rows #}
+                                {% for prerequis in segmentData.prerequis %}
+                                <turbo-frame id="prerequis-row-{{ prerequis.id }}">
+                                    {% include 'prerequis/_row.html.twig' with {prerequis: prerequis, campagne: campagne} %}
+                                </turbo-frame>
+                                {% endfor %}
+                            {% else %}
+                                <div class="p-6 text-center text-muted">
+                                    <p>Aucun prerequis pour ce segment</p>
+                                </div>
+                            {% endif %}
+
+                            {# Add prerequis link #}
+                            {% if not campagne.isReadOnly %}
+                            <div class="p-4 border-t border-ink/10 bg-paper">
+                                <a href="{{ path('app_prerequis_segment_new', {campagneId: campagne.id, segmentId: segmentData.segment.id}) }}" class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
+                                    <i data-feather="plus" class="w-4 h-4"></i>
+                                    Ajouter un prerequis pour {{ segmentData.segment.nom }}
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="bg-white border-2 border-dashed border-ink/30 p-8 text-center">
+                <i data-feather="folder" class="w-12 h-12 mx-auto text-muted mb-4"></i>
+                <p class="text-muted">Aucun segment defini pour cette campagne</p>
+                <a href="{{ path('app_segment_index', {id: campagne.id}) }}" class="inline-flex items-center gap-2 mt-4 px-4 py-2 text-sm font-medium text-primary border-2 border-primary hover:bg-primary hover:text-white transition-colors">
+                    <i data-feather="grid" class="w-4 h-4"></i>
+                    Gerer les segments
+                </a>
+            </div>
+            {% endif %}
+        </section>
+
+    </div>
+</div>
+{% endblock %}

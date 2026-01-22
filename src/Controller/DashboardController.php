@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Campagne;
 use App\Repository\CampagneRepository;
 use App\Service\DashboardService;
+use App\Service\PdfExportService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  * - US-601 : Voir le dashboard temps reel (T-701)
  * - US-602 : Voir la progression par segment (T-702)
  * - US-607 : Voir le dashboard global multi-campagnes (T-703)
+ * - US-604 : Exporter le dashboard en PDF (T-1305)
  *
  * Regles metier :
  * - RG-040 : Affichage temps reel via Turbo Streams
@@ -31,21 +33,31 @@ class DashboardController extends AbstractController
     public function __construct(
         private readonly DashboardService $dashboardService,
         private readonly CampagneRepository $campagneRepository,
+        private readonly PdfExportService $pdfExportService,
     ) {
     }
 
     /**
      * T-703 : Dashboard global multi-campagnes.
+     * T-1307 : Filtrage par statut de campagne
      * Affiche une vue synthetique de toutes les campagnes actives.
      */
     #[Route('', name: 'app_dashboard_global', methods: ['GET'])]
-    public function global(): Response
+    public function global(Request $request): Response
     {
-        $data = $this->dashboardService->getDashboardGlobal();
+        // T-1307 : Recuperer les filtres depuis les query params
+        $statutsFilter = $request->query->all('statuts');
+
+        // Si aucun filtre specifie, utiliser null pour les campagnes actives par defaut
+        $data = $this->dashboardService->getDashboardGlobal(
+            !empty($statutsFilter) ? $statutsFilter : null
+        );
 
         return $this->render('dashboard/global.html.twig', [
             'campagnes' => $data['campagnes'],
             'totaux' => $data['totaux'],
+            'filtresActifs' => $statutsFilter,
+            'statutsDisponibles' => Campagne::STATUTS,
         ]);
     }
 
@@ -168,6 +180,23 @@ class DashboardController extends AbstractController
         return $this->render('dashboard/_segments.html.twig', [
             'campagne' => $campagne,
             'segments' => $segments,
+        ]);
+    }
+
+    /**
+     * T-1305 : Exporter le dashboard en PDF.
+     * US-604 : Format paysage A4, 1 page avec KPIs et progression.
+     */
+    #[Route('/campagne/{id}/export-pdf', name: 'app_dashboard_export_pdf', methods: ['GET'])]
+    public function exportPdf(Campagne $campagne): Response
+    {
+        $pdfContent = $this->pdfExportService->generateDashboardPdf($campagne);
+        $filename = $this->pdfExportService->generateFilename($campagne);
+
+        return new Response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => sprintf('attachment; filename="%s"', $filename),
+            'Content-Length' => strlen($pdfContent),
         ]);
     }
 }

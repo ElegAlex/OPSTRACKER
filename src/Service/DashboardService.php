@@ -275,13 +275,22 @@ class DashboardService
      *     }
      * }
      */
-    public function getDashboardGlobal(): array
+    /**
+     * T-1307 : Dashboard global avec filtrage par statut de campagne
+     *
+     * @param string[]|null $statutsFilter Statuts de campagne a afficher (null = tous les actifs)
+     */
+    public function getDashboardGlobal(?array $statutsFilter = null): array
     {
-        // Recuperer les campagnes actives (en cours ou a venir)
-        $campagnes = $this->campagneRepository->findBy(
-            ['statut' => [Campagne::STATUT_EN_COURS, Campagne::STATUT_A_VENIR, Campagne::STATUT_PREPARATION]],
-            ['dateDebut' => 'ASC']
-        );
+        // Si pas de filtre, utiliser les statuts actifs par defaut
+        if ($statutsFilter === null || empty($statutsFilter)) {
+            $campagnes = $this->campagneRepository->findBy(
+                ['statut' => [Campagne::STATUT_EN_COURS, Campagne::STATUT_A_VENIR, Campagne::STATUT_PREPARATION]],
+                ['dateDebut' => 'ASC']
+            );
+        } else {
+            $campagnes = $this->campagneRepository->findByStatuts($statutsFilter);
+        }
 
         $campagnesData = [];
         $totaux = [
@@ -319,6 +328,7 @@ class DashboardService
         return [
             'campagnes' => $campagnesData,
             'totaux' => $totaux,
+            'filtres' => $statutsFilter,
         ];
     }
 

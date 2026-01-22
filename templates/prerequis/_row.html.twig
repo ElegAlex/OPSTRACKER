@@ -1,0 +1,73 @@
+{# Ligne de prerequis - RG-090/RG-091 #}
+<div class="grid grid-cols-12 gap-4 px-4 py-3 border-b border-ink/10 items-center hover:bg-paper/50 transition-colors {{ prerequis.isEnRetard ? 'bg-warning/5' : '' }}">
+    {# Numero #}
+    <div class="col-span-1 text-center text-muted">
+        {{ prerequis.ordre }}
+    </div>
+
+    {# Libelle #}
+    <div class="col-span-4">
+        <span class="font-medium {{ prerequis.statut == 'fait' ? 'line-through text-muted' : '' }}">
+            {{ prerequis.libelle }}
+        </span>
+        {% if prerequis.isEnRetard %}
+        <span class="ml-2 text-warning text-xs font-medium">En retard</span>
+        {% endif %}
+    </div>
+
+    {# Responsable #}
+    <div class="col-span-2 text-sm text-muted">
+        {{ prerequis.responsable ?? '-' }}
+    </div>
+
+    {# Date cible #}
+    <div class="col-span-2 text-sm {{ prerequis.isEnRetard ? 'text-warning font-medium' : 'text-muted' }}">
+        {% if prerequis.dateCible %}
+            {{ prerequis.dateCible|date('d/m/Y') }}
+        {% else %}
+            -
+        {% endif %}
+    </div>
+
+    {# Statut - RG-080 Triple signalisation #}
+    <div class="col-span-2">
+        {% if not campagne.isReadOnly %}
+        <form action="{{ path('app_prerequis_statut', {campagneId: campagne.id, id: prerequis.id}) }}" method="POST" data-turbo-frame="prerequis-row-{{ prerequis.id }}">
+            <select name="statut" onchange="this.form.submit()"
+                    class="w-full px-3 py-2 text-sm border-2 border-ink/20 focus:border-primary focus:outline-none cursor-pointer
+                           {% if prerequis.statut == 'fait' %}bg-success/10 text-success{% elseif prerequis.statut == 'en_cours' %}bg-primary/10 text-primary{% else %}bg-paper text-muted{% endif %}">
+                {% for value, label in constant('App\\Entity\\Prerequis::STATUTS') %}
+                    <option value="{{ value }}" {{ prerequis.statut == value ? 'selected' : '' }}>
+                        {{ value == 'a_faire' ? 'A faire' : (value == 'en_cours' ? 'En cours' : 'Fait') }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+        {% else %}
+        <span class="inline-flex items-center gap-2 px-3 py-1 text-sm font-medium bg-{{ prerequis.statutCouleur }}/10 text-{{ prerequis.statutCouleur }}">
+            <i data-feather="{{ prerequis.statutIcone }}" class="w-4 h-4"></i>
+            {{ prerequis.statutLabel }}
+        </span>
+        {% endif %}
+    </div>
+
+    {# Actions #}
+    <div class="col-span-1 flex justify-end gap-2">
+        {% if not campagne.isReadOnly %}
+        <a href="{{ path('app_prerequis_edit', {campagneId: campagne.id, id: prerequis.id}) }}"
+           class="w-8 h-8 flex items-center justify-center text-muted hover:text-ink hover:bg-paper border border-ink/10 transition-colors"
+           title="Modifier">
+            <i data-feather="edit-2" class="w-4 h-4"></i>
+        </a>
+        <form action="{{ path('app_prerequis_delete', {campagneId: campagne.id, id: prerequis.id}) }}" method="POST"
+              onsubmit="return confirm('Supprimer ce prerequis ?')">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ prerequis.id) }}">
+            <button type="submit"
+                    class="w-8 h-8 flex items-center justify-center text-muted hover:text-danger hover:bg-danger/10 border border-ink/10 transition-colors"
+                    title="Supprimer">
+                <i data-feather="trash-2" class="w-4 h-4"></i>
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
