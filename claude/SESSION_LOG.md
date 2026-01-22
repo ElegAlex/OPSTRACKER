@@ -52,7 +52,7 @@
 - Autowiring WorkflowInterface → resolu avec #[Target('campagne')]
 
 ### Commits
-- A venir apres validation
+- `e818a9f` [Sprint-3] Implement campaigns CRUD (T-301 to T-307)
 
 ---
 
