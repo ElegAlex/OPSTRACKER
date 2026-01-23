@@ -173,7 +173,8 @@ class DashboardService
             ->where('o.campagne = :campagne')
             ->andWhere('o.updatedAt IS NOT NULL OR o.dateRealisation IS NOT NULL')
             ->setParameter('campagne', $campagne)
-            ->orderBy('COALESCE(o.updatedAt, o.dateRealisation, o.createdAt)', 'DESC')
+            ->orderBy('o.updatedAt', 'DESC')
+            ->addOrderBy('o.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

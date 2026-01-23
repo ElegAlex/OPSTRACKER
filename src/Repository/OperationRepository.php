@@ -319,7 +319,8 @@ class OperationRepository extends ServiceEntityRepository
             ->leftJoin('o.campagne', 'c')
             ->andWhere('o.technicienAssigne = :technicien')
             ->setParameter('technicien', $technicienId)
-            ->orderBy('COALESCE(o.updatedAt, o.createdAt)', 'DESC')
+            ->orderBy('o.updatedAt', 'DESC')
+            ->addOrderBy('o.createdAt', 'DESC')
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
