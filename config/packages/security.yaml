@@ -36,6 +36,7 @@ security:
     # Access control
     access_control:
         - { path: ^/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/share/, roles: PUBLIC_ACCESS }  # US-605 : Partage lecture seule
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/, roles: ROLE_USER }
 
