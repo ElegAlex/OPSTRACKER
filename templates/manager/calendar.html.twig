@@ -1,0 +1,383 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Calendrier - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+{# FullCalendar CSS - T-2301 #}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" rel="stylesheet">
+<style>
+    /* T-2301 : Personnalisation FullCalendar style Bauhaus */
+    .fc {
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+    }
+    .fc-event {
+        cursor: pointer;
+        font-size: 0.75rem;
+        padding: 2px 4px;
+        border-radius: 0 !important; /* Bauhaus: pas de border-radius */
+    }
+    .fc-toolbar-title {
+        font-size: 1.25rem !important;
+        font-weight: 700;
+    }
+    .fc-button {
+        background-color: #0a0a0a !important;
+        border-color: #0a0a0a !important;
+        border-radius: 0 !important; /* Bauhaus */
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+    }
+    .fc-button:hover {
+        background-color: #2d2d2d !important;
+    }
+    .fc-button-active {
+        background-color: #2563eb !important;
+        border-color: #2563eb !important;
+    }
+    .fc-button:disabled {
+        opacity: 0.5;
+    }
+    .fc-day-today {
+        background-color: #fafaf5 !important;
+    }
+    .fc-col-header-cell {
+        background-color: #f5f5f0;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+    }
+    .fc-timegrid-slot {
+        height: 2.5rem;
+    }
+    .fc-timegrid-slot-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    /* Legende */
+    .calendar-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border: 2px solid;
+    }
+
+    /* Modal */
+    .modal-overlay {
+        background-color: rgba(10, 10, 10, 0.5);
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+{# HEADER #}
+<header class="bg-white px-12 py-8 border-b-4 border-ink">
+    <div class="flex justify-between items-start">
+        <div>
+            {# Breadcrumb #}
+            <div class="flex items-center gap-2 text-sm text-muted mb-3">
+                <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <span class="text-ink font-medium">Calendrier</span>
+            </div>
+
+            {# Title #}
+            <div class="flex items-center gap-4">
+                <h1 class="text-3xl font-bold tracking-tight">Calendrier des creneaux</h1>
+            </div>
+
+            {# Meta #}
+            <div class="flex items-center gap-6 mt-3 text-sm text-muted">
+                <span class="flex items-center gap-2">
+                    <i data-feather="users" class="w-4 h-4"></i>
+                    {{ total_agents }} agent{{ total_agents > 1 ? 's' : '' }} dans votre equipe
+                </span>
+                <span class="flex items-center gap-2">
+                    <i data-feather="calendar" class="w-4 h-4 text-primary"></i>
+                    Vue planning visuel
+                </span>
+            </div>
+        </div>
+
+        {# Actions - Navigation entre vues #}
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_manager_agents', {campagne: campagne.id}) }}"
+               class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                <i data-feather="list" class="w-4 h-4"></i>
+                Vue liste
+            </a>
+            <a href="{{ path('app_manager_planning', {campagne: campagne.id}) }}"
+               class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                <i data-feather="bar-chart-2" class="w-4 h-4"></i>
+                Vue planning
+            </a>
+            <span class="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-ink text-white">
+                <i data-feather="calendar" class="w-4 h-4"></i>
+                Calendrier
+            </span>
+        </div>
+    </div>
+</header>
+
+{# CONTENT #}
+<div class="flex-1 overflow-auto">
+    <div class="px-12 py-8">
+
+        {# LEGENDE #}
+        <div class="bg-white border-2 border-ink p-4 mb-6">
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #e8f5e9; border-color: #4caf50;"></div>
+                    <span>Disponible</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #e3f2fd; border-color: #2196f3;"></div>
+                    <span>Partiellement reserve</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #ffebee; border-color: #f44336;"></div>
+                    <span>Complet</span>
+                </div>
+                <div class="legend-item text-muted">
+                    <i data-feather="users" class="w-4 h-4"></i>
+                    <span>= agents de mon equipe</span>
+                </div>
+            </div>
+        </div>
+
+        {# CALENDRIER - T-2303 #}
+        <div class="bg-white border-2 border-ink p-6">
+            <div id="calendar"
+                 data-events-url="{{ path('app_manager_calendar_events', {campagne: campagne.id}) }}"
+                 data-campagne-id="{{ campagne.id }}"
+                 style="min-height: 600px;">
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{# MODAL DETAIL CRENEAU #}
+<div id="event-modal" class="hidden fixed inset-0 modal-overlay flex items-center justify-center z-50">
+    <div class="bg-white p-6 max-w-md w-full mx-4 border-2 border-ink shadow-xl">
+        <div class="flex justify-between items-start mb-4">
+            <h3 class="text-xl font-bold text-ink" id="modal-title">Detail du creneau</h3>
+            <button onclick="closeEventModal()" class="text-muted hover:text-ink p-1">
+                <i data-feather="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div id="modal-content" class="space-y-3"></div>
+        <div class="mt-6 flex gap-3">
+            <button onclick="closeEventModal()" class="flex-1 px-4 py-3 border-2 border-ink text-ink font-semibold hover:bg-ink hover:text-white transition-colors">
+                Fermer
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+{# FullCalendar JS - T-2301 #}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.10/locales/fr.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    const eventsUrl = calendarEl.dataset.eventsUrl;
+    const campagneId = calendarEl.dataset.campagneId;
+
+    // T-2303 : Initialisation FullCalendar
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'timeGridWeek',
+        locale: 'fr',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        buttonText: {
+            today: 'Aujourd\'hui',
+            month: 'Mois',
+            week: 'Semaine',
+            day: 'Jour'
+        },
+        slotMinTime: '08:00:00',
+        slotMaxTime: '19:00:00',
+        weekends: false,
+        allDaySlot: false,
+        nowIndicator: true,
+        slotDuration: '00:30:00',
+        slotLabelInterval: '01:00',
+        slotLabelFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        },
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        },
+        events: eventsUrl,
+        eventClick: function(info) {
+            const props = info.event.extendedProps;
+            showEventDetail(info.event, props, campagneId);
+        },
+        eventDidMount: function(info) {
+            // Ajouter un tooltip avec le nombre d'agents de l'equipe
+            const props = info.event.extendedProps;
+            if (props.mesAgentsCount > 0) {
+                info.el.title = props.mesAgentsCount + ' agent(s) de votre equipe';
+            }
+        },
+        loading: function(isLoading) {
+            // Optionnel : indicateur de chargement
+            if (isLoading) {
+                calendarEl.style.opacity = '0.5';
+            } else {
+                calendarEl.style.opacity = '1';
+            }
+        }
+    });
+
+    calendar.render();
+
+    // Actualiser les icones Feather apres le rendu
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+});
+
+/**
+ * Affiche le modal avec les details de l'evenement
+ */
+function showEventDetail(event, props, campagneId) {
+    const modal = document.getElementById('event-modal');
+    const title = document.getElementById('modal-title');
+    const content = document.getElementById('modal-content');
+
+    // Extraire la date et les heures
+    const startDate = event.start;
+    const endDate = event.end;
+    const dateStr = startDate.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    const startTime = startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const endTime = endDate ? endDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+
+    title.textContent = 'Creneau du ' + dateStr;
+
+    // Construire le contenu du modal
+    let html = `
+        <div class="border-l-4 ${props.type === 'complet' ? 'border-danger' : (props.type === 'reserve' ? 'border-primary' : 'border-success')} pl-4 py-2 bg-paper">
+            <p class="text-lg font-bold text-ink">${startTime} - ${endTime}</p>
+            <p class="text-sm text-muted">${props.lieu}</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="p-3 bg-paper border border-ink/10">
+                <p class="text-xs text-muted uppercase tracking-wider mb-1">Places</p>
+                <p class="text-2xl font-bold num ${props.placesRestantes === 0 ? 'text-danger' : 'text-ink'}">${props.placesPrises}/${props.capacite}</p>
+            </div>
+            <div class="p-3 bg-paper border border-ink/10">
+                <p class="text-xs text-muted uppercase tracking-wider mb-1">Mon equipe</p>
+                <p class="text-2xl font-bold num ${props.mesAgentsCount > 0 ? 'text-primary' : 'text-muted'}">${props.mesAgentsCount}</p>
+            </div>
+        </div>
+    `;
+
+    // Afficher les agents de l'equipe s'il y en a
+    if (props.mesAgents && props.mesAgents.length > 0) {
+        html += `
+            <div class="mt-4 pt-4 border-t border-ink/10">
+                <p class="text-sm font-semibold text-ink mb-3 flex items-center gap-2">
+                    <i data-feather="users" class="w-4 h-4 text-primary"></i>
+                    Agents de mon equipe sur ce creneau
+                </p>
+                <ul class="space-y-2">
+        `;
+        props.mesAgents.forEach(agent => {
+            html += `
+                <li class="flex items-center justify-between p-2 bg-paper border border-ink/10">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
+                            ${agent.prenom.charAt(0)}${agent.nom.charAt(0)}
+                        </div>
+                        <span class="font-medium text-sm">${agent.prenom} ${agent.nom}</span>
+                    </div>
+                    <a href="/manager/campagne/${campagneId}/modifier/${agent.reservationId}"
+                       class="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                        <i data-feather="edit-2" class="w-3 h-3"></i>
+                        Modifier
+                    </a>
+                </li>
+            `;
+        });
+        html += '</ul></div>';
+    }
+
+    // Statut verrouille
+    if (props.verrouille) {
+        html += `
+            <div class="mt-4 p-3 bg-warning/10 border border-warning/20 flex items-center gap-2">
+                <i data-feather="lock" class="w-4 h-4 text-warning"></i>
+                <span class="text-sm text-warning font-medium">Ce creneau est verrouille</span>
+            </div>
+        `;
+    }
+
+    content.innerHTML = html;
+    modal.classList.remove('hidden');
+
+    // Actualiser les icones Feather dans le modal
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+}
+
+/**
+ * Ferme le modal
+ */
+function closeEventModal() {
+    document.getElementById('event-modal').classList.add('hidden');
+}
+
+// Fermer le modal en cliquant a l'exterieur
+document.getElementById('event-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEventModal();
+    }
+});
+
+// Fermer le modal avec Echap
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeEventModal();
+    }
+});
+</script>
+{% endblock %}

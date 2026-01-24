@@ -1,6 +1,6 @@
 # PROGRESS-V2 — Module Reservation
 
-> **Derniere mise a jour** : 2026-01-24 (Session #22 - Sprint 21 Complete - V2 READY)
+> **Derniere mise a jour** : 2026-01-24 (Session #23 - Sprint V2.1b Vue Calendrier)
 > **Source** : P4.1 - EPIC-10, EPIC-11, EPIC-12
 > **Total V2** : 26 User Stories | 3 EPICs
 > **Audit P6** : Score 100/100 - V2 READY
@@ -289,13 +289,77 @@
 5. ✅ ~~Sprint 20 : Complements V1~~
 6. ✅ ~~Sprint 21 : Tests + Audit P6~~
 7. ✅ ~~TAG v2.0.0~~ - CREE
+8. ✅ ~~Sprint V2.1a : Qualite & Quick Wins~~
+9. ✅ ~~Sprint V2.1b : Vue Calendrier~~
 
 ---
 
-## V2 COMPLETE
+## V2.1b COMPLETE
+
+---
+
+## PHASE V2.1 — Sprint V2.1a (Qualite & Quick Wins)
+
+### Sprint V2.1a — Quick Wins ✅
+
+| ID | Tache | Statut | Detail |
+|----|-------|--------|--------|
+| T-2201 | Configurer PHPStan niveau 6 | ✅ | phpstan.neon + tests/object-manager.php |
+| T-2202 | CI/CD GitHub Actions | ✅ | .github/workflows/ci.yml + .php-cs-fixer.php |
+| T-2203 | Export CSV reservations | ✅ | ReservationExportController + bouton dans index |
+| T-2204 | Dupliquer les creneaux | ✅ | Action duplicate dans CreneauController |
+| T-2205 | Ameliorer messages flash | ✅ | _flash_messages.html.twig + flash_controller.js |
+
+**Fichiers crees Sprint V2.1a** :
+- `phpstan.neon` - Configuration PHPStan niveau 6
+- `tests/object-manager.php` - Loader Doctrine pour PHPStan
+- `.github/workflows/ci.yml` - Pipeline CI/CD GitHub Actions
+- `.php-cs-fixer.php` - Configuration PHP-CS-Fixer
+- `src/Controller/ReservationExportController.php` - Export CSV
+- `templates/components/_flash_messages.html.twig` - Composant flash ameliore
+- `assets/controllers/flash_controller.js` - Stimulus controller auto-dismiss
+
+**Fichiers modifies Sprint V2.1a** :
+- `composer.json` - Ajout phpstan, php-cs-fixer + scripts
+- `src/Controller/CreneauController.php` - Action duplicate
+- `templates/creneau/index.html.twig` - Boutons Export CSV + Dupliquer
 
 **Score Audit P6** : 100/100
 **Verdict** : ✅ V2 READY
+
+---
+
+### Sprint V2.1b — Vue Calendrier ✅
+
+| ID | Tache | Statut | Detail |
+|----|-------|--------|--------|
+| T-2301 | Installer FullCalendar via CDN | ✅ | FullCalendar 6.1.10 + locale FR |
+| T-2302 | API JSON evenements calendrier | ✅ | Route /calendar/events.json |
+| T-2303 | Vue calendrier manager | ✅ | Route /calendar + template interactif |
+| T-2304 | Navigation entre vues | ✅ | Boutons liste/planning/calendrier |
+| T-2305 | Tests calendrier | ✅ | ManagerCalendarControllerTest (6 tests) |
+
+**Fichiers crees Sprint V2.1b** :
+- `src/Controller/ManagerCalendarController.php` - Controller API + vue calendrier
+- `templates/manager/calendar.html.twig` - Template FullCalendar avec modal detail
+- `tests/Controller/ManagerCalendarControllerTest.php` - 6 tests fonctionnels
+
+**Fichiers modifies Sprint V2.1b** :
+- `templates/manager/agents.html.twig` - Navigation vers calendrier
+- `templates/manager/planning.html.twig` - Navigation vers calendrier
+
+**Fonctionnalites implementees** :
+- Vue calendrier semaine/mois/jour avec FullCalendar
+- Code couleur : vert (disponible), bleu (reserve), rouge (complet)
+- Affichage du nombre d'agents de l'equipe par creneau
+- Modal detail avec liste des agents positionnes
+- Navigation unifiee entre les 3 vues manager
+
+**Routes ajoutees** :
+- `GET /manager/campagne/{campagne}/calendar` - Vue calendrier
+- `GET /manager/campagne/{campagne}/calendar/events.json` - API evenements
+
+---
 
 ### Phase P7 - Post-deploiement (4-8 semaines)
 
@@ -306,4 +370,4 @@
 
 ---
 
-_Derniere mise a jour : 2026-01-24 — OpsTracker V2.0.0 Sprint 21 Complete - V2 READY_
+_Derniere mise a jour : 2026-01-24 — Sprint V2.1b Vue Calendrier Complete_

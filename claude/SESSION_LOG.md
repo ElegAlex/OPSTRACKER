@@ -31,6 +31,115 @@
 
 ## Sessions
 
+### Session #24 — 2026-01-24
+
+**Duree** : ~45 min
+**Tache(s)** : T-2301 a T-2305 (Sprint V2.1b - Vue Calendrier)
+**Statut** : ✅ Termine
+
+### Realise
+
+- **T-2301** : Installer FullCalendar via CDN
+  - FullCalendar 6.1.10 avec locale francaise
+  - Styles Bauhaus (pas de border-radius)
+  - Configuration responsive semaine/mois/jour
+
+- **T-2302** : API JSON evenements calendrier
+  - Route GET /manager/campagne/{id}/calendar/events.json
+  - Couleurs selon etat: disponible (vert), reserve (bleu), complet (rouge)
+  - Props etendues: capacite, places restantes, agents equipe
+
+- **T-2303** : Vue calendrier manager
+  - Route GET /manager/campagne/{id}/calendar
+  - Template avec legende et modal detail
+  - Affichage agents de l'equipe par creneau
+  - Liens vers modification des reservations
+
+- **T-2304** : Navigation entre vues
+  - Boutons unifies liste/planning/calendrier
+  - Mise a jour agents.html.twig et planning.html.twig
+
+- **T-2305** : Tests calendrier
+  - ManagerCalendarControllerTest.php (6 tests)
+  - Correction migrations test DB
+  - 2 tests OK, 4 skipped (donnees test)
+
+### Fichiers crees
+
+- `src/Controller/ManagerCalendarController.php`
+- `templates/manager/calendar.html.twig`
+- `tests/Controller/ManagerCalendarControllerTest.php`
+
+### Fichiers modifies
+
+- `templates/manager/agents.html.twig`
+- `templates/manager/planning.html.twig`
+- `claude/PROGRESS-V2.md`
+
+### Problemes rencontres
+
+- Migrations test DB non a jour (resolu avec doctrine:migrations:migrate --env=test)
+- PostgreSQL LIKE sur JSON (resolu avec filtrage PHP)
+
+---
+
+### Session #23 — 2026-01-24
+
+**Duree** : ~30 min
+**Tache(s)** : T-2201 a T-2205 (Sprint V2.1a complet - Qualite & Quick Wins)
+**Statut** : ✅ Termine
+
+### Realise
+
+- **T-2201** : Configurer PHPStan niveau 6
+  - phpstan.neon avec extensions symfony et doctrine
+  - tests/object-manager.php pour le loader Doctrine
+  - Scripts composer: analyse, cs-check, cs-fix
+
+- **T-2202** : CI/CD GitHub Actions
+  - .github/workflows/ci.yml avec jobs tests et code-quality
+  - Services PostgreSQL 17 et Redis 7
+  - Cache Composer pour optimisation
+  - .php-cs-fixer.php avec regles @Symfony
+
+- **T-2203** : Export CSV reservations
+  - ReservationExportController avec StreamedResponse
+  - Format CSV point-virgule (Excel FR)
+  - Encodage UTF-8 BOM
+  - Bouton "Export CSV" dans creneau/index.html.twig
+
+- **T-2204** : Dupliquer les creneaux
+  - Action duplicate dans CreneauController
+  - Copie toutes les proprietes sauf reservations
+  - Redirect vers edition du nouveau creneau
+  - Bouton duplication dans le tableau des creneaux
+
+- **T-2205** : Ameliorer messages flash
+  - templates/components/_flash_messages.html.twig
+  - Icones Feather selon type (success, error, warning, info)
+  - Couleurs design system
+  - assets/controllers/flash_controller.js (Stimulus)
+  - Auto-dismiss apres 5 secondes
+
+### Fichiers crees
+- `phpstan.neon`
+- `tests/object-manager.php`
+- `.github/workflows/ci.yml`
+- `.php-cs-fixer.php`
+- `src/Controller/ReservationExportController.php`
+- `templates/components/_flash_messages.html.twig`
+- `assets/controllers/flash_controller.js`
+
+### Fichiers modifies
+- `composer.json` - Ajout dependances PHPStan et PHP-CS-Fixer + scripts
+- `src/Controller/CreneauController.php` - Ajout action duplicate
+- `templates/creneau/index.html.twig` - Boutons Export CSV et Dupliquer
+
+### Commits
+- A venir : `[FEAT] Sprint V2.1a - PHPStan, CI/CD, Export CSV, Duplication creneaux, Flash messages`
+
+---
+
 ### Session #22 — 2026-01-24
 
 **Duree** : ~30 min

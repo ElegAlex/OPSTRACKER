@@ -43,15 +43,21 @@
             </div>
         </div>
 
-        {# Actions #}
+        {# Actions - Navigation entre vues #}
         <div class="flex items-center gap-3">
-            <a href="{{ path('app_manager_agents', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+            <a href="{{ path('app_manager_agents', {campagne: campagne.id}) }}"
+               class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
                 <i data-feather="list" class="w-4 h-4"></i>
-                Liste agents
+                Vue liste
             </a>
-            <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
-                <i data-feather="arrow-left" class="w-4 h-4"></i>
-                Retour
+            <span class="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-ink text-white">
+                <i data-feather="bar-chart-2" class="w-4 h-4"></i>
+                Vue planning
+            </span>
+            <a href="{{ path('app_manager_calendar', {campagne: campagne.id}) }}"
+               class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                <i data-feather="calendar" class="w-4 h-4"></i>
+                Calendrier
             </a>
         </div>
     </div>
