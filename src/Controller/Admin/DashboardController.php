@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Agent;
 use App\Entity\Campagne;
 use App\Entity\ChecklistTemplate;
 use App\Entity\TypeOperation;
@@ -52,6 +53,9 @@ class DashboardController extends AbstractDashboardController
 
         yield MenuItem::section('Utilisateurs');
         yield MenuItem::linkToCrud('Utilisateurs', 'fa fa-users', Utilisateur::class);
+
+        yield MenuItem::section('Reservation V2');
+        yield MenuItem::linkToCrud('Agents', 'fa fa-user-tie', Agent::class);
 
         yield MenuItem::section('Audit & Config');
         yield MenuItem::linkToRoute('Historique (RG-070)', 'fa fa-history', 'audit_index');
