@@ -199,7 +199,7 @@
 | T-2105 | Audit P6.3-P6.6 complet | ✅ | Score >=95% | 100/100 |
 | T-2106 | Documentation utilisateur V2 | ✅ | 2 guides | GUIDE-AGENT.md + GUIDE-MANAGER.md |
 | T-2107 | Rapport d'audit P6 | ✅ | - | claude/P6-Audit-V2.md |
-| T-2108 | **TAG v2.0.0** | ⏳ | - | A creer |
+| T-2108 | **TAG v2.0.0** | ✅ | - | Tag cree |
 
 **Fichiers crees Sprint 21** :
 - `tests/E2E/AgentBookingTest.php` - 5 scenarios E2E agent
@@ -288,7 +288,7 @@
 4. ✅ ~~Sprint 19 : Notifications email~~
 5. ✅ ~~Sprint 20 : Complements V1~~
 6. ✅ ~~Sprint 21 : Tests + Audit P6~~
-7. ⏳ TAG v2.0.0 a creer
+7. ✅ ~~TAG v2.0.0~~ - CREE
 
 ---
 

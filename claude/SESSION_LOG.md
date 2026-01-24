@@ -92,7 +92,8 @@
 - `claude/PROGRESS-V2.md` - Sprint 21 complete, metriques finales
 
 ### Commits
-- A venir : `[RELEASE] OpsTracker V2.0.0 - Module Reservation`
+- `986d718` [RELEASE] Sprint 21 - Tests, Audit P6 & Documentation V2
+- TAG v2.0.0 cree
 
 ---
 
