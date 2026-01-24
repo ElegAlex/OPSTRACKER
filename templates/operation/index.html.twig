@@ -48,7 +48,7 @@
             <div class="flex items-center gap-2 text-sm text-muted mb-3">
                 <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
                 <i data-feather="chevron-right" class="w-4 h-4"></i>
-                <a href="{{ path('app_campagne_show', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
+                <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
                 <i data-feather="chevron-right" class="w-4 h-4"></i>
                 <span class="text-ink font-medium">Operations</span>
             </div>
