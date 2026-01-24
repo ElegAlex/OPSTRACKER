@@ -67,6 +67,10 @@
 
             {# Actions #}
             <div class="flex items-center gap-3">
+                <a href="{{ path('app_operation_edit', {campagne: campagne.id, id: operation.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                    <i data-feather="edit-2" class="w-4 h-4"></i>
+                    Modifier
+                </a>
                 <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted hover:text-ink border-2 border-ink/10 hover:border-ink transition-colors">
                     <i data-feather="arrow-left" class="w-4 h-4"></i>
                     Retour

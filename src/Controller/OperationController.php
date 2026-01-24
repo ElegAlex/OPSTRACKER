@@ -7,6 +7,7 @@ use App\Entity\Operation;
 use App\Repository\SegmentRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\OperationService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -244,6 +245,46 @@ class OperationController extends AbstractController
         );
 
         return $this->redirectToRoute('app_operation_index', ['campagne' => $campagne->getId()]);
+    }
+
+    /**
+     * US-306 : Modifier une operation.
+     * Permet de modifier les informations de base d'une operation.
+     */
+    #[Route('/{id}/modifier', name: 'app_operation_edit', methods: ['GET', 'POST'])]
+    public function edit(
+        Campagne $campagne,
+        Operation $operation,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response {
+        // Verifier que l'operation appartient a la campagne
+        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+            throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
+        }
+
+        $form = $this->createForm(\App\Form\OperationType::class, $operation, [
+            'campagne' => $campagne,
+        ]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Operation modifiee avec succes.');
+
+            return $this->redirectToRoute('app_operation_show', [
+                'campagne' => $campagne->getId(),
+                'id' => $operation->getId(),
+            ]);
+        }
+
+        return $this->render('operation/edit.html.twig', [
+            'operation' => $operation,
+            'campagne' => $campagne,
+            'form' => $form,
+        ]);
     }
 
     /**
