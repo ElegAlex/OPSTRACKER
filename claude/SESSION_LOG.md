@@ -31,6 +31,78 @@
 
 ## Sessions
 
+### Session #25 — 2026-01-24
+
+**Duree** : ~40 min
+**Tache(s)** : T-2401 a T-2406 (Sprint V2.1c - Notifications SMS)
+**Statut** : ✅ Termine
+
+### Realise
+
+- **T-2401** : Ajouter champs telephone + smsOptIn sur Agent
+  - Champs telephone (VARCHAR 20) et sms_opt_in (BOOLEAN)
+  - Normalisation telephone format E.164 dans setter
+  - Methode canReceiveSms() pour verification eligibilite
+  - Fixtures avec telephones et 1/3 agents opt-in
+
+- **T-2402** : Configuration provider SMS abstrait
+  - Interface SmsProviderInterface
+  - Variables .env : SMS_ENABLED, SMS_PROVIDER
+  - Configuration services.yaml avec Factory
+  - Support OVH et Log (dev)
+
+- **T-2403** : SmsService avec providers
+  - LogSmsProvider pour developpement (logs)
+  - OvhSmsProvider pour production (API OVH)
+  - SmsProviderFactory pour creation dynamique
+  - SmsService avec envoyerRappel/Confirmation/Annulation
+
+- **T-2404** : Modifier SendReminderCommand pour SMS J-1
+  - Option --type : all, email, sms
+  - Option --sms-days (defaut: 1)
+  - Option --email-days (defaut: 2)
+  - Mode dry-run pour simulation
+
+- **T-2405** : Interface opt-in SMS pour agent
+  - Route GET/POST /reservation/{token}/sms
+  - Template booking/sms_optin.html.twig
+  - Section SMS dans confirm.html.twig
+  - Formulaire telephone + checkbox opt-in
+
+- **T-2406** : Tests SmsService
+  - 12 tests unitaires
+  - Scenarios : opt-in, opt-out, sans telephone, SMS desactive
+  - Test avec LogSmsProvider
+
+### Fichiers crees
+
+- `src/Service/Sms/SmsProviderInterface.php`
+- `src/Service/Sms/LogSmsProvider.php`
+- `src/Service/Sms/OvhSmsProvider.php`
+- `src/Service/Sms/SmsProviderFactory.php`
+- `src/Service/SmsService.php`
+- `templates/booking/sms_optin.html.twig`
+- `migrations/Version20260124210001.php`
+- `tests/Unit/Service/SmsServiceTest.php`
+
+### Fichiers modifies
+
+- `src/Entity/Agent.php` - champs telephone, smsOptIn
+- `src/Entity/Notification.php` - types SMS
+- `src/Controller/BookingController.php` - route smsOptin
+- `src/Command/SendReminderCommand.php` - support SMS
+- `src/DataFixtures/ReservationFixtures.php` - fixtures SMS
+- `templates/booking/confirm.html.twig` - section opt-in
+- `config/services.yaml` - configuration SMS
+- `.env` - variables SMS
+- `claude/PROGRESS-V2.md` - documentation sprint
+
+### Problemes rencontres
+
+- PHP non disponible sur le systeme (resolu: migration manuelle)
+
+---
+
 ### Session #24 — 2026-01-24
 
 **Duree** : ~45 min

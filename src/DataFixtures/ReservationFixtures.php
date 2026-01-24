@@ -108,6 +108,9 @@ class ReservationFixtures extends Fixture implements FixtureGroupInterface
             $mgr->setSite($sites[array_rand($sites)]);
             $mgr->setActif(true);
             $mgr->generateBookingToken();
+            // SMS opt-in pour 1/3 des managers
+            $mgr->setTelephone('+33' . $this->faker->numerify('6########'));
+            $mgr->setSmsOptIn($index % 3 === 0);
 
             $manager->persist($mgr);
             $managers[$service] = $mgr;
@@ -128,6 +131,9 @@ class ReservationFixtures extends Fixture implements FixtureGroupInterface
                 $agent->setManager($managers[$service]);
                 $agent->setActif(true);
                 $agent->generateBookingToken();
+                // SMS opt-in pour 1/3 des agents
+                $agent->setTelephone('+33' . $this->faker->numerify('6########'));
+                $agent->setSmsOptIn($agentNum % 3 === 0);
 
                 $manager->persist($agent);
                 $agents[] = $agent;

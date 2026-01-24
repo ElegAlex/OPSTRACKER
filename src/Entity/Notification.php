@@ -24,12 +24,17 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Notification
 {
-    // Types de notification
+    // Types de notification email
     public const TYPE_CONFIRMATION = 'confirmation';
     public const TYPE_RAPPEL = 'rappel';
     public const TYPE_MODIFICATION = 'modification';
     public const TYPE_ANNULATION = 'annulation';
     public const TYPE_INVITATION = 'invitation';
+
+    // Types de notification SMS (Sprint V2.1c)
+    public const TYPE_RAPPEL_SMS = 'rappel_sms';
+    public const TYPE_CONFIRMATION_SMS = 'confirmation_sms';
+    public const TYPE_ANNULATION_SMS = 'annulation_sms';
 
     public const TYPES = [
         self::TYPE_CONFIRMATION => 'Confirmation',
@@ -37,6 +42,9 @@ class Notification
         self::TYPE_MODIFICATION => 'Modification',
         self::TYPE_ANNULATION => 'Annulation',
         self::TYPE_INVITATION => 'Invitation',
+        self::TYPE_RAPPEL_SMS => 'Rappel SMS',
+        self::TYPE_CONFIRMATION_SMS => 'Confirmation SMS',
+        self::TYPE_ANNULATION_SMS => 'Annulation SMS',
     ];
 
     // Statuts d'envoi

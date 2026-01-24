@@ -1,6 +1,6 @@
 # PROGRESS-V2 — Module Reservation
 
-> **Derniere mise a jour** : 2026-01-24 (Session #23 - Sprint V2.1b Vue Calendrier)
+> **Derniere mise a jour** : 2026-01-24 (Session #25 - Sprint V2.1c Notifications SMS)
 > **Source** : P4.1 - EPIC-10, EPIC-11, EPIC-12
 > **Total V2** : 26 User Stories | 3 EPICs
 > **Audit P6** : Score 100/100 - V2 READY
@@ -361,6 +361,66 @@
 
 ---
 
+### Sprint V2.1c — Notifications SMS ✅
+
+| ID | Tache | Statut | Detail |
+|----|-------|--------|--------|
+| T-2401 | Champ telephone + smsOptIn sur Agent | ✅ | Migration + normalisation E.164 |
+| T-2402 | Configuration provider SMS | ✅ | Interface + Factory + services.yaml |
+| T-2403 | SmsService avec providers | ✅ | OvhSmsProvider + LogSmsProvider |
+| T-2404 | SendReminderCommand SMS J-1 | ✅ | Options --type email/sms + --sms-days |
+| T-2405 | Interface opt-in SMS agent | ✅ | Route + template booking/sms_optin |
+| T-2406 | Tests SmsService | ✅ | 12 tests unitaires |
+
+**Fichiers crees Sprint V2.1c** :
+- `src/Service/Sms/SmsProviderInterface.php` - Interface abstraction provider
+- `src/Service/Sms/LogSmsProvider.php` - Provider dev (logs)
+- `src/Service/Sms/OvhSmsProvider.php` - Provider prod (OVH API)
+- `src/Service/Sms/SmsProviderFactory.php` - Factory creation provider
+- `src/Service/SmsService.php` - Service envoi SMS
+- `templates/booking/sms_optin.html.twig` - Interface opt-in agent
+- `migrations/Version20260124210001.php` - Champs telephone, sms_opt_in
+- `tests/Unit/Service/SmsServiceTest.php` - Tests unitaires
+
+**Fichiers modifies Sprint V2.1c** :
+- `src/Entity/Agent.php` - +telephone, +smsOptIn, +canReceiveSms()
+- `src/Entity/Notification.php` - Types SMS ajoutes
+- `src/Controller/BookingController.php` - Route smsOptin
+- `src/Command/SendReminderCommand.php` - Support SMS J-1
+- `src/DataFixtures/ReservationFixtures.php` - Fixtures telephone/opt-in
+- `templates/booking/confirm.html.twig` - Section SMS opt-in
+- `config/services.yaml` - Configuration SMS
+- `.env` - Variables SMS_ENABLED, SMS_PROVIDER
+
+**Fonctionnalites implementees** :
+- Rappel SMS J-1 pour agents opt-in avec telephone
+- Provider abstrait (OVH prod, Log dev)
+- Interface agent pour activer/desactiver SMS
+- Normalisation telephone format E.164
+- Historisation dans table Notification
+
+**Configuration** :
+```bash
+# .env
+SMS_ENABLED=true
+SMS_PROVIDER=log   # dev
+SMS_PROVIDER=ovh   # prod avec OVH_APPLICATION_KEY, etc.
+```
+
+**Commandes** :
+```bash
+# Emails J-2 + SMS J-1
+php bin/console app:send-reminders
+
+# SMS uniquement
+php bin/console app:send-reminders --type=sms
+
+# Simulation
+php bin/console app:send-reminders --dry-run
+```
+
+---
+
 ### Phase P7 - Post-deploiement (4-8 semaines)
 
 1. Deploiement sur serveur de test CPAM 92
@@ -370,4 +430,4 @@
 
 ---
 
-_Derniere mise a jour : 2026-01-24 — Sprint V2.1b Vue Calendrier Complete_
+_Derniere mise a jour : 2026-01-24 — Sprint V2.1c Notifications SMS Complete_

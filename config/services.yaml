@@ -9,6 +9,9 @@
 parameters:
     upload_directory: '%kernel.project_dir%/var/uploads'
     mailer_sender: 'opstracker-noreply@cpam92.local'
+    sms_enabled: '%env(bool:SMS_ENABLED)%'
+    sms_provider: '%env(SMS_PROVIDER)%'
+    sms_default_sender: 'OpsTracker'
 
 services:
     # default configuration for services in *this* file
@@ -37,3 +40,23 @@ services:
     App\Service\NotificationService:
         arguments:
             $senderEmail: '%mailer_sender%'
+
+    # SMS Provider Factory - Sprint V2.1c
+    App\Service\Sms\SmsProviderFactory:
+        arguments:
+            $ovhAppKey: '%env(default::OVH_APPLICATION_KEY)%'
+            $ovhAppSecret: '%env(default::OVH_APPLICATION_SECRET)%'
+            $ovhConsumerKey: '%env(default::OVH_CONSUMER_KEY)%'
+            $ovhServiceName: '%env(default::OVH_SMS_SERVICE)%'
+            $ovhSender: '%env(default:sms_default_sender:OVH_SMS_SENDER)%'
+
+    # SMS Provider Interface via Factory
+    App\Service\Sms\SmsProviderInterface:
+        factory: ['@App\Service\Sms\SmsProviderFactory', 'create']
+        arguments:
+            $provider: '%sms_provider%'
+
+    # SmsService configuration
+    App\Service\SmsService:
+        arguments:
+            $smsEnabled: '%sms_enabled%'

@@ -70,6 +70,18 @@ class Agent
     private bool $actif = true;
 
     /**
+     * Numero de telephone pour les notifications SMS (format E.164)
+     */
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $telephone = null;
+
+    /**
+     * Opt-in pour recevoir les rappels par SMS
+     */
+    #[ORM\Column(type: 'boolean')]
+    private bool $smsOptIn = false;
+
+    /**
      * Token de reservation pour acces sans authentification.
      * Utilise pour l'interface agent (lien unique par email).
      */
@@ -197,6 +209,49 @@ class Agent
         $this->actif = $actif;
 
         return $this;
+    }
+
+    public function getTelephone(): ?string
+    {
+        return $this->telephone;
+    }
+
+    /**
+     * Definit le numero de telephone en le normalisant au format E.164.
+     */
+    public function setTelephone(?string $telephone): static
+    {
+        if ($telephone !== null) {
+            // Supprimer tous les caracteres non numeriques sauf le +
+            $telephone = preg_replace('/[^0-9+]/', '', $telephone);
+            // Convertir les numeros francais commencant par 0 en format E.164
+            if (str_starts_with($telephone, '0')) {
+                $telephone = '+33' . substr($telephone, 1);
+            }
+        }
+        $this->telephone = $telephone;
+
+        return $this;
+    }
+
+    public function isSmsOptIn(): bool
+    {
+        return $this->smsOptIn;
+    }
+
+    public function setSmsOptIn(bool $smsOptIn): static
+    {
+        $this->smsOptIn = $smsOptIn;
+
+        return $this;
+    }
+
+    /**
+     * Verifie si l'agent peut recevoir des SMS (opt-in et telephone valide).
+     */
+    public function canReceiveSms(): bool
+    {
+        return $this->smsOptIn && !empty($this->telephone);
     }
 
     public function getBookingToken(): ?string

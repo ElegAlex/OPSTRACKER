@@ -393,4 +393,50 @@ class BookingController extends AbstractController
 
         return $campagnes[0] ?? null;
     }
+
+    /**
+     * T-2405 : Configuration opt-in SMS pour l'agent.
+     * Permet a l'agent d'activer/desactiver les rappels SMS.
+     */
+    #[Route('/{token}/sms', name: 'app_booking_sms_optin', methods: ['GET', 'POST'])]
+    public function smsOptin(string $token, Request $request): Response
+    {
+        $agent = $this->getAgentByToken($token);
+
+        if ($request->isMethod('POST')) {
+            if (!$this->isCsrfTokenValid('sms_optin', $request->request->get('_token'))) {
+                $this->addFlash('danger', 'Token CSRF invalide.');
+                return $this->redirectToRoute('app_booking_sms_optin', ['token' => $token]);
+            }
+
+            // Recuperer les donnees du formulaire
+            $smsOptIn = $request->request->getBoolean('sms_optin');
+            $telephone = $request->request->get('telephone');
+
+            // Mettre a jour le telephone si fourni
+            if (!empty($telephone)) {
+                $agent->setTelephone($telephone);
+            }
+
+            // Mettre a jour l'opt-in
+            $agent->setSmsOptIn($smsOptIn);
+
+            $this->entityManager->flush();
+
+            if ($smsOptIn && $agent->canReceiveSms()) {
+                $this->addFlash('success', 'Vous recevrez un SMS de rappel la veille de votre rendez-vous.');
+            } elseif ($smsOptIn && empty($agent->getTelephone())) {
+                $this->addFlash('warning', 'Veuillez renseigner votre numero de telephone pour recevoir les SMS.');
+            } else {
+                $this->addFlash('info', 'Vous ne recevrez pas de rappel SMS.');
+            }
+
+            return $this->redirectToRoute('app_booking_confirm', ['token' => $token]);
+        }
+
+        return $this->render('booking/sms_optin.html.twig', [
+            'agent' => $agent,
+            'token' => $token,
+        ]);
+    }
 }
