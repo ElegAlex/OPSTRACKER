@@ -1,0 +1,160 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Positionner {{ agent.nomComplet }} - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block main %}
+{# HEADER #}
+<header class="bg-white px-12 py-8 border-b-4 border-ink">
+    <div class="flex justify-between items-start">
+        <div>
+            {# Breadcrumb #}
+            <div class="flex items-center gap-2 text-sm text-muted mb-3">
+                <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_coord_agents', {campagne: campagne.id}) }}" class="hover:text-ink">Agents delegues</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <span class="text-ink font-medium">Positionner</span>
+            </div>
+
+            {# Title #}
+            <div class="flex items-center gap-4">
+                <h1 class="text-3xl font-bold tracking-tight">Positionner {{ agent.prenom }} {{ agent.nom }}</h1>
+                <span class="px-2 py-1 bg-complete/10 text-complete text-xs font-bold uppercase tracking-wider">
+                    Coordination
+                </span>
+            </div>
+
+            {# Meta #}
+            <div class="flex items-center gap-6 mt-3 text-sm text-muted">
+                <span class="flex items-center gap-2">
+                    <i data-feather="mail" class="w-4 h-4"></i>
+                    {{ agent.email }}
+                </span>
+                <span class="flex items-center gap-2">
+                    <i data-feather="hash" class="w-4 h-4"></i>
+                    {{ agent.matricule }}
+                </span>
+            </div>
+        </div>
+
+        {# Actions #}
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_coord_agents', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                <i data-feather="arrow-left" class="w-4 h-4"></i>
+                Retour
+            </a>
+        </div>
+    </div>
+</header>
+
+{# CONTENT #}
+<div class="flex-1 overflow-auto">
+    <div class="px-12 py-8">
+
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 border-2 border-ink/20 bg-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'info' ? 'primary' : 'danger')) }}/10 flex items-center gap-3">
+                    <i data-feather="{{ label == 'success' ? 'check-circle' : (label == 'warning' ? 'alert-triangle' : (label == 'info' ? 'info' : 'alert-circle')) }}" class="w-5 h-5 text-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'info' ? 'primary' : 'danger')) }}"></i>
+                    <span class="text-sm font-medium">{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# Agent info card #}
+        <div class="bg-complete/5 border-2 border-complete/20 p-6 mb-8">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-complete/10 flex items-center justify-center text-lg font-bold text-complete">
+                    {{ agent.prenom|first|upper }}{{ agent.nom|first|upper }}
+                </div>
+                <div>
+                    <p class="font-bold text-ink text-lg">{{ agent.nomComplet }}</p>
+                    <p class="text-sm text-muted">{{ agent.service ?? 'Service non defini' }} - {{ agent.site ?? 'Site non defini' }}</p>
+                </div>
+            </div>
+        </div>
+
+        {# Selection du creneau #}
+        {% if creneaux_par_date|length > 0 %}
+        <form action="{{ path('app_coord_position', {campagne: campagne.id, agent: agent.id}) }}" method="post">
+            <input type="hidden" name="_token" value="{{ csrf_token('coord_position_' ~ agent.id) }}">
+
+            <h2 class="text-xl font-bold text-ink mb-6">Selectionnez un creneau</h2>
+
+            {% for dateKey, dateGroup in creneaux_par_date %}
+            <div class="mb-8">
+                <h3 class="flex items-center gap-3 text-lg font-semibold mb-4">
+                    <i data-feather="calendar" class="w-5 h-5 text-complete"></i>
+                    {{ dateGroup.date|date('l d F Y') }}
+                    <span class="text-sm font-normal text-muted">({{ dateGroup.creneaux|length }} creneau{{ dateGroup.creneaux|length > 1 ? 'x' : '' }})</span>
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for creneau in dateGroup.creneaux %}
+                    {% set isComplet = creneau.complet %}
+                    <label class="block cursor-pointer {{ isComplet ? 'opacity-50 cursor-not-allowed' : '' }}">
+                        <div class="bg-white border-2 border-ink/10 hover:border-complete p-6 transition-colors has-[:checked]:border-complete has-[:checked]:bg-complete/5">
+                            <div class="flex items-start gap-4">
+                                <input type="radio"
+                                       name="creneau"
+                                       value="{{ creneau.id }}"
+                                       class="w-5 h-5 mt-1 text-complete"
+                                       {{ isComplet ? 'disabled' : '' }}
+                                       required>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <p class="text-xl font-bold text-ink">
+                                            {{ creneau.heureDebut|date('H:i') }} - {{ creneau.heureFin|date('H:i') }}
+                                        </p>
+                                        {% if isComplet %}
+                                        <span class="px-2 py-1 bg-danger/10 text-danger text-xs font-bold uppercase">Complet</span>
+                                        {% else %}
+                                        <span class="px-2 py-1 bg-success/10 text-success text-xs font-bold uppercase">{{ creneau.placesRestantes }} place{{ creneau.placesRestantes > 1 ? 's' : '' }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="text-sm text-muted">
+                                        <i data-feather="map-pin" class="w-4 h-4 inline"></i>
+                                        {{ creneau.lieu ?? 'Lieu non specifie' }}
+                                    </p>
+                                    <p class="text-sm text-muted mt-1">
+                                        <i data-feather="clock" class="w-4 h-4 inline"></i>
+                                        {{ creneau.dureeMinutes }} minutes
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="flex items-center gap-4 pt-6 border-t border-ink/10">
+                <button type="submit" class="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                    <i data-feather="check" class="w-4 h-4"></i>
+                    Confirmer le positionnement
+                </button>
+                <a href="{{ path('app_coord_agents', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-6 py-3 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                    Annuler
+                </a>
+            </div>
+        </form>
+        {% else %}
+        <div class="bg-white border-2 border-ink/20 border-dashed p-12 text-center">
+            <div class="w-16 h-16 mx-auto bg-warning/10 flex items-center justify-center mb-4">
+                <i data-feather="calendar" class="w-8 h-8 text-warning"></i>
+            </div>
+            <h3 class="text-lg font-bold text-ink mb-2">Aucun creneau disponible</h3>
+            <p class="text-sm text-muted mb-6">Il n'y a plus de creneaux disponibles pour cette campagne.</p>
+            <a href="{{ path('app_coord_agents', {campagne: campagne.id}) }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-ink border-2 border-ink hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="arrow-left" class="w-4 h-4"></i>
+                Retour a la liste
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

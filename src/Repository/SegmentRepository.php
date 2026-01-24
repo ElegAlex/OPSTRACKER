@@ -30,4 +30,25 @@ class SegmentRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * T-2008 / US-1108 : Trouve un segment par site pour une campagne
+     * RG-135 : Association creneau <-> segment optionnelle
+     */
+    public function findByCampagneAndSite(int $campagneId, ?string $site): ?Segment
+    {
+        if (!$site) {
+            return null;
+        }
+
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.campagne = :campagne')
+            ->andWhere('s.nom LIKE :site OR s.nom LIKE :sitePattern')
+            ->setParameter('campagne', $campagneId)
+            ->setParameter('site', $site)
+            ->setParameter('sitePattern', '%' . $site . '%')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

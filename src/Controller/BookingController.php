@@ -10,11 +10,14 @@ use App\Repository\AgentRepository;
 use App\Repository\CampagneRepository;
 use App\Repository\CreneauRepository;
 use App\Repository\ReservationRepository;
+use App\Repository\SegmentRepository;
+use App\Service\IcsGenerator;
 use App\Service\ReservationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
@@ -39,7 +42,9 @@ class BookingController extends AbstractController
         private readonly CampagneRepository $campagneRepository,
         private readonly CreneauRepository $creneauRepository,
         private readonly ReservationRepository $reservationRepository,
+        private readonly SegmentRepository $segmentRepository,
         private readonly ReservationService $reservationService,
+        private readonly IcsGenerator $icsGenerator,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -63,8 +68,11 @@ class BookingController extends AbstractController
         // Verifier si l'agent a deja une reservation (RG-121)
         $reservationExistante = $this->reservationRepository->findByAgentAndCampagne($agent, $campagne);
 
+        // T-2008 / RG-135 : Recuperer le segment de l'agent par son site
+        $segment = $this->segmentRepository->findByCampagneAndSite($campagne->getId(), $agent->getSite());
+
         // RG-120 : Recuperer les creneaux disponibles filtres par segment
-        $creneauxDisponibles = $this->creneauRepository->findDisponibles($campagne);
+        $creneauxDisponibles = $this->creneauRepository->findDisponibles($campagne, $segment);
 
         // Grouper par date
         $creneauxParDate = [];
@@ -291,6 +299,68 @@ class BookingController extends AbstractController
             'reservation' => $reservation,
             'creneaux_par_date' => $creneauxParDate,
         ]);
+    }
+
+    /**
+     * T-2001 / US-1004 : Page recapitulatif de la reservation.
+     * Affiche tous les details et permet de telecharger l'ICS.
+     */
+    #[Route('/{token}/recapitulatif', name: 'app_booking_recap', methods: ['GET'])]
+    public function recap(string $token): Response
+    {
+        $agent = $this->getAgentByToken($token);
+        $campagne = $this->getCampagneActive();
+
+        if (!$campagne) {
+            return $this->redirectToRoute('app_booking_index', ['token' => $token]);
+        }
+
+        $reservation = $this->reservationRepository->findByAgentAndCampagne($agent, $campagne);
+
+        if (!$reservation) {
+            $this->addFlash('warning', 'Aucune reservation trouvee.');
+
+            return $this->redirectToRoute('app_booking_index', ['token' => $token]);
+        }
+
+        return $this->render('booking/recap.html.twig', [
+            'agent' => $agent,
+            'campagne' => $campagne,
+            'token' => $token,
+            'reservation' => $reservation,
+        ]);
+    }
+
+    /**
+     * Telecharger le fichier ICS de la reservation.
+     */
+    #[Route('/{token}/ics', name: 'app_booking_ics', methods: ['GET'])]
+    public function downloadIcs(string $token): Response
+    {
+        $agent = $this->getAgentByToken($token);
+        $campagne = $this->getCampagneActive();
+
+        if (!$campagne) {
+            throw $this->createNotFoundException('Aucune campagne active.');
+        }
+
+        $reservation = $this->reservationRepository->findByAgentAndCampagne($agent, $campagne);
+
+        if (!$reservation) {
+            throw $this->createNotFoundException('Reservation non trouvee.');
+        }
+
+        $icsContent = $this->icsGenerator->generate($reservation);
+
+        $response = new Response($icsContent);
+        $response->headers->set('Content-Type', 'text/calendar; charset=utf-8');
+        $disposition = $response->headers->makeDisposition(
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+            sprintf('rdv-%s-%s.ics', $campagne->getNom(), $reservation->getCreneau()->getDate()->format('Y-m-d'))
+        );
+        $response->headers->set('Content-Disposition', $disposition);
+
+        return $response;
     }
 
     /**

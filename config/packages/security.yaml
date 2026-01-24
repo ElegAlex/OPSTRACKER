@@ -27,11 +27,12 @@ security:
                 path: app_logout
                 target: app_login
 
-    # Hiérarchie des rôles (RG-003)
+    # Hiérarchie des rôles (RG-003, RG-114)
     role_hierarchy:
         ROLE_GESTIONNAIRE: ROLE_USER
         ROLE_TECHNICIEN: ROLE_USER
-        ROLE_ADMIN: [ROLE_GESTIONNAIRE, ROLE_TECHNICIEN]
+        ROLE_COORDINATEUR: ROLE_USER
+        ROLE_ADMIN: [ROLE_GESTIONNAIRE, ROLE_TECHNICIEN, ROLE_COORDINATEUR]
 
     # Access control
     access_control:

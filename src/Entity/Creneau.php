@@ -235,15 +235,17 @@ class Creneau
 
     /**
      * Verifie si le creneau est verrouille (manuellement ou par date).
-     * RG-123 : Verrouillage J-X (defaut: 2 jours avant)
+     * RG-123 : Verrouillage J-X configurable par campagne
      */
-    public function isVerrouillePourDate(int $joursAvant = 2): bool
+    public function isVerrouillePourDate(?int $joursAvant = null): bool
     {
         if ($this->verrouille) {
             return true;
         }
 
-        $dateLimite = (new \DateTime())->modify("+{$joursAvant} days");
+        // Utiliser la config de la campagne si disponible
+        $jours = $joursAvant ?? $this->campagne?->getJoursVerrouillage() ?? 2;
+        $dateLimite = (new \DateTime())->modify("+{$jours} days");
 
         return $this->date <= $dateLimite;
     }

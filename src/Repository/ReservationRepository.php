@@ -194,4 +194,38 @@ class ReservationRepository extends ServiceEntityRepository
 
         return $counts;
     }
+
+    /**
+     * RG-127 : Trouve les agents positionnes par date pour un manager
+     * Retourne un tableau [date => [agents]]
+     *
+     * @return array<string, Agent[]>
+     */
+    public function findAgentsByDateForManager(Agent $manager, Campagne $campagne): array
+    {
+        $results = $this->createQueryBuilder('r')
+            ->innerJoin('r.agent', 'a')
+            ->innerJoin('r.creneau', 'c')
+            ->andWhere('a.manager = :manager')
+            ->andWhere('r.campagne = :campagne')
+            ->andWhere('r.statut = :statut')
+            ->setParameter('manager', $manager)
+            ->setParameter('campagne', $campagne)
+            ->setParameter('statut', 'confirmee')
+            ->orderBy('c.date', 'ASC')
+            ->addOrderBy('c.heureDebut', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $agentsParDate = [];
+        foreach ($results as $reservation) {
+            $dateKey = $reservation->getCreneau()->getDate()->format('Y-m-d');
+            if (!isset($agentsParDate[$dateKey])) {
+                $agentsParDate[$dateKey] = [];
+            }
+            $agentsParDate[$dateKey][] = $reservation->getAgent();
+        }
+
+        return $agentsParDate;
+    }
 }

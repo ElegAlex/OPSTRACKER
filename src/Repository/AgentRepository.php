@@ -186,4 +186,22 @@ class AgentRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * T-2004 / US-1011 : Trouve un agent par email ou matricule
+     * RG-128 : Auth carte agent preferee, fallback AD/email
+     */
+    public function findByEmailOrMatricule(string $identifier): ?Agent
+    {
+        $identifier = trim($identifier);
+
+        // Essayer par email d'abord
+        $agent = $this->findOneByEmail($identifier);
+        if ($agent) {
+            return $agent;
+        }
+
+        // Sinon essayer par matricule
+        return $this->findOneByMatricule($identifier);
+    }
 }

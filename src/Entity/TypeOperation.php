@@ -93,6 +93,12 @@ class TypeOperation
     #[ORM\Column(type: 'boolean')]
     private bool $actif = true;
 
+    /**
+     * RG-132 : Duree estimee en minutes pour ce type d'operation (abaques)
+     */
+    #[ORM\Column(nullable: true)]
+    private ?int $dureeEstimeeMinutes = null;
+
     /** @var Collection<int, Campagne> */
     #[ORM\OneToMany(targetEntity: Campagne::class, mappedBy: 'typeOperation')]
     private Collection $campagnes;
@@ -196,6 +202,21 @@ class TypeOperation
     public function setActif(bool $actif): static
     {
         $this->actif = $actif;
+
+        return $this;
+    }
+
+    /**
+     * RG-132 : Duree estimee en minutes
+     */
+    public function getDureeEstimeeMinutes(): ?int
+    {
+        return $this->dureeEstimeeMinutes;
+    }
+
+    public function setDureeEstimeeMinutes(?int $dureeEstimeeMinutes): static
+    {
+        $this->dureeEstimeeMinutes = $dureeEstimeeMinutes;
 
         return $this;
     }

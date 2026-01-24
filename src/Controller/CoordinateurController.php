@@ -4,13 +4,12 @@ namespace App\Controller;
 
 use App\Entity\Agent;
 use App\Entity\Campagne;
-use App\Entity\Creneau;
 use App\Entity\Reservation;
 use App\Repository\AgentRepository;
+use App\Repository\CoordinateurPerimetreRepository;
 use App\Repository\CreneauRepository;
 use App\Repository\ReservationRepository;
 use App\Service\ReservationService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,52 +17,57 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * Controller pour l'interface manager (positionnement agents).
+ * Controller pour l'interface coordinateur (positionnement agents delegues).
  *
  * User Stories :
- * - US-1005 : Voir la liste de mes agents (T-1804)
- * - US-1006 : Positionner un agent (T-1805)
- * - US-1007 : Modifier/annuler le creneau d'un agent (T-1806)
+ * - US-1010 : Interface coordinateur (T-2003)
  *
  * Regles metier :
+ * - RG-114 : Coordinateur peut positionner des agents sans lien hierarchique
  * - RG-121 : Un agent = un seul creneau par campagne
  * - RG-123 : Verrouillage J-X
- * - RG-124 : Manager ne voit que les agents de son service
  * - RG-125 : Tracabilite : enregistrer qui a positionne
- * - RG-126 : Notification agent si positionne par tiers
  */
-#[Route('/manager/campagne/{campagne}')]
-#[IsGranted('ROLE_GESTIONNAIRE')]
-class ManagerBookingController extends AbstractController
+#[Route('/coordinateur/campagne/{campagne}')]
+#[IsGranted('ROLE_COORDINATEUR')]
+class CoordinateurController extends AbstractController
 {
     public function __construct(
         private readonly AgentRepository $agentRepository,
+        private readonly CoordinateurPerimetreRepository $perimetreRepository,
         private readonly CreneauRepository $creneauRepository,
         private readonly ReservationRepository $reservationRepository,
         private readonly ReservationService $reservationService,
-        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
     /**
-     * T-1804 / US-1005 : Liste des agents du manager avec leur statut de reservation.
-     * RG-124 : Filtrer par service du manager.
+     * T-2003 / US-1010 : Liste des agents dans le perimetre du coordinateur.
+     * RG-114 : Filtrer par services delegues.
      */
-    #[Route('/agents', name: 'app_manager_agents', methods: ['GET'])]
+    #[Route('/agents', name: 'app_coord_agents', methods: ['GET'])]
     public function agents(Campagne $campagne): Response
     {
-        $manager = $this->getManagerAgent();
+        $user = $this->getUser();
+        $services = $this->perimetreRepository->findServicesForCoordinateur($user);
 
-        if (!$manager) {
-            $this->addFlash('danger', 'Vous n\'etes pas associe a un profil agent-manager.');
+        if (empty($services)) {
+            $this->addFlash('warning', 'Aucun service n\'est delegue a votre compte coordinateur.');
 
             return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
-        // RG-124 : Recuperer les agents du manager
-        $agents = $this->agentRepository->findByManager($manager);
+        // Recuperer les agents des services delegues
+        $agents = [];
+        foreach ($services as $service) {
+            $agentsService = $this->agentRepository->findByService($service);
+            $agents = array_merge($agents, $agentsService);
+        }
 
-        // Recuperer les reservations existantes pour cette campagne
+        // Trier par nom
+        usort($agents, fn (Agent $a, Agent $b) => $a->getNom() <=> $b->getNom());
+
+        // Recuperer les reservations existantes
         $reservationsParAgent = [];
         foreach ($agents as $agent) {
             $reservation = $this->reservationRepository->findByAgentAndCampagne($agent, $campagne);
@@ -74,10 +78,10 @@ class ManagerBookingController extends AbstractController
         $totalAgents = count($agents);
         $agentsPositionnes = count(array_filter($reservationsParAgent, fn ($r) => $r !== null));
 
-        return $this->render('manager/agents.html.twig', [
+        return $this->render('coordinateur/agents.html.twig', [
             'campagne' => $campagne,
-            'manager' => $manager,
             'agents' => $agents,
+            'services' => $services,
             'reservations' => $reservationsParAgent,
             'total_agents' => $totalAgents,
             'agents_positionnes' => $agentsPositionnes,
@@ -85,21 +89,17 @@ class ManagerBookingController extends AbstractController
     }
 
     /**
-     * T-1805 / US-1006 : Positionner un agent sur un creneau.
-     * RG-121, RG-125, RG-126 : Unicite, tracabilite, notification.
+     * T-2003 / US-1010 : Positionner un agent du perimetre delegue.
+     * RG-114, RG-121, RG-125 : Delegation, unicite, tracabilite.
      */
-    #[Route('/positionner/{agent}', name: 'app_manager_position', methods: ['GET', 'POST'])]
+    #[Route('/positionner/{agent}', name: 'app_coord_position', methods: ['GET', 'POST'])]
     public function position(Campagne $campagne, Agent $agent, Request $request): Response
     {
-        $manager = $this->getManagerAgent();
+        $user = $this->getUser();
 
-        if (!$manager) {
-            throw $this->createAccessDeniedException('Vous n\'etes pas associe a un profil agent-manager.');
-        }
-
-        // RG-124 : Verifier que l'agent appartient au manager
-        if ($agent->getManager()?->getId() !== $manager->getId()) {
-            throw $this->createAccessDeniedException('Cet agent n\'est pas dans votre equipe.');
+        // RG-114 : Verifier que l'agent est dans le perimetre du coordinateur
+        if (!$this->perimetreRepository->hasAccessToServiceAndSite($user, $agent->getService(), $agent->getSite())) {
+            throw $this->createAccessDeniedException('Cet agent n\'est pas dans votre perimetre.');
         }
 
         // RG-121 : Verifier qu'il n'a pas deja une reservation
@@ -110,15 +110,15 @@ class ManagerBookingController extends AbstractController
                 $agent->getNomComplet()
             ));
 
-            return $this->redirectToRoute('app_manager_agents', ['campagne' => $campagne->getId()]);
+            return $this->redirectToRoute('app_coord_agents', ['campagne' => $campagne->getId()]);
         }
 
         // POST : Traiter le positionnement
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('manager_position_' . $agent->getId(), $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('coord_position_' . $agent->getId(), $request->request->get('_token'))) {
                 $this->addFlash('danger', 'Token CSRF invalide.');
 
-                return $this->redirectToRoute('app_manager_position', [
+                return $this->redirectToRoute('app_coord_position', [
                     'campagne' => $campagne->getId(),
                     'agent' => $agent->getId(),
                 ]);
@@ -128,7 +128,7 @@ class ManagerBookingController extends AbstractController
             if (!$creneauId) {
                 $this->addFlash('danger', 'Veuillez selectionner un creneau.');
 
-                return $this->redirectToRoute('app_manager_position', [
+                return $this->redirectToRoute('app_coord_position', [
                     'campagne' => $campagne->getId(),
                     'agent' => $agent->getId(),
                 ]);
@@ -138,19 +138,19 @@ class ManagerBookingController extends AbstractController
             if (!$creneau || $creneau->getCampagne()->getId() !== $campagne->getId()) {
                 $this->addFlash('danger', 'Creneau invalide.');
 
-                return $this->redirectToRoute('app_manager_position', [
+                return $this->redirectToRoute('app_coord_position', [
                     'campagne' => $campagne->getId(),
                     'agent' => $agent->getId(),
                 ]);
             }
 
             try {
-                // RG-125, RG-126 : Positionnement par manager avec tracabilite
+                // RG-125 : Positionnement par coordinateur avec tracabilite
                 $reservation = $this->reservationService->reserver(
                     $agent,
                     $creneau,
-                    Reservation::TYPE_MANAGER,
-                    $this->getUser()
+                    Reservation::TYPE_COORDINATEUR,
+                    $user
                 );
 
                 $this->addFlash('success', sprintf(
@@ -161,11 +161,11 @@ class ManagerBookingController extends AbstractController
                     $creneau->getHeureFin()->format('H:i')
                 ));
 
-                return $this->redirectToRoute('app_manager_agents', ['campagne' => $campagne->getId()]);
+                return $this->redirectToRoute('app_coord_agents', ['campagne' => $campagne->getId()]);
             } catch (\LogicException $e) {
                 $this->addFlash('danger', $e->getMessage());
 
-                return $this->redirectToRoute('app_manager_position', [
+                return $this->redirectToRoute('app_coord_position', [
                     'campagne' => $campagne->getId(),
                     'agent' => $agent->getId(),
                 ]);
@@ -193,7 +193,7 @@ class ManagerBookingController extends AbstractController
         }
         ksort($creneauxParDate);
 
-        return $this->render('manager/position.html.twig', [
+        return $this->render('coordinateur/position.html.twig', [
             'campagne' => $campagne,
             'agent' => $agent,
             'creneaux_par_date' => $creneauxParDate,
@@ -201,17 +201,13 @@ class ManagerBookingController extends AbstractController
     }
 
     /**
-     * T-1806 / US-1007 : Modifier la reservation d'un agent.
-     * RG-123, RG-126 : Verrouillage et notification.
+     * Modifier la reservation d'un agent du perimetre.
+     * RG-114, RG-123 : Delegation et verrouillage.
      */
-    #[Route('/modifier/{reservation}', name: 'app_manager_modify', methods: ['GET', 'POST'])]
+    #[Route('/modifier/{reservation}', name: 'app_coord_modify', methods: ['GET', 'POST'])]
     public function modify(Campagne $campagne, Reservation $reservation, Request $request): Response
     {
-        $manager = $this->getManagerAgent();
-
-        if (!$manager) {
-            throw $this->createAccessDeniedException('Vous n\'etes pas associe a un profil agent-manager.');
-        }
+        $user = $this->getUser();
 
         // Verifier que la reservation concerne la bonne campagne
         if ($reservation->getCampagne()->getId() !== $campagne->getId()) {
@@ -220,9 +216,9 @@ class ManagerBookingController extends AbstractController
 
         $agent = $reservation->getAgent();
 
-        // RG-124 : Verifier que l'agent appartient au manager
-        if ($agent->getManager()?->getId() !== $manager->getId()) {
-            throw $this->createAccessDeniedException('Cet agent n\'est pas dans votre equipe.');
+        // RG-114 : Verifier le perimetre
+        if (!$this->perimetreRepository->hasAccessToServiceAndSite($user, $agent->getService(), $agent->getSite())) {
+            throw $this->createAccessDeniedException('Cet agent n\'est pas dans votre perimetre.');
         }
 
         // RG-123 : Verifier le verrouillage
@@ -230,15 +226,15 @@ class ManagerBookingController extends AbstractController
         if ($creneauActuel->isVerrouillePourDate()) {
             $this->addFlash('danger', 'Ce creneau est verrouille et ne peut plus etre modifie.');
 
-            return $this->redirectToRoute('app_manager_agents', ['campagne' => $campagne->getId()]);
+            return $this->redirectToRoute('app_coord_agents', ['campagne' => $campagne->getId()]);
         }
 
         // POST : Traiter la modification
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('manager_modify_' . $reservation->getId(), $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('coord_modify_' . $reservation->getId(), $request->request->get('_token'))) {
                 $this->addFlash('danger', 'Token CSRF invalide.');
 
-                return $this->redirectToRoute('app_manager_modify', [
+                return $this->redirectToRoute('app_coord_modify', [
                     'campagne' => $campagne->getId(),
                     'reservation' => $reservation->getId(),
                 ]);
@@ -248,7 +244,7 @@ class ManagerBookingController extends AbstractController
             if (!$nouveauCreneauId) {
                 $this->addFlash('danger', 'Veuillez selectionner un nouveau creneau.');
 
-                return $this->redirectToRoute('app_manager_modify', [
+                return $this->redirectToRoute('app_coord_modify', [
                     'campagne' => $campagne->getId(),
                     'reservation' => $reservation->getId(),
                 ]);
@@ -258,14 +254,13 @@ class ManagerBookingController extends AbstractController
             if (!$nouveauCreneau || $nouveauCreneau->getCampagne()->getId() !== $campagne->getId()) {
                 $this->addFlash('danger', 'Creneau invalide.');
 
-                return $this->redirectToRoute('app_manager_modify', [
+                return $this->redirectToRoute('app_coord_modify', [
                     'campagne' => $campagne->getId(),
                     'reservation' => $reservation->getId(),
                 ]);
             }
 
             try {
-                // RG-126 : La modification declenche une notification
                 $this->reservationService->modifier($reservation, $nouveauCreneau);
 
                 $this->addFlash('success', sprintf(
@@ -273,11 +268,11 @@ class ManagerBookingController extends AbstractController
                     $agent->getNomComplet()
                 ));
 
-                return $this->redirectToRoute('app_manager_agents', ['campagne' => $campagne->getId()]);
+                return $this->redirectToRoute('app_coord_agents', ['campagne' => $campagne->getId()]);
             } catch (\LogicException $e) {
                 $this->addFlash('danger', $e->getMessage());
 
-                return $this->redirectToRoute('app_manager_modify', [
+                return $this->redirectToRoute('app_coord_modify', [
                     'campagne' => $campagne->getId(),
                     'reservation' => $reservation->getId(),
                 ]);
@@ -304,7 +299,7 @@ class ManagerBookingController extends AbstractController
         }
         ksort($creneauxParDate);
 
-        return $this->render('manager/modify.html.twig', [
+        return $this->render('coordinateur/modify.html.twig', [
             'campagne' => $campagne,
             'agent' => $agent,
             'reservation' => $reservation,
@@ -313,44 +308,37 @@ class ManagerBookingController extends AbstractController
     }
 
     /**
-     * T-1806 / US-1007 : Annuler la reservation d'un agent.
-     * RG-123, RG-126 : Verrouillage et notification.
+     * Annuler la reservation d'un agent du perimetre.
      */
-    #[Route('/annuler/{reservation}', name: 'app_manager_cancel', methods: ['POST'])]
+    #[Route('/annuler/{reservation}', name: 'app_coord_cancel', methods: ['POST'])]
     public function cancel(Campagne $campagne, Reservation $reservation, Request $request): Response
     {
-        $manager = $this->getManagerAgent();
+        $user = $this->getUser();
 
-        if (!$manager) {
-            throw $this->createAccessDeniedException('Vous n\'etes pas associe a un profil agent-manager.');
-        }
-
-        // Verifier que la reservation concerne la bonne campagne
         if ($reservation->getCampagne()->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Reservation non trouvee dans cette campagne.');
         }
 
         $agent = $reservation->getAgent();
 
-        // RG-124 : Verifier que l'agent appartient au manager
-        if ($agent->getManager()?->getId() !== $manager->getId()) {
-            throw $this->createAccessDeniedException('Cet agent n\'est pas dans votre equipe.');
+        // RG-114 : Verifier le perimetre
+        if (!$this->perimetreRepository->hasAccessToServiceAndSite($user, $agent->getService(), $agent->getSite())) {
+            throw $this->createAccessDeniedException('Cet agent n\'est pas dans votre perimetre.');
         }
 
-        if (!$this->isCsrfTokenValid('manager_cancel_' . $reservation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('coord_cancel_' . $reservation->getId(), $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
 
-            return $this->redirectToRoute('app_manager_agents', ['campagne' => $campagne->getId()]);
+            return $this->redirectToRoute('app_coord_agents', ['campagne' => $campagne->getId()]);
         }
 
         // RG-123 : Verifier le verrouillage
         if ($reservation->getCreneau()->isVerrouillePourDate()) {
             $this->addFlash('danger', 'Ce creneau est verrouille et ne peut plus etre annule.');
 
-            return $this->redirectToRoute('app_manager_agents', ['campagne' => $campagne->getId()]);
+            return $this->redirectToRoute('app_coord_agents', ['campagne' => $campagne->getId()]);
         }
 
-        // RG-126 : Annuler declenche une notification
         $this->reservationService->annuler($reservation);
 
         $this->addFlash('success', sprintf(
@@ -358,75 +346,6 @@ class ManagerBookingController extends AbstractController
             $agent->getNomComplet()
         ));
 
-        return $this->redirectToRoute('app_manager_agents', ['campagne' => $campagne->getId()]);
-    }
-
-    /**
-     * T-2002 / US-1008 : Vue planning manager.
-     * RG-127 : Alerte si >50% de l'equipe positionnee le meme jour.
-     */
-    #[Route('/planning', name: 'app_manager_planning', methods: ['GET'])]
-    public function planning(Campagne $campagne): Response
-    {
-        $manager = $this->getManagerAgent();
-
-        if (!$manager) {
-            $this->addFlash('danger', 'Vous n\'etes pas associe a un profil agent-manager.');
-
-            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
-        }
-
-        // Recuperer le total des agents de l'equipe
-        $agents = $this->agentRepository->findByManager($manager);
-        $totalAgents = count($agents);
-
-        // RG-127 : Recuperer les agents positionnes par date
-        $agentsParDate = $this->reservationRepository->findAgentsByDateForManager($manager, $campagne);
-
-        // Calculer les taux et detecter les alertes
-        $planningData = [];
-        foreach ($agentsParDate as $dateKey => $agentsJour) {
-            $nbAgents = count($agentsJour);
-            $taux = $totalAgents > 0 ? round(($nbAgents / $totalAgents) * 100) : 0;
-
-            $planningData[$dateKey] = [
-                'date' => new \DateTime($dateKey),
-                'agents' => $agentsJour,
-                'count' => $nbAgents,
-                'taux' => $taux,
-                'alerte' => $taux > 50, // RG-127
-            ];
-        }
-
-        // Trier par date
-        ksort($planningData);
-
-        // Statistiques globales
-        $totalPositionnes = count(array_unique(array_merge(...array_values($agentsParDate) ?: [[]])));
-        $joursAvecAlerte = count(array_filter($planningData, fn ($d) => $d['alerte']));
-
-        return $this->render('manager/planning.html.twig', [
-            'campagne' => $campagne,
-            'manager' => $manager,
-            'total_agents' => $totalAgents,
-            'total_positionnes' => $totalPositionnes,
-            'planning' => $planningData,
-            'jours_avec_alerte' => $joursAvecAlerte,
-        ]);
-    }
-
-    /**
-     * Recupere l'agent associe au manager connecte.
-     * Le manager est un utilisateur IT qui est aussi un Agent.
-     */
-    private function getManagerAgent(): ?Agent
-    {
-        $user = $this->getUser();
-        if (!$user) {
-            return null;
-        }
-
-        // On cherche l'agent par email de l'utilisateur connecte
-        return $this->agentRepository->findOneByEmail($user->getEmail());
+        return $this->redirectToRoute('app_coord_agents', ['campagne' => $campagne->getId()]);
     }
 }

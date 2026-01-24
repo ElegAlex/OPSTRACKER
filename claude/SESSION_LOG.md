@@ -31,6 +31,84 @@
 
 ## Sessions
 
+### Session #21 — 2026-01-24
+
+**Duree** : ~45 min
+**Tache(s)** : T-2001 a T-2008 (Sprint 20 complet - Complements V1)
+**Statut** : ✅ Termine
+
+### Realise
+- **T-2001** : Page recapitulatif agent (US-1004)
+  - Route GET /reservation/{token}/recapitulatif
+  - Template recap.html.twig avec details complets
+  - Route GET /reservation/{token}/ics pour telechargement ICS
+  - Boutons Modifier/Annuler/Ajouter a mon agenda
+
+- **T-2002** : Vue planning manager (US-1008)
+  - Route GET /manager/campagne/{campagne}/planning
+  - RG-127 : Alerte visuelle si >50% equipe le meme jour
+  - Calcul taux concentration par jour
+  - Template planning.html.twig avec cards par date
+
+- **T-2003** : Interface coordinateur (US-1010)
+  - ROLE_COORDINATEUR ajoute a security.yaml
+  - Entite CoordinateurPerimetre (delegation services)
+  - CoordinateurPerimetreRepository
+  - CoordinateurController (4 routes: agents, position, modify, cancel)
+  - Templates coordinateur/ (agents, position, modify)
+  - RG-114 : Positionner agents sans lien hierarchique
+
+- **T-2004** : Auth par matricule (US-1011)
+  - Methode findByEmailOrMatricule() dans AgentRepository
+  - RG-128 : Preparation auth AD en V2
+
+- **T-2005** : Capacite IT configurable (US-1102)
+  - Champ capaciteItJour dans Campagne
+  - Champ dureeInterventionMinutes dans Campagne
+  - Methode calculerCreneauxParJour()
+  - RG-131 : Calcul creneaux = (heures × 60 / duree) × capacite
+
+- **T-2006** : Abaques duree intervention (US-1103)
+  - Champ dureeEstimeeMinutes dans TypeOperation
+  - RG-132 : Pre-remplissage duree depuis TypeOperation
+
+- **T-2007** : Config verrouillage par campagne (US-1107)
+  - Champ joursVerrouillage dans Campagne (defaut 2)
+  - isVerrouillePourDate() utilise config campagne
+  - RG-123 : Verrouillage J-X configurable
+
+- **T-2008** : Filtrage creneaux par segment (US-1108)
+  - Methode findByCampagneAndSite() dans SegmentRepository
+  - BookingController utilise segment agent
+  - RG-135 : Creneaux filtres par site agent
+
+### Fichiers crees
+- `src/Entity/CoordinateurPerimetre.php`
+- `src/Repository/CoordinateurPerimetreRepository.php`
+- `src/Controller/CoordinateurController.php`
+- `templates/coordinateur/agents.html.twig`
+- `templates/coordinateur/position.html.twig`
+- `templates/coordinateur/modify.html.twig`
+- `templates/booking/recap.html.twig`
+- `templates/manager/planning.html.twig`
+- `migrations/Version20260124200001.php`
+
+### Modifications
+- `src/Entity/Campagne.php` : +3 champs (capaciteItJour, dureeInterventionMinutes, joursVerrouillage)
+- `src/Entity/TypeOperation.php` : +1 champ (dureeEstimeeMinutes)
+- `src/Entity/Creneau.php` : isVerrouillePourDate() amelioree
+- `src/Controller/BookingController.php` : +2 routes (recap, ics) + filtrage segment
+- `src/Controller/ManagerBookingController.php` : +1 route (planning)
+- `src/Repository/AgentRepository.php` : +findByEmailOrMatricule()
+- `src/Repository/ReservationRepository.php` : +findAgentsByDateForManager()
+- `src/Repository/SegmentRepository.php` : +findByCampagneAndSite()
+- `config/packages/security.yaml` : +ROLE_COORDINATEUR
+
+### Commits
+- A venir : `[FEAT] Sprint 20 - Complements V1 (US-1004, US-1008, US-1010, US-1102, US-1103, US-1107, US-1108)`
+
+---
+
 ### Session #18 — 2026-01-24
 
 **Duree** : ~30 min

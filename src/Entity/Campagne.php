@@ -149,6 +149,24 @@ class Campagne
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $shareTokenCreatedAt = null;
 
+    /**
+     * RG-131 : Capacite IT = nombre de ressources IT par jour
+     */
+    #[ORM\Column(nullable: true)]
+    private ?int $capaciteItJour = null;
+
+    /**
+     * RG-131 : Duree par intervention en minutes (defaut 30)
+     */
+    #[ORM\Column(nullable: true)]
+    private ?int $dureeInterventionMinutes = null;
+
+    /**
+     * RG-123 : Nombre de jours avant verrouillage automatique (defaut 2)
+     */
+    #[ORM\Column]
+    private int $joursVerrouillage = 2;
+
     public function __construct()
     {
         $this->segments = new ArrayCollection();
@@ -576,6 +594,64 @@ class Campagne
     public function hasShareLink(): bool
     {
         return $this->shareToken !== null;
+    }
+
+    /**
+     * RG-131 : Capacite IT par jour
+     */
+    public function getCapaciteItJour(): ?int
+    {
+        return $this->capaciteItJour;
+    }
+
+    public function setCapaciteItJour(?int $capaciteItJour): static
+    {
+        $this->capaciteItJour = $capaciteItJour;
+
+        return $this;
+    }
+
+    /**
+     * RG-131 : Duree intervention en minutes
+     */
+    public function getDureeInterventionMinutes(): ?int
+    {
+        return $this->dureeInterventionMinutes;
+    }
+
+    public function setDureeInterventionMinutes(?int $dureeInterventionMinutes): static
+    {
+        $this->dureeInterventionMinutes = $dureeInterventionMinutes;
+
+        return $this;
+    }
+
+    /**
+     * RG-131 : Calcule le nombre de creneaux par jour
+     * Creneaux = (heures dispo × 60 / duree) × capacite IT
+     */
+    public function calculerCreneauxParJour(int $heuresDisponibles = 8): ?int
+    {
+        if (!$this->capaciteItJour || !$this->dureeInterventionMinutes) {
+            return null;
+        }
+
+        return (int) (($heuresDisponibles * 60 / $this->dureeInterventionMinutes) * $this->capaciteItJour);
+    }
+
+    /**
+     * RG-123 : Jours de verrouillage avant le creneau
+     */
+    public function getJoursVerrouillage(): int
+    {
+        return $this->joursVerrouillage;
+    }
+
+    public function setJoursVerrouillage(int $joursVerrouillage): static
+    {
+        $this->joursVerrouillage = $joursVerrouillage;
+
+        return $this;
     }
 
     public function __toString(): string

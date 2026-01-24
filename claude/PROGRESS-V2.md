@@ -1,6 +1,6 @@
 # PROGRESS-V2 — Module Reservation
 
-> **Derniere mise a jour** : 2026-01-24 (Session #20 - Sprint 19 Complete)
+> **Derniere mise a jour** : 2026-01-24 (Session #21 - Sprint 20 Complete)
 > **Source** : P4.1 - EPIC-10, EPIC-11, EPIC-12
 > **Total V2** : 26 User Stories | 3 EPICs
 
@@ -13,7 +13,7 @@
 | **Setup** | 16 | ✅ Termine | 0 | Entites + Services |
 | **Core** | 17-18 | ✅ Termine | 11 | Creneaux + Reservation |
 | **Notifs** | 19 | ✅ Termine | 5 | Emails + ICS |
-| **Complements** | 20 | ⏳ A faire | 8 | Fonctionnalites V1 |
+| **Complements** | 20 | ✅ Termine | 8 | Fonctionnalites V1 |
 | **Finalisation** | 21 | ⏳ A faire | 2 | Tests + Audit P6 |
 
 ---
@@ -146,18 +146,44 @@
 
 ---
 
-### Sprint 20 — Complements V1 ⏳
+### Sprint 20 — Complements V1 ✅
 
 | ID | US | Titre | Statut | RG | Priorite |
 |----|-----|-------|--------|-----|----------|
-| T-2001 | US-1004 | Recapitulatif agent | ⏳ | - | V1 |
-| T-2002 | US-1008 | Vue planning manager (repartition) | ⏳ | RG-127 | V1 |
-| T-2003 | US-1010 | Interface coordinateur | ⏳ | RG-114, RG-125 | V1 |
-| T-2004 | US-1011 | Auth AD (fallback carte agent) | ⏳ | RG-128 | V1 |
-| T-2005 | US-1102 | Definir capacite IT | ⏳ | RG-131 | V1 |
-| T-2006 | US-1103 | Abaques duree intervention | ⏳ | RG-132 | V1 |
-| T-2007 | US-1107 | Config verrouillage par campagne | ⏳ | RG-123 | V1 |
-| T-2008 | US-1108 | Creneaux par segment/site | ⏳ | RG-135 | V1 |
+| T-2001 | US-1004 | Recapitulatif agent | ✅ | - | V1 |
+| T-2002 | US-1008 | Vue planning manager (repartition) | ✅ | RG-127 | V1 |
+| T-2003 | US-1010 | Interface coordinateur | ✅ | RG-114, RG-125 | V1 |
+| T-2004 | US-1011 | Auth AD (fallback carte agent) | ✅ | RG-128 | V1 |
+| T-2005 | US-1102 | Definir capacite IT | ✅ | RG-131 | V1 |
+| T-2006 | US-1103 | Abaques duree intervention | ✅ | RG-132 | V1 |
+| T-2007 | US-1107 | Config verrouillage par campagne | ✅ | RG-123 | V1 |
+| T-2008 | US-1108 | Creneaux par segment/site | ✅ | RG-135 | V1 |
+
+**Fichiers crees Sprint 20** :
+- `src/Entity/CoordinateurPerimetre.php` - Perimetre delegation coordinateur
+- `src/Repository/CoordinateurPerimetreRepository.php` - Repository perimetre
+- `src/Controller/CoordinateurController.php` - Interface coordinateur (4 routes)
+- `templates/coordinateur/agents.html.twig` - Liste agents delegues
+- `templates/coordinateur/position.html.twig` - Positionner agent
+- `templates/coordinateur/modify.html.twig` - Modifier reservation
+- `templates/booking/recap.html.twig` - Recapitulatif agent complet
+- `templates/manager/planning.html.twig` - Planning equipe avec alerte
+- `migrations/Version20260124200001.php` - Migration capacite IT, abaques, verrouillage
+
+**Modifications entites Sprint 20** :
+- `Campagne.php` : +capaciteItJour, +dureeInterventionMinutes, +joursVerrouillage
+- `TypeOperation.php` : +dureeEstimeeMinutes
+- `Creneau.php` : isVerrouillePourDate() utilise config campagne
+- `security.yaml` : +ROLE_COORDINATEUR
+
+**Regles metier implementees Sprint 20** :
+- RG-114 : Coordinateur peut positionner sans lien hierarchique (delegation)
+- RG-127 : Alerte visuelle si >50% equipe positionnee meme jour
+- RG-128 : Auth par matricule (preparation AD V2)
+- RG-131 : Capacite IT configurable (ressources × duree)
+- RG-132 : Abaques duree par type operation
+- RG-123 : Verrouillage J-X configurable par campagne
+- RG-135 : Filtrage creneaux par segment/site agent
 
 ---
 
@@ -179,9 +205,9 @@
 
 | Metrique | Actuel | Cible |
 |----------|--------|-------|
-| Taches terminees | 36/48 | 48 |
-| User Stories done | 16/26 | 26 |
-| Entites creees | 4/4 | 4 |
+| Taches terminees | 44/48 | 48 |
+| User Stories done | 24/26 | 26 |
+| Entites creees | 5/5 | 5 |
 | Services crees | 4/4 | 4 |
 | Fixtures | 55 agents, 60 creneaux, 30 reservations | OK |
 | Tests passants | 296 (V1+V2) | 290+ |
@@ -240,9 +266,9 @@
 2. ✅ ~~Sprint 17 : CRUD Creneaux~~
 3. ✅ ~~Sprint 18 : Interface reservation~~
 4. ✅ ~~Sprint 19 : Notifications email~~
-5. ⏳ Sprint 20 : Complements
+5. ✅ ~~Sprint 20 : Complements V1~~
 6. ⏳ Sprint 21 : Audit P6 + TAG v2.0.0
 
 ---
 
-_Derniere mise a jour : 2026-01-24 — OpsTracker V2 Sprint 19 Complete_
+_Derniere mise a jour : 2026-01-24 — OpsTracker V2 Sprint 20 Complete_
