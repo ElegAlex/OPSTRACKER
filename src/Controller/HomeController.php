@@ -17,7 +17,7 @@ class HomeController extends AbstractController
 
         // Technicien → Interface terrain
         if ($this->isGranted('ROLE_TECHNICIEN') && !$this->isGranted('ROLE_GESTIONNAIRE')) {
-            return $this->redirectToRoute('app_terrain_index');
+            return $this->redirectToRoute('terrain_index');
         }
 
         // Gestionnaire ou Admin → Portfolio campagnes

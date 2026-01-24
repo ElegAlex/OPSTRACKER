@@ -69,13 +69,16 @@
             {% endblock %}
 
             {% block header_right %}
-                {# User info #}
+                {# User info + Logout #}
                 {% if app.user %}
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-3">
                         <span class="text-sm text-muted hidden sm:block">{{ app.user.prenom }} {{ app.user.nom|slice(0, 1) }}.</span>
                         <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
                             {{ app.user.prenom|slice(0, 1)|upper }}{{ app.user.nom|slice(0, 1)|upper }}
                         </div>
+                        <a href="{{ path('app_logout') }}" class="w-10 h-10 flex items-center justify-center text-muted hover:text-danger transition-colors" title="Deconnexion">
+                            <i data-feather="log-out" class="w-5 h-5"></i>
+                        </a>
                     </div>
                 {% endif %}
             {% endblock %}
