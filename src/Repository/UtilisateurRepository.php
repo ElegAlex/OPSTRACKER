@@ -68,15 +68,11 @@ class UtilisateurRepository extends ServiceEntityRepository implements PasswordU
      */
     public function findTechniciensActifs(): array
     {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.actif = :actif')
-            ->andWhere('u.roles LIKE :role')
-            ->setParameter('actif', true)
-            ->setParameter('role', '%"' . Utilisateur::ROLE_TECHNICIEN . '"%')
-            ->orderBy('u.nom', 'ASC')
-            ->addOrderBy('u.prenom', 'ASC')
-            ->getQuery()
-            ->getResult();
+        $users = $this->findAllActifs();
+
+        return array_values(array_filter($users, fn(Utilisateur $u) =>
+            in_array(Utilisateur::ROLE_TECHNICIEN, $u->getRoles(), true)
+        ));
     }
 
     /**
@@ -86,15 +82,11 @@ class UtilisateurRepository extends ServiceEntityRepository implements PasswordU
      */
     public function findGestionnairesActifs(): array
     {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.actif = :actif')
-            ->andWhere('u.roles LIKE :role')
-            ->setParameter('actif', true)
-            ->setParameter('role', '%"' . Utilisateur::ROLE_GESTIONNAIRE . '"%')
-            ->orderBy('u.nom', 'ASC')
-            ->addOrderBy('u.prenom', 'ASC')
-            ->getQuery()
-            ->getResult();
+        $users = $this->findAllActifs();
+
+        return array_values(array_filter($users, fn(Utilisateur $u) =>
+            in_array(Utilisateur::ROLE_GESTIONNAIRE, $u->getRoles(), true)
+        ));
     }
 
     /**
@@ -104,15 +96,19 @@ class UtilisateurRepository extends ServiceEntityRepository implements PasswordU
      */
     public function countByRole(): array
     {
-        $counts = [];
+        $users = $this->findAll();
+        $counts = [
+            Utilisateur::ROLE_ADMIN => 0,
+            Utilisateur::ROLE_GESTIONNAIRE => 0,
+            Utilisateur::ROLE_TECHNICIEN => 0,
+        ];
 
-        foreach ([Utilisateur::ROLE_ADMIN, Utilisateur::ROLE_GESTIONNAIRE, Utilisateur::ROLE_TECHNICIEN] as $role) {
-            $counts[$role] = (int) $this->createQueryBuilder('u')
-                ->select('COUNT(u.id)')
-                ->andWhere('u.roles LIKE :role')
-                ->setParameter('role', '%"' . $role . '"%')
-                ->getQuery()
-                ->getSingleScalarResult();
+        foreach ($users as $user) {
+            foreach ($counts as $role => $count) {
+                if (in_array($role, $user->getRoles(), true)) {
+                    $counts[$role]++;
+                }
+            }
         }
 
         return $counts;

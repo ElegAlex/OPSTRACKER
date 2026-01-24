@@ -16,24 +16,30 @@ use Symfony\Component\Validator\Constraints\NotNull;
  */
 class TransfertProprietaireType extends AbstractType
 {
+    public function __construct(
+        private readonly UtilisateurRepository $utilisateurRepository,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $currentProprietaire = $options['current_proprietaire'];
+
+        // Récupérer gestionnaires et admins actifs, exclure le propriétaire actuel
+        $users = $this->utilisateurRepository->findAllActifs();
+        $choices = array_filter($users, function (Utilisateur $u) use ($currentProprietaire) {
+            if ($currentProprietaire && $u->getId() === $currentProprietaire->getId()) {
+                return false;
+            }
+            return in_array(Utilisateur::ROLE_GESTIONNAIRE, $u->getRoles(), true)
+                || in_array(Utilisateur::ROLE_ADMIN, $u->getRoles(), true);
+        });
 
         $builder
             ->add('nouveauProprietaire', EntityType::class, [
                 'class' => Utilisateur::class,
                 'choice_label' => fn(Utilisateur $u) => sprintf('%s %s (%s)', $u->getPrenom(), $u->getNom(), $u->getEmail()),
-                'query_builder' => fn(UtilisateurRepository $repo) => $repo->createQueryBuilder('u')
-                    ->andWhere('u.actif = :actif')
-                    ->andWhere('u.roles LIKE :roleGest OR u.roles LIKE :roleAdmin')
-                    ->andWhere('u.id != :currentId')
-                    ->setParameter('actif', true)
-                    ->setParameter('roleGest', '%"' . Utilisateur::ROLE_GESTIONNAIRE . '"%')
-                    ->setParameter('roleAdmin', '%"' . Utilisateur::ROLE_ADMIN . '"%')
-                    ->setParameter('currentId', $currentProprietaire?->getId() ?? 0)
-                    ->orderBy('u.nom', 'ASC')
-                    ->addOrderBy('u.prenom', 'ASC'),
+                'choices' => $choices,
                 'label' => 'Nouveau proprietaire',
                 'placeholder' => 'Selectionnez un gestionnaire...',
                 'attr' => [

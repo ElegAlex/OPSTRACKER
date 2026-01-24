@@ -6,6 +6,7 @@ use App\Entity\Campagne;
 use App\Entity\Operation;
 use App\Entity\Segment;
 use App\Entity\Utilisateur;
+use App\Repository\UtilisateurRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -22,6 +23,11 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  */
 class OperationType extends AbstractType
 {
+    public function __construct(
+        private readonly UtilisateurRepository $utilisateurRepository,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         /** @var Campagne|null $campagne */
@@ -85,14 +91,7 @@ class OperationType extends AbstractType
                 'label_attr' => [
                     'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
                 ],
-                'query_builder' => function ($repository) {
-                    return $repository->createQueryBuilder('u')
-                        ->where('u.actif = :actif')
-                        ->andWhere('u.roles LIKE :role')
-                        ->setParameter('actif', true)
-                        ->setParameter('role', '%ROLE_TECHNICIEN%')
-                        ->orderBy('u.nom', 'ASC');
-                },
+                'choices' => $this->utilisateurRepository->findTechniciensActifs(),
             ]);
 
         // Ajouter le champ segment si la campagne a des segments
