@@ -31,6 +31,60 @@
 
 ## Sessions
 
+### Session #18 — 2026-01-24
+
+**Duree** : ~30 min
+**Tache(s)** : T-1701 a T-1708 (Sprint 17 complet - CRUD Creneaux)
+**Statut** : ✅ Termine
+
+### Realise
+- **T-1701** : CreneauController : index
+  - Liste des creneaux groupes par date
+  - Widget taux de remplissage global (4 KPIs)
+  - Code couleur (vert <50%, orange 50-90%, rouge >90%)
+
+- **T-1702** : CreneauController : new (manuel)
+  - CreneauType.php avec champs date, heures, capacite, lieu, segment
+  - Template new.html.twig
+
+- **T-1703** : CreneauController : generate (auto)
+  - CreneauGenerationType.php avec periode, horaires, duree, capacite
+  - Skip weekends (samedi/dimanche)
+  - Skip pause dejeuner (12h-14h)
+  - Template generate.html.twig avec aide contextuelle
+
+- **T-1704** : CreneauController : edit
+  - RG-133 : Detection changements date/heure
+  - Warning si reservations existantes
+  - Notification automatique des agents
+
+- **T-1705** : CreneauController : delete
+  - RG-134 : Confirmation JS si reservations
+  - Annulation reservations + notification agents
+  - Token CSRF protection
+
+- **T-1706** : Widget taux de remplissage
+  - KPIs : total, taux %, places dispo, complets
+  - Barre de progression coloree
+
+- **T-1707** : CreneauService complet
+  - genererPlage() avec plages horaires configurables
+  - Methodes helper (hasReservations, countConfirmees)
+
+- **T-1708** : Tests CreneauService
+  - 18 tests unitaires
+  - Tests generation (weekends, pause dejeuner)
+  - Tests CRUD et verrouillage automatique
+
+### Integration
+- Lien Creneaux ajoute dans campagne/show.html.twig
+- 5 routes creees (/campagnes/{campagne}/creneaux/*)
+
+### Commits
+- A venir : `[FEAT] Sprint 17 - CRUD Creneaux (US-1101, US-1104, US-1105, US-1106)`
+
+---
+
 ### Session #15 — 2026-01-22
 
 **Duree** : ~45 min

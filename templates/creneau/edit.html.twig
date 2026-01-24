@@ -1,0 +1,142 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Modifier creneau - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block main %}
+{# HEADER #}
+<header class="bg-white px-12 py-8 border-b-4 border-ink">
+    <div class="flex justify-between items-start">
+        <div>
+            {# Breadcrumb #}
+            <div class="flex items-center gap-2 text-sm text-muted mb-3">
+                <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_creneau_index', {campagne: campagne.id}) }}" class="hover:text-ink">Creneaux</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <span class="text-ink font-medium">Modifier</span>
+            </div>
+
+            {# Title #}
+            <h1 class="text-3xl font-bold tracking-tight">Modifier le creneau</h1>
+            <p class="text-sm text-muted mt-2">{{ creneau.date|date('d/m/Y') }} de {{ creneau.heureDebut|date('H:i') }} a {{ creneau.heureFin|date('H:i') }}</p>
+        </div>
+
+        {# Actions #}
+        <a href="{{ path('app_creneau_index', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+            <i data-feather="x" class="w-4 h-4"></i>
+            Annuler
+        </a>
+    </div>
+</header>
+
+{# CONTENT #}
+<div class="flex-1 overflow-auto">
+    <div class="px-12 py-8">
+        <div class="max-w-2xl">
+
+            {# RG-133 : Warning si reservations existantes #}
+            {% if has_reservations %}
+            <div class="mb-6 p-4 border-2 border-warning bg-warning/10 flex items-start gap-3">
+                <i data-feather="alert-triangle" class="w-5 h-5 text-warning flex-shrink-0 mt-0.5"></i>
+                <div>
+                    <span class="text-sm font-bold text-warning">Attention : ce creneau a des reservations</span>
+                    <p class="text-sm text-muted mt-1">Si vous modifiez la date ou les horaires, les agents ayant reserve seront automatiquement notifies par email.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+
+            <div class="grid grid-cols-2 gap-6">
+                {# Date #}
+                <div class="col-span-2">
+                    {{ form_label(form.date) }}
+                    {{ form_widget(form.date) }}
+                    {{ form_errors(form.date) }}
+                </div>
+
+                {# Heure debut #}
+                <div>
+                    {{ form_label(form.heureDebut) }}
+                    {{ form_widget(form.heureDebut) }}
+                    {{ form_errors(form.heureDebut) }}
+                </div>
+
+                {# Heure fin #}
+                <div>
+                    {{ form_label(form.heureFin) }}
+                    {{ form_widget(form.heureFin) }}
+                    {{ form_errors(form.heureFin) }}
+                </div>
+
+                {# Capacite #}
+                <div>
+                    {{ form_label(form.capacite) }}
+                    {{ form_widget(form.capacite) }}
+                    {{ form_errors(form.capacite) }}
+                    <p class="text-xs text-muted mt-1">Nombre de personnes pouvant reserver ce creneau.</p>
+                </div>
+
+                {# Lieu #}
+                <div>
+                    {{ form_label(form.lieu) }}
+                    {{ form_widget(form.lieu) }}
+                    {{ form_errors(form.lieu) }}
+                </div>
+
+                {# Segment #}
+                <div class="col-span-2">
+                    {{ form_label(form.segment) }}
+                    {{ form_widget(form.segment) }}
+                    {{ form_errors(form.segment) }}
+                    <p class="text-xs text-muted mt-1">Si un segment est selectionne, seuls les agents de ce segment pourront reserver.</p>
+                </div>
+            </div>
+
+            {# Informations sur le creneau #}
+            <div class="bg-paper p-4 border border-ink/10 mt-6">
+                <h3 class="text-sm font-bold text-ink mb-3">Informations</h3>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-muted">Taux de remplissage :</span>
+                        <span class="font-medium text-{{ creneau.couleurRemplissage }}">{{ creneau.tauxRemplissage }}%</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">Places restantes :</span>
+                        <span class="font-medium">{{ creneau.placesRestantes }}/{{ creneau.capacite }}</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">Reservations :</span>
+                        <span class="font-medium">{{ creneau.reservations|length }}</span>
+                    </div>
+                    <div>
+                        <span class="text-muted">Statut :</span>
+                        {% if creneau.verrouille %}
+                        <span class="font-medium text-muted">Verrouille</span>
+                        {% elseif creneau.complet %}
+                        <span class="font-medium text-danger">Complet</span>
+                        {% else %}
+                        <span class="font-medium text-success">Disponible</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {# Actions #}
+            <div class="flex items-center gap-4 pt-6 border-t border-ink/10">
+                <button type="submit" class="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                    <i data-feather="check" class="w-4 h-4"></i>
+                    Enregistrer
+                </button>
+                <a href="{{ path('app_creneau_index', {campagne: campagne.id}) }}" class="px-6 py-3 text-sm font-medium text-muted hover:text-ink transition-colors">
+                    Annuler
+                </a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}

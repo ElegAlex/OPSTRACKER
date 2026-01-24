@@ -1,0 +1,166 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Generer des creneaux - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block main %}
+{# HEADER #}
+<header class="bg-white px-12 py-8 border-b-4 border-ink">
+    <div class="flex justify-between items-start">
+        <div>
+            {# Breadcrumb #}
+            <div class="flex items-center gap-2 text-sm text-muted mb-3">
+                <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_creneau_index', {campagne: campagne.id}) }}" class="hover:text-ink">Creneaux</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <span class="text-ink font-medium">Generer</span>
+            </div>
+
+            {# Title #}
+            <h1 class="text-3xl font-bold tracking-tight">Generation automatique</h1>
+            <p class="text-sm text-muted mt-2">Generez plusieurs creneaux en une seule operation.</p>
+        </div>
+
+        {# Actions #}
+        <a href="{{ path('app_creneau_index', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+            <i data-feather="x" class="w-4 h-4"></i>
+            Annuler
+        </a>
+    </div>
+</header>
+
+{# CONTENT #}
+<div class="flex-1 overflow-auto">
+    <div class="px-12 py-8">
+        <div class="grid grid-cols-3 gap-8">
+            {# Formulaire #}
+            <div class="col-span-2">
+                {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+
+                {# Periode #}
+                <div class="bg-white border-2 border-ink p-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i data-feather="calendar" class="w-5 h-5 text-primary"></i>
+                        Periode
+                    </h2>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            {{ form_label(form.date_debut) }}
+                            {{ form_widget(form.date_debut) }}
+                            {{ form_errors(form.date_debut) }}
+                        </div>
+                        <div>
+                            {{ form_label(form.date_fin) }}
+                            {{ form_widget(form.date_fin) }}
+                            {{ form_errors(form.date_fin) }}
+                        </div>
+                    </div>
+                </div>
+
+                {# Horaires #}
+                <div class="bg-white border-2 border-ink p-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i data-feather="clock" class="w-5 h-5 text-success"></i>
+                        Horaires journaliers
+                    </h2>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            {{ form_label(form.heure_debut) }}
+                            {{ form_widget(form.heure_debut) }}
+                            {{ form_errors(form.heure_debut) }}
+                        </div>
+                        <div>
+                            {{ form_label(form.heure_fin) }}
+                            {{ form_widget(form.heure_fin) }}
+                            {{ form_errors(form.heure_fin) }}
+                        </div>
+                    </div>
+                </div>
+
+                {# Configuration creneaux #}
+                <div class="bg-white border-2 border-ink p-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i data-feather="settings" class="w-5 h-5 text-warning"></i>
+                        Configuration des creneaux
+                    </h2>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            {{ form_label(form.duree_minutes) }}
+                            {{ form_widget(form.duree_minutes) }}
+                            {{ form_errors(form.duree_minutes) }}
+                        </div>
+                        <div>
+                            {{ form_label(form.capacite) }}
+                            {{ form_widget(form.capacite) }}
+                            {{ form_errors(form.capacite) }}
+                        </div>
+                        <div>
+                            {{ form_label(form.lieu) }}
+                            {{ form_widget(form.lieu) }}
+                            {{ form_errors(form.lieu) }}
+                        </div>
+                        <div>
+                            {{ form_label(form.segment) }}
+                            {{ form_widget(form.segment) }}
+                            {{ form_errors(form.segment) }}
+                        </div>
+                    </div>
+                </div>
+
+                {# Actions #}
+                <div class="flex items-center gap-4 pt-4">
+                    <button type="submit" class="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                        <i data-feather="zap" class="w-4 h-4"></i>
+                        Generer les creneaux
+                    </button>
+                    <a href="{{ path('app_creneau_index', {campagne: campagne.id}) }}" class="px-6 py-3 text-sm font-medium text-muted hover:text-ink transition-colors">
+                        Annuler
+                    </a>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+
+            {# Aide #}
+            <div class="col-span-1">
+                <div class="bg-primary/5 border-2 border-primary/20 p-6 sticky top-8">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i data-feather="info" class="w-5 h-5 text-primary"></i>
+                        Comment ca marche ?
+                    </h3>
+                    <div class="space-y-4 text-sm text-muted">
+                        <p>
+                            La generation automatique cree des creneaux selon vos parametres, en respectant ces regles :
+                        </p>
+                        <ul class="space-y-2">
+                            <li class="flex items-start gap-2">
+                                <i data-feather="check" class="w-4 h-4 text-success flex-shrink-0 mt-0.5"></i>
+                                <span>Les <strong>weekends</strong> (samedi et dimanche) sont automatiquement ignores</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i data-feather="check" class="w-4 h-4 text-success flex-shrink-0 mt-0.5"></i>
+                                <span>La <strong>pause dejeuner</strong> (12h-14h) est automatiquement evitee</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i data-feather="check" class="w-4 h-4 text-success flex-shrink-0 mt-0.5"></i>
+                                <span>Les creneaux sont crees par tranches de la duree choisie</span>
+                            </li>
+                        </ul>
+                        <div class="pt-4 border-t border-primary/20">
+                            <p class="font-semibold text-ink mb-2">Exemple :</p>
+                            <p>Avec une duree de 30 min, de 9h a 17h :</p>
+                            <ul class="mt-2 space-y-1 text-xs">
+                                <li>9h00-9h30, 9h30-10h00, ... 11h30-12h00</li>
+                                <li>14h00-14h30, 14h30-15h00, ... 16h30-17h00</li>
+                            </ul>
+                            <p class="mt-2">= 12 creneaux par jour</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

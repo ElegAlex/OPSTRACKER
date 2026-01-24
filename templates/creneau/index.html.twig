@@ -1,0 +1,227 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Creneaux - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block main %}
+{# HEADER #}
+<header class="bg-white px-12 py-8 border-b-4 border-ink">
+    <div class="flex justify-between items-start">
+        <div>
+            {# Breadcrumb #}
+            <div class="flex items-center gap-2 text-sm text-muted mb-3">
+                <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <span class="text-ink font-medium">Creneaux</span>
+            </div>
+
+            {# Title #}
+            <div class="flex items-center gap-4">
+                <h1 class="text-3xl font-bold tracking-tight">Creneaux</h1>
+            </div>
+
+            {# Meta #}
+            <div class="flex items-center gap-6 mt-3 text-sm text-muted">
+                <span class="flex items-center gap-2">
+                    <i data-feather="calendar" class="w-4 h-4"></i>
+                    {{ statistiques.total }} creneau{{ statistiques.total > 1 ? 'x' : '' }}
+                </span>
+                <span class="flex items-center gap-2">
+                    <i data-feather="users" class="w-4 h-4"></i>
+                    {{ statistiques.places_prises }}/{{ statistiques.places_totales }} places reservees
+                </span>
+            </div>
+        </div>
+
+        {# Actions #}
+        <div class="flex items-center gap-3">
+            <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                <i data-feather="arrow-left" class="w-4 h-4"></i>
+                Retour
+            </a>
+            <a href="{{ path('app_creneau_generate', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-ink border-2 border-ink hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="zap" class="w-4 h-4"></i>
+                Generer auto
+            </a>
+            <a href="{{ path('app_creneau_new', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                <i data-feather="plus" class="w-4 h-4"></i>
+                Nouveau creneau
+            </a>
+        </div>
+    </div>
+</header>
+
+{# CONTENT #}
+<div class="flex-1 overflow-auto">
+    <div class="px-12 py-8">
+
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 border-2 border-ink/20 bg-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'info' ? 'primary' : 'danger')) }}/10 flex items-center gap-3">
+                    <i data-feather="{{ label == 'success' ? 'check-circle' : (label == 'warning' ? 'alert-triangle' : (label == 'info' ? 'info' : 'alert-circle')) }}" class="w-5 h-5 text-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'info' ? 'primary' : 'danger')) }}"></i>
+                    <span class="text-sm font-medium">{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# T-1706 / US-1106 : Widget taux de remplissage #}
+        <div class="grid grid-cols-4 gap-6 mb-8">
+            <div class="bg-white border-2 border-ink p-6">
+                <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Total creneaux</p>
+                <p class="text-4xl font-bold num text-ink">{{ statistiques.total }}</p>
+            </div>
+            <div class="bg-white border-2 border-ink p-6">
+                <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Taux de remplissage</p>
+                {% set tauxGlobal = statistiques.places_totales > 0 ? (statistiques.places_prises / statistiques.places_totales * 100)|round : 0 %}
+                {% set couleurTaux = tauxGlobal >= 90 ? 'danger' : (tauxGlobal >= 50 ? 'warning' : 'success') %}
+                <div class="flex items-baseline gap-1">
+                    <span class="text-4xl font-bold num text-{{ couleurTaux }}">{{ tauxGlobal }}</span>
+                    <span class="text-xl font-bold text-muted">%</span>
+                </div>
+                <div class="h-2 bg-paper mt-2">
+                    <div class="h-full bg-{{ couleurTaux }}" style="width: {{ tauxGlobal }}%"></div>
+                </div>
+            </div>
+            <div class="bg-white border-2 border-ink p-6">
+                <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Places disponibles</p>
+                <p class="text-4xl font-bold num text-success">{{ statistiques.places_totales - statistiques.places_prises }}</p>
+            </div>
+            <div class="bg-white border-2 border-ink p-6">
+                <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Creneaux complets</p>
+                <p class="text-4xl font-bold num text-danger">{{ statistiques.complets }}</p>
+            </div>
+        </div>
+
+        {# Legende couleurs #}
+        <div class="flex items-center gap-6 mb-6 text-sm">
+            <span class="font-semibold">Legende remplissage :</span>
+            <span class="flex items-center gap-2"><span class="w-3 h-3 bg-success"></span> &lt;50%</span>
+            <span class="flex items-center gap-2"><span class="w-3 h-3 bg-warning"></span> 50-90%</span>
+            <span class="flex items-center gap-2"><span class="w-3 h-3 bg-danger"></span> &gt;90%</span>
+        </div>
+
+        {# Liste des creneaux groupes par date #}
+        {% if creneaux_par_date|length > 0 %}
+            {% for dateKey, dateGroup in creneaux_par_date %}
+            <div class="mb-8">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-3">
+                    <i data-feather="calendar" class="w-5 h-5 text-primary"></i>
+                    {{ dateGroup.date|date('l d F Y') }}
+                    <span class="text-sm font-normal text-muted">({{ dateGroup.creneaux|length }} creneau{{ dateGroup.creneaux|length > 1 ? 'x' : '' }})</span>
+                </h2>
+
+                <div class="bg-white border-2 border-ink overflow-hidden">
+                    <table class="w-full">
+                        <thead class="bg-paper border-b-2 border-ink">
+                            <tr>
+                                <th class="text-left px-6 py-4 text-xs font-bold text-ink uppercase tracking-wider">Horaire</th>
+                                <th class="text-left px-6 py-4 text-xs font-bold text-ink uppercase tracking-wider">Duree</th>
+                                <th class="text-left px-6 py-4 text-xs font-bold text-ink uppercase tracking-wider">Lieu</th>
+                                <th class="text-left px-6 py-4 text-xs font-bold text-ink uppercase tracking-wider">Segment</th>
+                                <th class="text-left px-6 py-4 text-xs font-bold text-ink uppercase tracking-wider">Remplissage</th>
+                                <th class="text-left px-6 py-4 text-xs font-bold text-ink uppercase tracking-wider">Statut</th>
+                                <th class="px-6 py-4"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-ink/10">
+                            {% for creneau in dateGroup.creneaux %}
+                            {% set taux = creneau.tauxRemplissage %}
+                            {% set couleur = creneau.couleurRemplissage %}
+                            <tr class="hover:bg-paper/50 transition-colors">
+                                <td class="px-6 py-4 text-sm font-medium text-ink">
+                                    {{ creneau.heureDebut|date('H:i') }} - {{ creneau.heureFin|date('H:i') }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-muted">
+                                    {{ creneau.dureeMinutes }} min
+                                </td>
+                                <td class="px-6 py-4 text-sm text-muted">
+                                    {{ creneau.lieu ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4 text-sm">
+                                    {% if creneau.segment %}
+                                    <span class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-{{ creneau.segment.couleur }}"></span>
+                                        {{ creneau.segment.nom }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-20 h-2 bg-paper">
+                                            <div class="h-full bg-{{ couleur }}" style="width: {{ taux }}%"></div>
+                                        </div>
+                                        <span class="text-sm font-medium num text-{{ couleur }}">{{ taux }}%</span>
+                                        <span class="text-xs text-muted">({{ creneau.capacite - creneau.placesRestantes }}/{{ creneau.capacite }})</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% if creneau.verrouille %}
+                                    <span class="px-2 py-1 bg-muted/10 text-muted text-xs font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+                                        <i data-feather="lock" class="w-3 h-3"></i>
+                                        Verrouille
+                                    </span>
+                                    {% elseif creneau.complet %}
+                                    <span class="px-2 py-1 bg-danger/10 text-danger text-xs font-bold uppercase tracking-wider">
+                                        Complet
+                                    </span>
+                                    {% else %}
+                                    <span class="px-2 py-1 bg-success/10 text-success text-xs font-bold uppercase tracking-wider">
+                                        Disponible
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="{{ path('app_creneau_edit', {campagne: campagne.id, id: creneau.id}) }}"
+                                           class="w-8 h-8 border border-ink/10 inline-flex items-center justify-center text-muted hover:bg-ink hover:text-white hover:border-ink transition-colors"
+                                           title="Modifier">
+                                            <i data-feather="edit-2" class="w-4 h-4"></i>
+                                        </a>
+                                        {% set hasReservations = creneau.reservations|length > 0 %}
+                                        <form action="{{ path('app_creneau_delete', {campagne: campagne.id, id: creneau.id}) }}"
+                                              method="post"
+                                              class="inline"
+                                              onsubmit="return confirm('{% if hasReservations %}Ce creneau a des reservations. Les agents seront notifies de l\'annulation.{% endif %} Supprimer ce creneau ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete_creneau_' ~ creneau.id) }}">
+                                            <button type="submit"
+                                                    class="w-8 h-8 border border-ink/10 inline-flex items-center justify-center text-muted hover:bg-danger hover:text-white hover:border-danger transition-colors"
+                                                    title="Supprimer">
+                                                <i data-feather="trash-2" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="bg-white border-2 border-ink/20 border-dashed p-12 text-center">
+            <div class="w-16 h-16 mx-auto bg-primary/10 flex items-center justify-center mb-4">
+                <i data-feather="calendar" class="w-8 h-8 text-primary"></i>
+            </div>
+            <h3 class="text-lg font-bold text-ink mb-2">Aucun creneau</h3>
+            <p class="text-sm text-muted mb-6">Creez des creneaux pour permettre aux agents de reserver leur intervention.</p>
+            <div class="flex items-center justify-center gap-4">
+                <a href="{{ path('app_creneau_generate', {campagne: campagne.id}) }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-ink border-2 border-ink hover:bg-ink hover:text-white transition-colors">
+                    <i data-feather="zap" class="w-4 h-4"></i>
+                    Generer automatiquement
+                </a>
+                <a href="{{ path('app_creneau_new', {campagne: campagne.id}) }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                    <i data-feather="plus" class="w-4 h-4"></i>
+                    Creer manuellement
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

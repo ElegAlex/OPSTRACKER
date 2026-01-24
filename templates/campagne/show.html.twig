@@ -136,6 +136,17 @@
                     </div>
                 </div>
             </a>
+            <a href="{{ path('app_creneau_index', {campagne: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-complete/10 flex items-center justify-center group-hover:bg-complete group-hover:text-white transition-colors">
+                        <i data-feather="calendar" class="w-6 h-6 text-complete group-hover:text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-ink">Creneaux</p>
+                        <p class="text-sm text-muted">Reservations</p>
+                    </div>
+                </div>
+            </a>
             <a href="{{ path('app_document_index', {campagneId: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-warning/10 flex items-center justify-center group-hover:bg-warning group-hover:text-white transition-colors">

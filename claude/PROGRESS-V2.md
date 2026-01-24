@@ -1,6 +1,6 @@
 # PROGRESS-V2 — Module Reservation
 
-> **Derniere mise a jour** : 2026-01-24 (Session #17 - Sprint 16 Complete)
+> **Derniere mise a jour** : 2026-01-24 (Session #18 - Sprint 17 Complete)
 > **Source** : P4.1 - EPIC-10, EPIC-11, EPIC-12
 > **Total V2** : 26 User Stories | 3 EPICs
 
@@ -42,16 +42,33 @@
 
 ---
 
-### Sprint 17 — Gestion Creneaux (EPIC-11 Core) ⏳
+### Sprint 17 — Gestion Creneaux (EPIC-11 Core) ✅
 
 | ID | US | Titre | Statut | RG | Priorite |
 |----|-----|-------|--------|-----|----------|
-| T-1701 | US-1101 | Creer des creneaux (manuel + auto) | ⏳ | RG-130 | MVP |
-| T-1702 | US-1104 | Modifier un creneau | ⏳ | RG-133 | MVP |
-| T-1703 | US-1105 | Supprimer un creneau | ⏳ | RG-134 | MVP |
-| T-1704 | US-1106 | Voir le taux de remplissage | ⏳ | - | MVP |
-| T-1705 | - | Templates creneaux (index, new, edit, generate) | ⏳ | - | - |
-| T-1706 | - | Tests CreneauService | ⏳ | - | - |
+| T-1701 | US-1101 | CreneauController : index | ✅ | - | MVP |
+| T-1702 | US-1101 | CreneauController : new (manuel) | ✅ | RG-130 | MVP |
+| T-1703 | US-1101 | CreneauController : generate (auto) | ✅ | RG-130 | MVP |
+| T-1704 | US-1104 | CreneauController : edit | ✅ | RG-133 | MVP |
+| T-1705 | US-1105 | CreneauController : delete | ✅ | RG-134 | MVP |
+| T-1706 | US-1106 | Widget taux de remplissage | ✅ | - | MVP |
+| T-1707 | - | CreneauService complet | ✅ | - | - |
+| T-1708 | - | Tests CreneauService | ✅ | - | - |
+
+**Fichiers crees Sprint 17** :
+- `src/Controller/CreneauController.php` - 5 routes CRUD
+- `src/Form/CreneauType.php` - Formulaire creation/edition
+- `src/Form/CreneauGenerationType.php` - Formulaire generation auto
+- `templates/creneau/index.html.twig` - Liste groupee par date + taux remplissage
+- `templates/creneau/new.html.twig` - Creation manuelle
+- `templates/creneau/edit.html.twig` - Modification (warning reservations)
+- `templates/creneau/generate.html.twig` - Generation automatique
+- `tests/Unit/Service/CreneauServiceTest.php` - 18 tests
+
+**Regles metier implementees Sprint 17** :
+- RG-130 : Creation manuelle + generation auto (skip weekends, pause dejeuner 12h-14h)
+- RG-133 : Modification creneau = notification agents si reservations (via controller)
+- RG-134 : Suppression creneau = annulation reservations + notification (via controller)
 
 ---
 
@@ -119,12 +136,12 @@
 
 | Metrique | Actuel | Cible |
 |----------|--------|-------|
-| Taches terminees | 11/48 | 48 |
-| User Stories done | 0/26 | 26 |
+| Taches terminees | 19/48 | 48 |
+| User Stories done | 4/26 | 26 |
 | Entites creees | 4/4 | 4 |
 | Services crees | 4/4 | 4 |
 | Fixtures | 55 agents, 60 creneaux, 30 reservations | OK |
-| Tests passants | 240 (V1) | 290+ |
+| Tests passants | 258 (V1+V2) | 290+ |
 | Score Audit P6 | - | >=95% |
 
 ---
@@ -177,7 +194,7 @@
 ## Prochaines Etapes
 
 1. ✅ ~~Sprint 16 : Setup entites + services~~
-2. ⏳ Sprint 17 : CRUD Creneaux
+2. ✅ ~~Sprint 17 : CRUD Creneaux~~
 3. ⏳ Sprint 18 : Interface reservation
 4. ⏳ Sprint 19 : Notifications email
 5. ⏳ Sprint 20 : Complements
@@ -185,4 +202,4 @@
 
 ---
 
-_Derniere mise a jour : 2026-01-24 — OpsTracker V2 Sprint 16 Complete_
+_Derniere mise a jour : 2026-01-24 — OpsTracker V2 Sprint 17 Complete_
