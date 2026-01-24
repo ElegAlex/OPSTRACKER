@@ -1,0 +1,29 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block title %}Annulation de rendez-vous{% endblock %}
+
+{% block header %}
+<h1>Votre rendez-vous a ete annule</h1>
+{% endblock %}
+
+{% block content %}
+<p>Bonjour {{ agent.prenom }},</p>
+
+<p>Votre rendez-vous pour la campagne <strong>{{ reservation.campagne.nom }}</strong> a ete annule.</p>
+
+<div class="creneau-box danger">
+    <p><strong>Date :</strong> {{ creneau.date|date('l d F Y', 'fr') }}</p>
+    <p><strong>Heure :</strong> {{ creneau.heureDebut|date('H:i') }} - {{ creneau.heureFin|date('H:i') }}</p>
+    {% if creneau.lieu %}
+    <p><strong>Lieu :</strong> {{ creneau.lieu }}</p>
+    {% endif %}
+</div>
+
+<p>Si vous souhaitez vous repositionner sur un autre creneau, cliquez sur le lien ci-dessous :</p>
+
+<p style="text-align: center;">
+    <a href="{{ lien_repositionnement }}" class="btn">Choisir un nouveau creneau</a>
+</p>
+
+<p>Cordialement,<br>L'equipe OpsTracker</p>
+{% endblock %}

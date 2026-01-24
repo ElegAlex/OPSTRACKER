@@ -10,8 +10,11 @@ use App\Entity\Reservation;
 use App\Repository\NotificationRepository;
 use App\Repository\ReservationRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Twig\Environment;
 
 /**
  * Service de gestion des notifications pour OpsTracker V2.
@@ -31,7 +34,10 @@ class NotificationService
         private ReservationRepository $reservationRepository,
         private IcsGenerator $icsGenerator,
         private MailerInterface $mailer,
-        private string $senderEmail = 'opstracker@cpam.local',
+        private Environment $twig,
+        private UrlGeneratorInterface $urlGenerator,
+        private ?LoggerInterface $logger = null,
+        private string $senderEmail = 'opstracker-noreply@cpam92.local',
     ) {
     }
 
@@ -42,14 +48,17 @@ class NotificationService
     {
         $agent = $reservation->getAgent();
         $creneau = $reservation->getCreneau();
-        $campagne = $reservation->getCampagne();
 
         $sujet = sprintf(
             '[OpsTracker] Votre rendez-vous du %s est confirme',
             $creneau->getDate()->format('d/m/Y')
         );
 
-        $contenu = $this->genererContenuConfirmation($reservation);
+        $contenu = $this->twig->render('emails/confirmation.html.twig', [
+            'reservation' => $reservation,
+            'agent' => $agent,
+            'creneau' => $creneau,
+        ]);
 
         $notification = $this->creerNotification(
             $agent,
@@ -59,7 +68,7 @@ class NotificationService
             $reservation
         );
 
-        // Envoyer l'email avec ICS
+        // RG-140 : Envoyer l'email avec ICS obligatoire
         $this->envoyerEmailAvecIcs($notification, $reservation);
 
         return $notification;
@@ -83,7 +92,11 @@ class NotificationService
             $creneau->getDate()->format('d/m/Y')
         );
 
-        $contenu = $this->genererContenuRappel($reservation);
+        $contenu = $this->twig->render('emails/rappel.html.twig', [
+            'reservation' => $reservation,
+            'agent' => $agent,
+            'creneau' => $creneau,
+        ]);
 
         $notification = $this->creerNotification(
             $agent,
@@ -99,7 +112,7 @@ class NotificationService
     }
 
     /**
-     * RG-142 : Envoie un email de modification
+     * RG-142 : Envoie un email de modification avec ancien + nouveau creneau + ICS
      */
     public function envoyerModification(Reservation $reservation, Creneau $ancienCreneau): Notification
     {
@@ -111,7 +124,12 @@ class NotificationService
             $ancienCreneau->getDate()->format('d/m/Y')
         );
 
-        $contenu = $this->genererContenuModification($reservation, $ancienCreneau);
+        $contenu = $this->twig->render('emails/modification.html.twig', [
+            'reservation' => $reservation,
+            'agent' => $agent,
+            'ancien_creneau' => $ancienCreneau,
+            'nouveau_creneau' => $nouveauCreneau,
+        ]);
 
         $notification = $this->creerNotification(
             $agent,
@@ -121,26 +139,38 @@ class NotificationService
             $reservation
         );
 
-        // Envoyer l'email avec le nouvel ICS
+        // RG-142 : Envoyer l'email avec le nouvel ICS
         $this->envoyerEmailAvecIcs($notification, $reservation);
 
         return $notification;
     }
 
     /**
-     * RG-143 : Envoie un email d'annulation
+     * RG-143 : Envoie un email d'annulation avec lien repositionnement
      */
     public function envoyerAnnulation(Reservation $reservation): Notification
     {
         $agent = $reservation->getAgent();
         $creneau = $reservation->getCreneau();
 
+        // RG-143 : Generer le lien de repositionnement
+        $lienRepositionnement = $this->urlGenerator->generate(
+            'app_booking_index',
+            ['token' => $agent->getBookingToken()],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+
         $sujet = sprintf(
             '[OpsTracker] Votre rendez-vous du %s a ete annule',
             $creneau->getDate()->format('d/m/Y')
         );
 
-        $contenu = $this->genererContenuAnnulation($reservation);
+        $contenu = $this->twig->render('emails/annulation.html.twig', [
+            'reservation' => $reservation,
+            'agent' => $agent,
+            'creneau' => $creneau,
+            'lien_repositionnement' => $lienRepositionnement,
+        ]);
 
         $notification = $this->creerNotification(
             $agent,
@@ -160,12 +190,23 @@ class NotificationService
      */
     public function envoyerInvitation(Agent $agent, Campagne $campagne): Notification
     {
+        // Generer le lien de reservation avec le token de l'agent
+        $lienReservation = $this->urlGenerator->generate(
+            'app_booking_index',
+            ['token' => $agent->getBookingToken()],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
+
         $sujet = sprintf(
             '[OpsTracker] Invitation a reserver votre creneau - %s',
             $campagne->getNom()
         );
 
-        $contenu = $this->genererContenuInvitation($agent, $campagne);
+        $contenu = $this->twig->render('emails/invitation.html.twig', [
+            'agent' => $agent,
+            'campagne' => $campagne,
+            'lien_reservation' => $lienReservation,
+        ]);
 
         $notification = $this->creerNotification(
             $agent,
@@ -196,6 +237,15 @@ class NotificationService
                 $count++;
             } catch (\LogicException $e) {
                 // Rappel deja envoye, on continue
+                $this->logger?->info('Rappel deja envoye pour reservation #{id}', [
+                    'id' => $reservation->getId(),
+                ]);
+            } catch (\Exception $e) {
+                // Log l'erreur et continue
+                $this->logger?->error('Erreur envoi rappel reservation #{id}: {error}', [
+                    'id' => $reservation->getId(),
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 
@@ -239,8 +289,19 @@ class NotificationService
 
             $this->mailer->send($email);
             $notification->markAsSent();
+
+            $this->logger?->info('Email envoye: {type} a {email}', [
+                'type' => $notification->getType(),
+                'email' => $notification->getAgent()->getEmail(),
+            ]);
         } catch (\Exception $e) {
             $notification->markAsFailed($e->getMessage());
+
+            $this->logger?->error('Echec envoi email: {type} a {email} - {error}', [
+                'type' => $notification->getType(),
+                'email' => $notification->getAgent()->getEmail(),
+                'error' => $e->getMessage(),
+            ]);
         }
 
         $this->entityManager->flush();
@@ -263,123 +324,21 @@ class NotificationService
 
             $this->mailer->send($email);
             $notification->markAsSent();
+
+            $this->logger?->info('Email avec ICS envoye: {type} a {email}', [
+                'type' => $notification->getType(),
+                'email' => $notification->getAgent()->getEmail(),
+            ]);
         } catch (\Exception $e) {
             $notification->markAsFailed($e->getMessage());
+
+            $this->logger?->error('Echec envoi email avec ICS: {type} a {email} - {error}', [
+                'type' => $notification->getType(),
+                'email' => $notification->getAgent()->getEmail(),
+                'error' => $e->getMessage(),
+            ]);
         }
 
         $this->entityManager->flush();
-    }
-
-    private function genererContenuConfirmation(Reservation $reservation): string
-    {
-        $creneau = $reservation->getCreneau();
-        $campagne = $reservation->getCampagne();
-
-        return sprintf(
-            '<h2>Confirmation de votre rendez-vous</h2>
-            <p>Bonjour %s,</p>
-            <p>Votre rendez-vous pour la campagne <strong>%s</strong> est confirme.</p>
-            <p><strong>Date :</strong> %s<br>
-            <strong>Horaire :</strong> %s - %s<br>
-            <strong>Lieu :</strong> %s</p>
-            <p>Vous trouverez en piece jointe un fichier ICS pour ajouter ce rendez-vous a votre calendrier.</p>
-            <p>Cordialement,<br>L\'equipe OpsTracker</p>',
-            $reservation->getAgent()->getPrenom(),
-            $campagne->getNom(),
-            $creneau->getDate()->format('d/m/Y'),
-            $creneau->getHeureDebut()->format('H:i'),
-            $creneau->getHeureFin()->format('H:i'),
-            $creneau->getLieu() ?? 'Non specifie'
-        );
-    }
-
-    private function genererContenuRappel(Reservation $reservation): string
-    {
-        $creneau = $reservation->getCreneau();
-        $campagne = $reservation->getCampagne();
-
-        return sprintf(
-            '<h2>Rappel de votre rendez-vous</h2>
-            <p>Bonjour %s,</p>
-            <p>Nous vous rappelons votre rendez-vous pour la campagne <strong>%s</strong>.</p>
-            <p><strong>Date :</strong> %s<br>
-            <strong>Horaire :</strong> %s - %s<br>
-            <strong>Lieu :</strong> %s</p>
-            <p>Cordialement,<br>L\'equipe OpsTracker</p>',
-            $reservation->getAgent()->getPrenom(),
-            $campagne->getNom(),
-            $creneau->getDate()->format('d/m/Y'),
-            $creneau->getHeureDebut()->format('H:i'),
-            $creneau->getHeureFin()->format('H:i'),
-            $creneau->getLieu() ?? 'Non specifie'
-        );
-    }
-
-    private function genererContenuModification(Reservation $reservation, Creneau $ancienCreneau): string
-    {
-        $nouveauCreneau = $reservation->getCreneau();
-        $campagne = $reservation->getCampagne();
-
-        return sprintf(
-            '<h2>Modification de votre rendez-vous</h2>
-            <p>Bonjour %s,</p>
-            <p>Votre rendez-vous pour la campagne <strong>%s</strong> a ete modifie.</p>
-            <h3>Ancien creneau</h3>
-            <p><strong>Date :</strong> %s<br>
-            <strong>Horaire :</strong> %s - %s</p>
-            <h3>Nouveau creneau</h3>
-            <p><strong>Date :</strong> %s<br>
-            <strong>Horaire :</strong> %s - %s<br>
-            <strong>Lieu :</strong> %s</p>
-            <p>Vous trouverez en piece jointe un fichier ICS pour mettre a jour votre calendrier.</p>
-            <p>Cordialement,<br>L\'equipe OpsTracker</p>',
-            $reservation->getAgent()->getPrenom(),
-            $campagne->getNom(),
-            $ancienCreneau->getDate()->format('d/m/Y'),
-            $ancienCreneau->getHeureDebut()->format('H:i'),
-            $ancienCreneau->getHeureFin()->format('H:i'),
-            $nouveauCreneau->getDate()->format('d/m/Y'),
-            $nouveauCreneau->getHeureDebut()->format('H:i'),
-            $nouveauCreneau->getHeureFin()->format('H:i'),
-            $nouveauCreneau->getLieu() ?? 'Non specifie'
-        );
-    }
-
-    private function genererContenuAnnulation(Reservation $reservation): string
-    {
-        $creneau = $reservation->getCreneau();
-        $campagne = $reservation->getCampagne();
-
-        return sprintf(
-            '<h2>Annulation de votre rendez-vous</h2>
-            <p>Bonjour %s,</p>
-            <p>Votre rendez-vous pour la campagne <strong>%s</strong> a ete annule.</p>
-            <p><strong>Date :</strong> %s<br>
-            <strong>Horaire :</strong> %s - %s</p>
-            <p>Si vous souhaitez vous repositionner sur un autre creneau,
-            veuillez contacter votre gestionnaire.</p>
-            <p>Cordialement,<br>L\'equipe OpsTracker</p>',
-            $reservation->getAgent()->getPrenom(),
-            $campagne->getNom(),
-            $creneau->getDate()->format('d/m/Y'),
-            $creneau->getHeureDebut()->format('H:i'),
-            $creneau->getHeureFin()->format('H:i')
-        );
-    }
-
-    private function genererContenuInvitation(Agent $agent, Campagne $campagne): string
-    {
-        return sprintf(
-            '<h2>Invitation a reserver votre creneau</h2>
-            <p>Bonjour %s,</p>
-            <p>Vous etes invite(e) a choisir un creneau pour la campagne <strong>%s</strong>.</p>
-            <p><strong>Periode :</strong> du %s au %s</p>
-            <p>Veuillez vous connecter a OpsTracker pour selectionner votre creneau.</p>
-            <p>Cordialement,<br>L\'equipe OpsTracker</p>',
-            $agent->getPrenom(),
-            $campagne->getNom(),
-            $campagne->getDateDebut()->format('d/m/Y'),
-            $campagne->getDateFin()->format('d/m/Y')
-        );
     }
 }

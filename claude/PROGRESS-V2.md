@@ -1,6 +1,6 @@
 # PROGRESS-V2 — Module Reservation
 
-> **Derniere mise a jour** : 2026-01-24 (Session #19 - Sprint 18 Complete)
+> **Derniere mise a jour** : 2026-01-24 (Session #20 - Sprint 19 Complete)
 > **Source** : P4.1 - EPIC-10, EPIC-11, EPIC-12
 > **Total V2** : 26 User Stories | 3 EPICs
 
@@ -12,7 +12,7 @@
 |-------|---------|--------|-----|-------|
 | **Setup** | 16 | ✅ Termine | 0 | Entites + Services |
 | **Core** | 17-18 | ✅ Termine | 11 | Creneaux + Reservation |
-| **Notifs** | 19 | ⏳ A faire | 5 | Emails + ICS |
+| **Notifs** | 19 | ✅ Termine | 5 | Emails + ICS |
 | **Complements** | 20 | ⏳ A faire | 8 | Fonctionnalites V1 |
 | **Finalisation** | 21 | ⏳ A faire | 2 | Tests + Audit P6 |
 
@@ -110,19 +110,39 @@
 
 ---
 
-### Sprint 19 — Notifications (EPIC-12) ⏳
+### Sprint 19 — Notifications (EPIC-12) ✅
 
 | ID | US | Titre | Statut | RG | Priorite |
 |----|-----|-------|--------|-----|----------|
-| T-1901 | US-1201 | Email confirmation + ICS | ⏳ | RG-140 | V1 |
-| T-1902 | US-1202 | Email rappel J-2 | ⏳ | RG-141 | V1 |
-| T-1903 | US-1203 | Email modification | ⏳ | RG-142 | V1 |
-| T-1904 | US-1204 | Email annulation | ⏳ | RG-143 | V1 |
-| T-1905 | US-1205 | Email invitation initiale | ⏳ | RG-144 | MVP |
-| T-1906 | - | IcsGenerator service | ⏳ | - | - |
-| T-1907 | - | Commande cron rappels | ⏳ | - | - |
-| T-1908 | - | Configuration SMTP | ⏳ | - | - |
-| T-1909 | - | Tests NotificationService | ⏳ | - | - |
+| T-1901 | - | Implémenter IcsGenerator complet | ✅ | RG-140 | - |
+| T-1902 | US-1201 | Email confirmation + ICS | ✅ | RG-140 | V1 |
+| T-1903 | US-1202 | Email rappel J-2 | ✅ | RG-141 | V1 |
+| T-1904 | US-1203 | Email modification | ✅ | RG-142 | V1 |
+| T-1905 | US-1204 | Email annulation | ✅ | RG-143 | V1 |
+| T-1906 | US-1205 | Email invitation initiale | ✅ | RG-144 | MVP |
+| T-1907 | - | Commande cron rappels | ✅ | RG-141 | - |
+| T-1908 | - | Templates emails (Twig) | ✅ | - | - |
+| T-1909 | - | Tests NotificationService + IcsGenerator | ✅ | - | - |
+
+**Fichiers crees Sprint 19** :
+- `src/Service/IcsGenerator.php` - Generation fichiers ICS (2 alarmes)
+- `src/Service/NotificationService.php` - Envoi emails avec Twig + ICS
+- `src/Command/SendReminderCommand.php` - Commande cron rappels J-X
+- `templates/emails/base.html.twig` - Layout emails CPAM
+- `templates/emails/confirmation.html.twig` - Email confirmation RDV
+- `templates/emails/rappel.html.twig` - Email rappel J-2
+- `templates/emails/modification.html.twig` - Email modification (ancien+nouveau)
+- `templates/emails/annulation.html.twig` - Email annulation + lien repositionnement
+- `templates/emails/invitation.html.twig` - Email invitation campagne
+- `tests/Unit/Service/NotificationServiceTest.php` - 14 tests
+- `tests/Unit/Service/IcsGeneratorTest.php` - 12 tests
+
+**Regles metier implementees Sprint 19** :
+- RG-140 : Email confirmation contient ICS obligatoire (piece jointe)
+- RG-141 : Email rappel automatique J-X (commande cron app:send-reminders)
+- RG-142 : Email modification contient ancien + nouveau creneau + ICS
+- RG-143 : Email annulation contient lien repositionnement (via token)
+- RG-144 : Email invitation envoye avec lien reservation personnalise
 
 ---
 
@@ -159,12 +179,12 @@
 
 | Metrique | Actuel | Cible |
 |----------|--------|-------|
-| Taches terminees | 27/48 | 48 |
-| User Stories done | 11/26 | 26 |
+| Taches terminees | 36/48 | 48 |
+| User Stories done | 16/26 | 26 |
 | Entites creees | 4/4 | 4 |
 | Services crees | 4/4 | 4 |
 | Fixtures | 55 agents, 60 creneaux, 30 reservations | OK |
-| Tests passants | 274 (V1+V2) | 290+ |
+| Tests passants | 296 (V1+V2) | 290+ |
 | Score Audit P6 | - | >=95% |
 
 ---
@@ -219,10 +239,10 @@
 1. ✅ ~~Sprint 16 : Setup entites + services~~
 2. ✅ ~~Sprint 17 : CRUD Creneaux~~
 3. ✅ ~~Sprint 18 : Interface reservation~~
-4. ⏳ Sprint 19 : Notifications email
+4. ✅ ~~Sprint 19 : Notifications email~~
 5. ⏳ Sprint 20 : Complements
 6. ⏳ Sprint 21 : Audit P6 + TAG v2.0.0
 
 ---
 
-_Derniere mise a jour : 2026-01-24 — OpsTracker V2 Sprint 18 Complete_
+_Derniere mise a jour : 2026-01-24 — OpsTracker V2 Sprint 19 Complete_

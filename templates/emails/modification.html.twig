@@ -1,0 +1,35 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block title %}Modification de rendez-vous{% endblock %}
+
+{% block header %}
+<h1>Votre rendez-vous a ete modifie</h1>
+{% endblock %}
+
+{% block content %}
+<p>Bonjour {{ agent.prenom }},</p>
+
+<p>Votre rendez-vous pour la campagne <strong>{{ reservation.campagne.nom }}</strong> a ete modifie.</p>
+
+<h3>Ancien creneau</h3>
+<div class="creneau-box old-creneau">
+    <p><strong>Date :</strong> {{ ancien_creneau.date|date('l d F Y', 'fr') }}</p>
+    <p><strong>Heure :</strong> {{ ancien_creneau.heureDebut|date('H:i') }} - {{ ancien_creneau.heureFin|date('H:i') }}</p>
+    {% if ancien_creneau.lieu %}
+    <p><strong>Lieu :</strong> {{ ancien_creneau.lieu }}</p>
+    {% endif %}
+</div>
+
+<h3>Nouveau creneau</h3>
+<div class="creneau-box new-creneau">
+    <p><strong>Date :</strong> {{ nouveau_creneau.date|date('l d F Y', 'fr') }}</p>
+    <p><strong>Heure :</strong> {{ nouveau_creneau.heureDebut|date('H:i') }} - {{ nouveau_creneau.heureFin|date('H:i') }}</p>
+    {% if nouveau_creneau.lieu %}
+    <p><strong>Lieu :</strong> {{ nouveau_creneau.lieu }}</p>
+    {% endif %}
+</div>
+
+<p>Un fichier ICS est joint a cet email pour mettre a jour votre agenda Outlook.</p>
+
+<p>Cordialement,<br>L'equipe OpsTracker</p>
+{% endblock %}

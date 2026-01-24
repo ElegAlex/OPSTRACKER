@@ -387,8 +387,8 @@ class CreneauServiceTest extends TestCase
     {
         $campagne = new Campagne();
         $campagne->setNom('Campagne Test');
-        $campagne->setDateDebut(new \DateTime('2026-02-01'));
-        $campagne->setDateFin(new \DateTime('2026-03-31'));
+        $campagne->setDateDebut(new \DateTimeImmutable('2026-02-01'));
+        $campagne->setDateFin(new \DateTimeImmutable('2026-03-31'));
 
         return $campagne;
     }

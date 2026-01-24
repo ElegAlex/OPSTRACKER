@@ -1,0 +1,25 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block title %}Rappel de rendez-vous{% endblock %}
+
+{% block header %}
+<h1>Rappel : votre rendez-vous approche</h1>
+{% endblock %}
+
+{% block content %}
+<p>Bonjour {{ agent.prenom }},</p>
+
+<p>Nous vous rappelons votre rendez-vous pour la campagne <strong>{{ reservation.campagne.nom }}</strong>.</p>
+
+<div class="creneau-box warning">
+    <p><strong>Date :</strong> {{ creneau.date|date('l d F Y', 'fr') }}</p>
+    <p><strong>Heure :</strong> {{ creneau.heureDebut|date('H:i') }} - {{ creneau.heureFin|date('H:i') }}</p>
+    {% if creneau.lieu %}
+    <p><strong>Lieu :</strong> {{ creneau.lieu }}</p>
+    {% endif %}
+</div>
+
+<p>Merci de vous presenter a l'heure indiquee.</p>
+
+<p>Cordialement,<br>L'equipe OpsTracker</p>
+{% endblock %}

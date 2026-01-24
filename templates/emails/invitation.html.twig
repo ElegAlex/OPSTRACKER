@@ -1,0 +1,28 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block title %}Invitation a reserver votre creneau{% endblock %}
+
+{% block header %}
+<h1>Choisissez votre creneau</h1>
+{% endblock %}
+
+{% block content %}
+<p>Bonjour {{ agent.prenom }},</p>
+
+<p>Vous etes invite(e) a choisir un creneau pour la campagne <strong>{{ campagne.nom }}</strong>.</p>
+
+<div class="creneau-box">
+    <p><strong>Periode :</strong> du {{ campagne.dateDebut|date('d/m/Y') }} au {{ campagne.dateFin|date('d/m/Y') }}</p>
+    {% if campagne.description %}
+    <p><strong>Description :</strong> {{ campagne.description }}</p>
+    {% endif %}
+</div>
+
+<p>Cliquez sur le lien ci-dessous pour selectionner votre creneau :</p>
+
+<p style="text-align: center;">
+    <a href="{{ lien_reservation }}" class="btn">Choisir mon creneau</a>
+</p>
+
+<p>Cordialement,<br>L'equipe OpsTracker</p>
+{% endblock %}

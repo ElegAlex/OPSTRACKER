@@ -1,0 +1,25 @@
+{% extends 'emails/base.html.twig' %}
+
+{% block title %}Confirmation de rendez-vous{% endblock %}
+
+{% block header %}
+<h1>Rendez-vous confirme</h1>
+{% endblock %}
+
+{% block content %}
+<p>Bonjour {{ agent.prenom }},</p>
+
+<p>Votre creneau pour la campagne <strong>{{ reservation.campagne.nom }}</strong> est confirme.</p>
+
+<div class="creneau-box success">
+    <p><strong>Date :</strong> {{ creneau.date|date('l d F Y', 'fr') }}</p>
+    <p><strong>Heure :</strong> {{ creneau.heureDebut|date('H:i') }} - {{ creneau.heureFin|date('H:i') }}</p>
+    {% if creneau.lieu %}
+    <p><strong>Lieu :</strong> {{ creneau.lieu }}</p>
+    {% endif %}
+</div>
+
+<p>Un fichier ICS est joint a cet email pour ajouter ce rendez-vous a votre agenda Outlook.</p>
+
+<p>Cordialement,<br>L'equipe OpsTracker</p>
+{% endblock %}
