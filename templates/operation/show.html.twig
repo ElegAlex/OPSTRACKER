@@ -1,0 +1,411 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ operation.matricule }} - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-paper">
+    {# BREADCRUMB #}
+    <nav class="bg-white border-b border-ink/10 px-12 py-3">
+        <ol class="flex items-center gap-2 text-sm">
+            <li>
+                <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="text-muted hover:text-ink transition-colors">
+                    {{ campagne.nom }}
+                </a>
+            </li>
+            <li class="text-muted">/</li>
+            <li>
+                <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="text-muted hover:text-ink transition-colors">
+                    Operations
+                </a>
+            </li>
+            <li class="text-muted">/</li>
+            <li class="font-medium text-ink">{{ operation.matricule }}</li>
+        </ol>
+    </nav>
+
+    {# HEADER #}
+    <header class="bg-white px-12 py-8 border-b-4 border-ink">
+        <div class="flex justify-between items-start">
+            <div class="flex items-start gap-6">
+                {# Icone type operation #}
+                <div class="w-16 h-16 bg-ink flex items-center justify-center flex-shrink-0">
+                    {% if operation.typeOperation %}
+                        <i data-feather="{{ operation.typeOperation.icone ?? 'monitor' }}" class="w-8 h-8 text-white"></i>
+                    {% else %}
+                        <i data-feather="monitor" class="w-8 h-8 text-white"></i>
+                    {% endif %}
+                </div>
+
+                <div>
+                    {# Badge statut #}
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="inline-flex items-center gap-2 px-3 py-1 bg-{{ operation.statutCouleur }} text-white text-xs font-bold uppercase">
+                            {% set icones = {
+                                'a_planifier': 'clock',
+                                'planifie': 'calendar',
+                                'en_cours': 'zap',
+                                'realise': 'check-circle',
+                                'reporte': 'pause-circle',
+                                'a_remedier': 'alert-triangle'
+                            } %}
+                            <i data-feather="{{ icones[operation.statut] ?? 'circle' }}" class="w-3 h-3"></i>
+                            {{ operation.statutLabel }}
+                        </span>
+                        {% if operation.segment %}
+                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-{{ operation.segment.couleur }}/10 text-{{ operation.segment.couleur }} text-xs font-medium border border-{{ operation.segment.couleur }}/20">
+                                <span class="w-2 h-2 bg-{{ operation.segment.couleur }}"></span>
+                                {{ operation.segment.nom }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {# Titre #}
+                    <h1 class="text-3xl font-bold tracking-tight text-ink">{{ operation.matricule }}</h1>
+                    <p class="text-lg text-muted mt-1">{{ operation.nom }}</p>
+                </div>
+            </div>
+
+            {# Actions #}
+            <div class="flex items-center gap-3">
+                <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted hover:text-ink border-2 border-ink/10 hover:border-ink transition-colors">
+                    <i data-feather="arrow-left" class="w-4 h-4"></i>
+                    Retour
+                </a>
+            </div>
+        </div>
+    </header>
+
+    {# CONTENT #}
+    <div class="px-12 py-8">
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 border-2 border-ink/20 bg-{{ label == 'success' ? 'success' : 'danger' }}/10 flex items-center gap-3">
+                    <i data-feather="{{ label == 'success' ? 'check-circle' : 'alert-circle' }}" class="w-5 h-5 text-{{ label == 'success' ? 'success' : 'danger' }}"></i>
+                    <span class="text-sm font-medium">{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="grid grid-cols-3 gap-8">
+            {# COLONNE PRINCIPALE #}
+            <div class="col-span-2 space-y-6">
+                {# Informations generales #}
+                <div class="bg-white border-2 border-ink">
+                    <div class="px-6 py-4 border-b-2 border-ink/10">
+                        <h2 class="font-bold text-ink flex items-center gap-2">
+                            <i data-feather="info" class="w-4 h-4"></i>
+                            Informations generales
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Matricule</p>
+                                <p class="font-bold text-ink">{{ operation.matricule }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Type</p>
+                                <p class="font-medium text-ink">{{ operation.typeOperation.nom ?? 'Standard' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Date planifiee</p>
+                                <p class="font-medium text-ink">
+                                    {% if operation.datePlanifiee %}
+                                        {{ operation.datePlanifiee|format_datetime('long', 'none', locale='fr') }}
+                                    {% else %}
+                                        <span class="text-muted">Non planifiee</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Date realisation</p>
+                                <p class="font-medium text-ink">
+                                    {% if operation.dateRealisation %}
+                                        {{ operation.dateRealisation|format_datetime('long', 'short', locale='fr') }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Donnees personnalisees (JSONB) #}
+                {% if operation.donneesPersonnalisees|length > 0 %}
+                <div class="bg-white border-2 border-ink">
+                    <div class="px-6 py-4 border-b-2 border-ink/10">
+                        <h2 class="font-bold text-ink flex items-center gap-2">
+                            <i data-feather="database" class="w-4 h-4"></i>
+                            Donnees personnalisees
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            {% for code, valeur in operation.donneesPersonnalisees %}
+                                <div class="bg-paper p-3">
+                                    <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">{{ code|replace({'_': ' '})|title }}</p>
+                                    <p class="font-medium text-ink">{{ valeur ?? '-' }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Notes #}
+                {% if operation.notes %}
+                <div class="bg-white border-2 border-ink">
+                    <div class="px-6 py-4 border-b-2 border-ink/10">
+                        <h2 class="font-bold text-ink flex items-center gap-2">
+                            <i data-feather="file-text" class="w-4 h-4"></i>
+                            Notes
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-muted whitespace-pre-wrap">{{ operation.notes }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Motif de report #}
+                {% if operation.statut == 'reporte' and operation.motifReport %}
+                <div class="bg-warning/10 border-2 border-warning">
+                    <div class="px-6 py-4 border-b-2 border-warning/20">
+                        <h2 class="font-bold text-warning flex items-center gap-2">
+                            <i data-feather="pause-circle" class="w-4 h-4"></i>
+                            Motif de report
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-warning">{{ operation.motifReport }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Motif probleme #}
+                {% if operation.statut == 'a_remedier' and operation.motifReport %}
+                <div class="bg-danger/10 border-2 border-danger">
+                    <div class="px-6 py-4 border-b-2 border-danger/20">
+                        <h2 class="font-bold text-danger flex items-center gap-2">
+                            <i data-feather="alert-triangle" class="w-4 h-4"></i>
+                            Probleme signale
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-danger">{{ operation.motifReport }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# Checklist (si presente) #}
+                {% if checklist %}
+                <div class="bg-white border-2 border-ink">
+                    <div class="px-6 py-4 border-b-2 border-ink/10">
+                        <h2 class="font-bold text-ink flex items-center gap-2">
+                            <i data-feather="check-square" class="w-4 h-4"></i>
+                            Checklist
+                            {% set progression = checklist.getProgressionPercentage() %}
+                            <span class="ml-auto text-sm font-normal text-muted">{{ progression }}% complete</span>
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        {# Barre de progression #}
+                        <div class="h-2 bg-paper mb-4">
+                            <div class="h-full bg-success transition-all" style="width: {{ progression }}%"></div>
+                        </div>
+
+                        {# Phases et etapes #}
+                        {% for phase in checklist.snapshot.phases|default([]) %}
+                            <div class="mb-4 last:mb-0">
+                                <h3 class="text-sm font-semibold text-ink mb-2">{{ phase.nom }}</h3>
+                                <div class="space-y-1">
+                                    {% for etape in phase.etapes|default([]) %}
+                                        {% set etapeId = etape.id|default(loop.index) %}
+                                        {% set isChecked = checklist.isEtapeValidee(etapeId) %}
+                                        <div class="flex items-center gap-2 text-sm {{ isChecked ? 'text-success' : 'text-muted' }}">
+                                            <i data-feather="{{ isChecked ? 'check-square' : 'square' }}" class="w-4 h-4"></i>
+                                            <span class="{{ isChecked ? 'line-through' : '' }}">{{ etape.nom }}</span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {# COLONNE LATERALE #}
+            <div class="space-y-6">
+                {# Technicien assigne #}
+                <div class="bg-white border-2 border-ink">
+                    <div class="px-6 py-4 border-b-2 border-ink/10">
+                        <h2 class="font-bold text-ink flex items-center gap-2">
+                            <i data-feather="user" class="w-4 h-4"></i>
+                            Technicien assigne
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        {% if operation.technicienAssigne %}
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-ink flex items-center justify-center text-white font-bold">
+                                    {{ operation.technicienAssigne.prenom|slice(0,1)|upper }}{{ operation.technicienAssigne.nom|slice(0,1)|upper }}
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-ink">{{ operation.technicienAssigne.nomComplet }}</p>
+                                    <p class="text-xs text-muted">{{ operation.technicienAssigne.email }}</p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-sm">Aucun technicien assigne</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Actions rapides #}
+                <div class="bg-white border-2 border-ink">
+                    <div class="px-6 py-4 border-b-2 border-ink/10">
+                        <h2 class="font-bold text-ink flex items-center gap-2">
+                            <i data-feather="zap" class="w-4 h-4"></i>
+                            Actions
+                        </h2>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        {# Transitions disponibles #}
+                        {% for transitionKey, transitionLabel in transitions %}
+                            {% set colors = {
+                                'planifier': 'primary',
+                                'demarrer': 'primary',
+                                'terminer': 'success',
+                                'reporter': 'warning',
+                                'signaler_probleme': 'danger',
+                                'reprendre': 'primary'
+                            } %}
+                            {% set icons = {
+                                'planifier': 'calendar',
+                                'demarrer': 'play',
+                                'terminer': 'check-circle',
+                                'reporter': 'pause-circle',
+                                'signaler_probleme': 'alert-triangle',
+                                'reprendre': 'refresh-cw'
+                            } %}
+
+                            {% if transitionKey == 'reporter' or transitionKey == 'signaler_probleme' %}
+                                {# Modal pour motif #}
+                                <button type="button" onclick="document.getElementById('modal-{{ transitionKey }}').classList.remove('hidden'); document.getElementById('modal-{{ transitionKey }}').classList.add('flex');" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-{{ colors[transitionKey] ?? 'ink' }} bg-{{ colors[transitionKey] ?? 'ink' }}/10 border-2 border-{{ colors[transitionKey] ?? 'ink' }}/20 hover:bg-{{ colors[transitionKey] ?? 'ink' }} hover:text-white transition-colors">
+                                    <i data-feather="{{ icons[transitionKey] ?? 'arrow-right' }}" class="w-4 h-4"></i>
+                                    {{ transitionLabel }}
+                                </button>
+                            {% else %}
+                                <form action="{{ path('app_operation_transition', {campagne: campagne.id, id: operation.id, transition: transitionKey}) }}" method="post">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('operation_transition_' ~ operation.id) }}">
+                                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-{{ colors[transitionKey] ?? 'ink' }} hover:bg-{{ colors[transitionKey] ?? 'ink' }}/90 transition-colors">
+                                        <i data-feather="{{ icons[transitionKey] ?? 'arrow-right' }}" class="w-4 h-4"></i>
+                                        {{ transitionLabel }}
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-sm text-muted text-center py-2">Aucune action disponible</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# Historique #}
+                <div class="bg-white border-2 border-ink">
+                    <div class="px-6 py-4 border-b-2 border-ink/10">
+                        <h2 class="font-bold text-ink flex items-center gap-2">
+                            <i data-feather="clock" class="w-4 h-4"></i>
+                            Historique
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-3 text-sm">
+                            {% if operation.dateRealisation %}
+                                <div class="flex items-start gap-2">
+                                    <i data-feather="check-circle" class="w-4 h-4 text-success mt-0.5"></i>
+                                    <div>
+                                        <p class="text-success font-medium">Realise</p>
+                                        <p class="text-xs text-muted">{{ operation.dateRealisation|format_datetime('medium', 'short', locale='fr') }}</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if operation.datePlanifiee %}
+                                <div class="flex items-start gap-2">
+                                    <i data-feather="calendar" class="w-4 h-4 text-primary mt-0.5"></i>
+                                    <div>
+                                        <p class="text-ink font-medium">Planifie</p>
+                                        <p class="text-xs text-muted">{{ operation.datePlanifiee|format_datetime('medium', 'none', locale='fr') }}</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div class="flex items-start gap-2">
+                                <i data-feather="plus-circle" class="w-4 h-4 text-muted mt-0.5"></i>
+                                <div>
+                                    <p class="text-muted font-medium">Cree</p>
+                                    <p class="text-xs text-muted">{{ operation.createdAt|format_datetime('medium', 'short', locale='fr') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# MODALS #}
+{% if 'reporter' in transitions|keys %}
+<div id="modal-reporter" class="fixed inset-0 bg-ink/50 hidden items-center justify-center z-50">
+    <div class="bg-white border-2 border-ink p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-bold text-ink mb-4 flex items-center gap-2">
+            <i data-feather="pause-circle" class="w-5 h-5 text-warning"></i>
+            Reporter l'operation
+        </h3>
+        <form action="{{ path('app_operation_transition', {campagne: campagne.id, id: operation.id, transition: 'reporter'}) }}" method="post">
+            <input type="hidden" name="_token" value="{{ csrf_token('operation_transition_' ~ operation.id) }}">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-ink mb-2">Motif du report (optionnel)</label>
+                <textarea name="motif" rows="3" class="w-full px-3 py-2 border-2 border-ink/20 focus:border-ink outline-none text-sm" placeholder="Indiquez la raison du report..."></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="this.closest('#modal-reporter').classList.add('hidden'); this.closest('#modal-reporter').classList.remove('flex');" class="flex-1 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                    Annuler
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2 text-sm font-semibold text-white bg-warning hover:bg-warning/90 transition-colors">
+                    Reporter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+{% if 'signaler_probleme' in transitions|keys %}
+<div id="modal-signaler_probleme" class="fixed inset-0 bg-ink/50 hidden items-center justify-center z-50">
+    <div class="bg-white border-2 border-ink p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-bold text-ink mb-4 flex items-center gap-2">
+            <i data-feather="alert-triangle" class="w-5 h-5 text-danger"></i>
+            Signaler un probleme
+        </h3>
+        <form action="{{ path('app_operation_transition', {campagne: campagne.id, id: operation.id, transition: 'signaler_probleme'}) }}" method="post">
+            <input type="hidden" name="_token" value="{{ csrf_token('operation_transition_' ~ operation.id) }}">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-ink mb-2">Description du probleme</label>
+                <textarea name="motif" rows="3" class="w-full px-3 py-2 border-2 border-ink/20 focus:border-danger outline-none text-sm" placeholder="Decrivez le probleme rencontre..." required></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="this.closest('#modal-signaler_probleme').classList.add('hidden'); this.closest('#modal-signaler_probleme').classList.remove('flex');" class="flex-1 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                    Annuler
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2 text-sm font-semibold text-white bg-danger hover:bg-danger/90 transition-colors">
+                    Signaler
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

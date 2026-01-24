@@ -245,4 +245,30 @@ class OperationController extends AbstractController
 
         return $this->redirectToRoute('app_operation_index', ['campagne' => $campagne->getId()]);
     }
+
+    /**
+     * US-305 : Voir le detail d'une operation.
+     * Affiche toutes les informations de l'operation.
+     */
+    #[Route('/{id}', name: 'app_operation_show', methods: ['GET'])]
+    public function show(Campagne $campagne, Operation $operation): Response
+    {
+        // Verifier que l'operation appartient a la campagne
+        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+            throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
+        }
+
+        $transitions = $this->operationService->getTransitionsDisponibles($operation);
+        $techniciens = $this->utilisateurRepository->findTechniciensActifs();
+        $segments = $this->segmentRepository->findByCampagne($campagne->getId());
+
+        return $this->render('operation/show.html.twig', [
+            'operation' => $operation,
+            'campagne' => $campagne,
+            'checklist' => $operation->getChecklistInstance(),
+            'transitions' => $transitions,
+            'techniciens' => $techniciens,
+            'segments' => $segments,
+        ]);
+    }
 }

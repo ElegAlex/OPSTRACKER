@@ -286,7 +286,7 @@
                                 </button>
                                 <div class="dropdown-menu" data-dropdown-target="menu">
                                     <div class="bg-white border-2 border-ink shadow-lg py-1">
-                                        <a href="#" class="block px-4 py-2 text-sm text-ink hover:bg-paper transition-colors">
+                                        <a href="{{ path('app_operation_show', {campagne: campagne.id, id: operation.id}) }}" class="block px-4 py-2 text-sm text-ink hover:bg-paper transition-colors">
                                             <span class="flex items-center gap-2">
                                                 <i data-feather="eye" class="w-4 h-4"></i>
                                                 Voir details
