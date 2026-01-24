@@ -70,6 +70,13 @@ class Agent
     private bool $actif = true;
 
     /**
+     * Token de reservation pour acces sans authentification.
+     * Utilise pour l'interface agent (lien unique par email).
+     */
+    #[ORM\Column(length: 64, unique: true, nullable: true)]
+    private ?string $bookingToken = null;
+
+    /**
      * @var Collection<int, Reservation>
      */
     #[ORM\OneToMany(targetEntity: Reservation::class, mappedBy: 'agent', cascade: ['persist'], orphanRemoval: true)]
@@ -190,6 +197,28 @@ class Agent
         $this->actif = $actif;
 
         return $this;
+    }
+
+    public function getBookingToken(): ?string
+    {
+        return $this->bookingToken;
+    }
+
+    public function setBookingToken(?string $bookingToken): static
+    {
+        $this->bookingToken = $bookingToken;
+
+        return $this;
+    }
+
+    /**
+     * Genere un nouveau token de reservation unique.
+     */
+    public function generateBookingToken(): string
+    {
+        $this->bookingToken = bin2hex(random_bytes(32));
+
+        return $this->bookingToken;
     }
 
     /**

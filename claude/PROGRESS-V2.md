@@ -1,6 +1,6 @@
 # PROGRESS-V2 — Module Reservation
 
-> **Derniere mise a jour** : 2026-01-24 (Session #18 - Sprint 17 Complete)
+> **Derniere mise a jour** : 2026-01-24 (Session #19 - Sprint 18 Complete)
 > **Source** : P4.1 - EPIC-10, EPIC-11, EPIC-12
 > **Total V2** : 26 User Stories | 3 EPICs
 
@@ -11,9 +11,10 @@
 | Phase | Sprints | Statut | US | Focus |
 |-------|---------|--------|-----|-------|
 | **Setup** | 16 | ✅ Termine | 0 | Entites + Services |
-| **Core** | 17-19 | ⏳ A faire | 15 | Creneaux + Reservation + Notifs |
+| **Core** | 17-18 | ✅ Termine | 11 | Creneaux + Reservation |
+| **Notifs** | 19 | ⏳ A faire | 5 | Emails + ICS |
 | **Complements** | 20 | ⏳ A faire | 8 | Fonctionnalites V1 |
-| **Finalisation** | 21 | ⏳ A faire | 3 | Tests + Audit P6 |
+| **Finalisation** | 21 | ⏳ A faire | 2 | Tests + Audit P6 |
 
 ---
 
@@ -72,18 +73,40 @@
 
 ---
 
-### Sprint 18 — Interface Reservation (EPIC-10 Core) ⏳
+### Sprint 18 — Interface Reservation (EPIC-10 Core) ✅
 
 | ID | US | Titre | Statut | RG | Priorite |
 |----|-----|-------|--------|-----|----------|
-| T-1801 | US-1001 | Voir creneaux disponibles (Agent) | ⏳ | RG-120 | MVP |
-| T-1802 | US-1002 | Se positionner sur un creneau | ⏳ | RG-121, RG-122 | MVP |
-| T-1803 | US-1003 | Annuler/modifier son creneau | ⏳ | RG-123 | MVP |
-| T-1804 | US-1005 | Voir liste de mes agents (Manager) | ⏳ | RG-124 | MVP |
-| T-1805 | US-1006 | Positionner un agent | ⏳ | RG-121, RG-125 | MVP |
-| T-1806 | US-1007 | Modifier/annuler creneau d'un agent | ⏳ | RG-123, RG-126 | MVP |
-| T-1807 | - | Templates reservation (agent, manager) | ⏳ | - | - |
-| T-1808 | - | Tests ReservationService | ⏳ | - | - |
+| T-1801 | US-1001 | Voir creneaux disponibles (Agent) | ✅ | RG-120 | MVP |
+| T-1802 | US-1002 | Se positionner sur un creneau | ✅ | RG-121, RG-122 | MVP |
+| T-1803 | US-1003 | Annuler/modifier son creneau | ✅ | RG-123 | MVP |
+| T-1804 | US-1005 | Voir liste de mes agents (Manager) | ✅ | RG-124 | MVP |
+| T-1805 | US-1006 | Positionner un agent | ✅ | RG-121, RG-125 | MVP |
+| T-1806 | US-1007 | Modifier/annuler creneau d'un agent | ✅ | RG-123, RG-126 | MVP |
+| T-1807 | - | Templates reservation (agent, manager) | ✅ | - | - |
+| T-1808 | - | Tests ReservationService | ✅ | - | - |
+
+**Fichiers crees Sprint 18** :
+- `src/Controller/BookingController.php` - 5 routes agent (acces par token)
+- `src/Controller/ManagerBookingController.php` - 4 routes manager
+- `templates/booking/index.html.twig` - Liste creneaux agent
+- `templates/booking/confirm.html.twig` - Confirmation reservation
+- `templates/booking/modify.html.twig` - Modification creneau
+- `templates/booking/no_campagne.html.twig` - Pas de campagne active
+- `templates/manager/agents.html.twig` - Liste agents du manager
+- `templates/manager/position.html.twig` - Positionner un agent
+- `templates/manager/modify.html.twig` - Modifier reservation agent
+- `tests/Unit/Service/ReservationServiceTest.php` - 16 tests
+- `migrations/Version20260124180001.php` - Ajout booking_token
+
+**Regles metier implementees Sprint 18** :
+- RG-120 : Agent ne voit que les creneaux disponibles (filtrage)
+- RG-121 : Un agent = un seul creneau par campagne (controle service)
+- RG-122 : Confirmation automatique = email + ICS (via NotificationService)
+- RG-123 : Verrouillage J-2 fonctionnel (isVerrouillePourDate)
+- RG-124 : Manager ne voit que ses agents (filtrage repository)
+- RG-125 : Tracabilite positionnement (typePositionnement + positionnePar)
+- RG-126 : Notification si positionne par tiers (via NotificationService)
 
 ---
 
@@ -136,12 +159,12 @@
 
 | Metrique | Actuel | Cible |
 |----------|--------|-------|
-| Taches terminees | 19/48 | 48 |
-| User Stories done | 4/26 | 26 |
+| Taches terminees | 27/48 | 48 |
+| User Stories done | 11/26 | 26 |
 | Entites creees | 4/4 | 4 |
 | Services crees | 4/4 | 4 |
 | Fixtures | 55 agents, 60 creneaux, 30 reservations | OK |
-| Tests passants | 258 (V1+V2) | 290+ |
+| Tests passants | 274 (V1+V2) | 290+ |
 | Score Audit P6 | - | >=95% |
 
 ---
@@ -195,11 +218,11 @@
 
 1. ✅ ~~Sprint 16 : Setup entites + services~~
 2. ✅ ~~Sprint 17 : CRUD Creneaux~~
-3. ⏳ Sprint 18 : Interface reservation
+3. ✅ ~~Sprint 18 : Interface reservation~~
 4. ⏳ Sprint 19 : Notifications email
 5. ⏳ Sprint 20 : Complements
 6. ⏳ Sprint 21 : Audit P6 + TAG v2.0.0
 
 ---
 
-_Derniere mise a jour : 2026-01-24 — OpsTracker V2 Sprint 17 Complete_
+_Derniere mise a jour : 2026-01-24 — OpsTracker V2 Sprint 18 Complete_

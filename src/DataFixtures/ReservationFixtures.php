@@ -107,6 +107,7 @@ class ReservationFixtures extends Fixture implements FixtureGroupInterface
             $mgr->setService($service);
             $mgr->setSite($sites[array_rand($sites)]);
             $mgr->setActif(true);
+            $mgr->generateBookingToken();
 
             $manager->persist($mgr);
             $managers[$service] = $mgr;
@@ -126,6 +127,7 @@ class ReservationFixtures extends Fixture implements FixtureGroupInterface
                 $agent->setSite($sites[array_rand($sites)]);
                 $agent->setManager($managers[$service]);
                 $agent->setActif(true);
+                $agent->generateBookingToken();
 
                 $manager->persist($agent);
                 $agents[] = $agent;

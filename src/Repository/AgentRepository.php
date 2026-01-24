@@ -116,6 +116,14 @@ class AgentRepository extends ServiceEntityRepository
     }
 
     /**
+     * Trouve un agent par son token de reservation
+     */
+    public function findOneByBookingToken(string $token): ?Agent
+    {
+        return $this->findOneBy(['bookingToken' => $token, 'actif' => true]);
+    }
+
+    /**
      * Trouve un agent par son email
      */
     public function findOneByEmail(string $email): ?Agent

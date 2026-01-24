@@ -1,0 +1,146 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier ma reservation - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex flex-col">
+    {# HEADER PUBLIC #}
+    <header class="bg-ink text-white px-8 py-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-white/60">OpsTracker</span>
+                    <h1 class="text-xl font-bold">{{ campagne.nom }}</h1>
+                </div>
+                <div class="text-right">
+                    <span class="text-sm text-white/60">Bonjour,</span>
+                    <p class="font-semibold">{{ agent.nomComplet }}</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {# MAIN CONTENT #}
+    <main class="flex-1 px-8 py-10">
+        <div class="max-w-4xl mx-auto">
+
+            {# Flash messages #}
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="mb-6 p-4 border-2 border-ink/20 bg-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'info' ? 'primary' : 'danger')) }}/10 flex items-center gap-3">
+                        <i data-feather="{{ label == 'success' ? 'check-circle' : (label == 'warning' ? 'alert-triangle' : (label == 'info' ? 'info' : 'alert-circle')) }}" class="w-5 h-5 text-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'info' ? 'primary' : 'danger')) }}"></i>
+                        <span class="text-sm font-medium">{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            {# HEADER #}
+            <div class="flex items-center gap-4 mb-8">
+                <a href="{{ path('app_booking_confirm', {token: token}) }}" class="flex items-center justify-center w-10 h-10 border-2 border-ink/10 hover:border-ink hover:bg-ink hover:text-white transition-colors">
+                    <i data-feather="arrow-left" class="w-5 h-5"></i>
+                </a>
+                <div>
+                    <h2 class="text-2xl font-bold text-ink">Modifier ma reservation</h2>
+                    <p class="text-muted">Selectionnez un nouveau creneau pour remplacer votre reservation actuelle.</p>
+                </div>
+            </div>
+
+            {# RESERVATION ACTUELLE #}
+            <div class="bg-paper border-2 border-ink/20 p-6 mb-8">
+                <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Creneau actuel (sera remplace)</p>
+                <div class="flex items-center gap-4">
+                    <span class="flex items-center gap-2">
+                        <i data-feather="calendar" class="w-4 h-4 text-muted"></i>
+                        {{ reservation.creneau.date|date('d/m/Y') }}
+                    </span>
+                    <span class="flex items-center gap-2">
+                        <i data-feather="clock" class="w-4 h-4 text-muted"></i>
+                        {{ reservation.creneau.heureDebut|date('H:i') }} - {{ reservation.creneau.heureFin|date('H:i') }}
+                    </span>
+                    <span class="flex items-center gap-2">
+                        <i data-feather="map-pin" class="w-4 h-4 text-muted"></i>
+                        {{ reservation.creneau.lieu ?? 'Non specifie' }}
+                    </span>
+                </div>
+            </div>
+
+            {# NOUVEAU CRENEAU #}
+            {% if creneaux_par_date|length > 0 %}
+            <form action="{{ path('app_booking_modify', {token: token}) }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('booking_modify') }}">
+
+                <h3 class="text-lg font-bold text-ink mb-4">Selectionnez un nouveau creneau</h3>
+
+                {% for dateKey, dateGroup in creneaux_par_date %}
+                <div class="mb-8">
+                    <h4 class="flex items-center gap-3 text-base font-semibold mb-4">
+                        <i data-feather="calendar" class="w-5 h-5 text-primary"></i>
+                        {{ dateGroup.date|date('l d F Y') }}
+                    </h4>
+
+                    <div class="space-y-3">
+                        {% for creneau in dateGroup.creneaux %}
+                        {% set isComplet = creneau.complet %}
+                        <label class="block cursor-pointer {{ isComplet ? 'opacity-50 cursor-not-allowed' : '' }}">
+                            <div class="bg-white border-2 border-ink/10 hover:border-primary p-4 flex items-center gap-4 transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                <input type="radio"
+                                       name="creneau"
+                                       value="{{ creneau.id }}"
+                                       class="w-5 h-5 text-primary"
+                                       {{ isComplet ? 'disabled' : '' }}
+                                       required>
+                                <div class="flex-1">
+                                    <p class="font-semibold text-ink">
+                                        {{ creneau.heureDebut|date('H:i') }} - {{ creneau.heureFin|date('H:i') }}
+                                    </p>
+                                    <p class="text-sm text-muted">
+                                        {{ creneau.lieu ?? 'Lieu non specifie' }} - {{ creneau.placesRestantes }} place{{ creneau.placesRestantes > 1 ? 's' : '' }} restante{{ creneau.placesRestantes > 1 ? 's' : '' }}
+                                    </p>
+                                </div>
+                                {% if isComplet %}
+                                <span class="px-2 py-1 bg-danger/10 text-danger text-xs font-bold uppercase">Complet</span>
+                                {% else %}
+                                <span class="px-2 py-1 bg-success/10 text-success text-xs font-bold uppercase">Disponible</span>
+                                {% endif %}
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="flex items-center gap-4 pt-6 border-t border-ink/10">
+                    <button type="submit" class="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                        <i data-feather="check" class="w-4 h-4"></i>
+                        Confirmer le changement
+                    </button>
+                    <a href="{{ path('app_booking_confirm', {token: token}) }}" class="flex items-center gap-2 px-6 py-3 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                        Annuler
+                    </a>
+                </div>
+            </form>
+            {% else %}
+            <div class="bg-white border-2 border-ink/20 border-dashed p-12 text-center">
+                <div class="w-16 h-16 mx-auto bg-warning/10 flex items-center justify-center mb-4">
+                    <i data-feather="calendar" class="w-8 h-8 text-warning"></i>
+                </div>
+                <h3 class="text-lg font-bold text-ink mb-2">Aucun autre creneau disponible</h3>
+                <p class="text-sm text-muted mb-6">Il n'y a pas d'autre creneau disponible pour cette campagne.</p>
+                <a href="{{ path('app_booking_confirm', {token: token}) }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-ink border-2 border-ink hover:bg-ink hover:text-white transition-colors">
+                    <i data-feather="arrow-left" class="w-4 h-4"></i>
+                    Conserver ma reservation actuelle
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+    </main>
+
+    {# FOOTER #}
+    <footer class="bg-paper border-t-2 border-ink/10 px-8 py-6">
+        <div class="max-w-4xl mx-auto text-center text-sm text-muted">
+            <p>OpsTracker - Gestion des interventions</p>
+        </div>
+    </footer>
+</div>
+{% endblock %}

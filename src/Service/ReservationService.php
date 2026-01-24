@@ -9,6 +9,7 @@ use App\Entity\Reservation;
 use App\Entity\Utilisateur;
 use App\Repository\ReservationRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Service de gestion des reservations pour OpsTracker V2.
@@ -25,6 +26,8 @@ class ReservationService
     public function __construct(
         private EntityManagerInterface $entityManager,
         private ReservationRepository $reservationRepository,
+        private ?NotificationService $notificationService = null,
+        private ?LoggerInterface $logger = null,
     ) {
     }
 
@@ -74,7 +77,31 @@ class ReservationService
         $this->entityManager->persist($reservation);
         $this->entityManager->flush();
 
+        // RG-122 : Confirmation automatique = email + ICS
+        // RG-126 : Notification si positionne par tiers
+        $this->envoyerNotificationConfirmation($reservation);
+
         return $reservation;
+    }
+
+    /**
+     * RG-122, RG-126 : Envoie la notification de confirmation.
+     */
+    private function envoyerNotificationConfirmation(Reservation $reservation): void
+    {
+        if ($this->notificationService === null) {
+            return;
+        }
+
+        try {
+            $this->notificationService->envoyerConfirmation($reservation);
+        } catch (\Exception $e) {
+            // Log error but don't fail the reservation
+            $this->logger?->error('Erreur envoi notification confirmation', [
+                'reservation_id' => $reservation->getId(),
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -94,10 +121,36 @@ class ReservationService
             throw new \LogicException('Le nouveau creneau est verrouille.');
         }
 
+        // Sauvegarder l'ancien creneau pour la notification
+        $ancienCreneau = $reservation->getCreneau();
+
         $reservation->setCreneau($nouveauCreneau);
         $this->entityManager->flush();
 
+        // RG-126 : Notification de modification
+        $this->envoyerNotificationModification($reservation, $ancienCreneau);
+
         return $reservation;
+    }
+
+    /**
+     * RG-126 : Envoie la notification de modification.
+     */
+    private function envoyerNotificationModification(Reservation $reservation, Creneau $ancienCreneau): void
+    {
+        if ($this->notificationService === null) {
+            return;
+        }
+
+        try {
+            $this->notificationService->envoyerModification($reservation, $ancienCreneau);
+        } catch (\Exception $e) {
+            // Log error but don't fail the modification
+            $this->logger?->error('Erreur envoi notification modification', [
+                'reservation_id' => $reservation->getId(),
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
@@ -107,6 +160,29 @@ class ReservationService
     {
         $reservation->annuler();
         $this->entityManager->flush();
+
+        // Notification d'annulation
+        $this->envoyerNotificationAnnulation($reservation);
+    }
+
+    /**
+     * Envoie la notification d'annulation.
+     */
+    private function envoyerNotificationAnnulation(Reservation $reservation): void
+    {
+        if ($this->notificationService === null) {
+            return;
+        }
+
+        try {
+            $this->notificationService->envoyerAnnulation($reservation);
+        } catch (\Exception $e) {
+            // Log error but don't fail the cancellation
+            $this->logger?->error('Erreur envoi notification annulation', [
+                'reservation_id' => $reservation->getId(),
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

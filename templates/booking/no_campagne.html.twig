@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Aucune campagne active - OpsTracker{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex flex-col">
+    {# HEADER PUBLIC #}
+    <header class="bg-ink text-white px-8 py-6">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-white/60">OpsTracker</span>
+                    <h1 class="text-xl font-bold">Reservation</h1>
+                </div>
+                <div class="text-right">
+                    <span class="text-sm text-white/60">Bonjour,</span>
+                    <p class="font-semibold">{{ agent.nomComplet }}</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {# MAIN CONTENT #}
+    <main class="flex-1 px-8 py-10 flex items-center justify-center">
+        <div class="max-w-lg text-center">
+            <div class="w-20 h-20 mx-auto bg-warning/10 flex items-center justify-center mb-6">
+                <i data-feather="calendar-off" class="w-10 h-10 text-warning"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-ink mb-4">Aucune campagne active</h2>
+            <p class="text-muted mb-8">
+                Il n'y a actuellement aucune campagne ouverte aux reservations.
+                Vous serez notifie par email lorsqu'une nouvelle campagne sera disponible.
+            </p>
+            <div class="bg-paper p-6 text-left">
+                <p class="text-sm text-muted">
+                    <strong class="text-ink">Une question ?</strong><br>
+                    Contactez votre gestionnaire ou l'equipe support.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    {# FOOTER #}
+    <footer class="bg-paper border-t-2 border-ink/10 px-8 py-6">
+        <div class="max-w-4xl mx-auto text-center text-sm text-muted">
+            <p>OpsTracker - Gestion des interventions</p>
+        </div>
+    </footer>
+</div>
+{% endblock %}
