@@ -148,11 +148,11 @@
 
         {# Actions #}
         <div class="flex items-center gap-4">
-            <a href="{{ path('app_operation_index', {id: campagne.id, segment: segment.segment.id}) }}" class="flex items-center gap-2 px-6 py-3 bg-ink text-white font-semibold hover:bg-ink/90 transition-colors">
+            <a href="{{ path('app_operation_index', {campagne: campagne.id, segment: segment.segment.id}) }}" class="flex items-center gap-2 px-6 py-3 bg-ink text-white font-semibold hover:bg-ink/90 transition-colors">
                 <i data-feather="list" class="w-4 h-4"></i>
                 Voir les operations
             </a>
-            <a href="{{ path('app_segment_edit', {id: campagne.id, segmentId: segment.segment.id}) }}" class="flex items-center gap-2 px-6 py-3 border-2 border-ink text-ink font-medium hover:bg-ink hover:text-white transition-colors">
+            <a href="{{ path('app_segment_edit', {campagne: campagne.id, id: segment.segment.id}) }}" class="flex items-center gap-2 px-6 py-3 border-2 border-ink text-ink font-medium hover:bg-ink hover:text-white transition-colors">
                 <i data-feather="edit-2" class="w-4 h-4"></i>
                 Modifier le segment
             </a>

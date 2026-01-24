@@ -109,10 +109,10 @@
         <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
             Dashboard
         </a>
-        <a href="{{ path('app_operation_index', {id: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+        <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
             Operations
         </a>
-        <a href="{{ path('app_segment_index', {id: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+        <a href="{{ path('app_segment_index', {campagne: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
             Segments
         </a>
         <a href="{{ path('app_prerequis_index', {campagneId: campagne.id}) }}" class="py-4 text-sm font-semibold text-ink tab-active">
@@ -291,7 +291,7 @@
             <div class="bg-white border-2 border-dashed border-ink/30 p-8 text-center">
                 <i data-feather="folder" class="w-12 h-12 mx-auto text-muted mb-4"></i>
                 <p class="text-muted">Aucun segment defini pour cette campagne</p>
-                <a href="{{ path('app_segment_index', {id: campagne.id}) }}" class="inline-flex items-center gap-2 mt-4 px-4 py-2 text-sm font-medium text-primary border-2 border-primary hover:bg-primary hover:text-white transition-colors">
+                <a href="{{ path('app_segment_index', {campagne: campagne.id}) }}" class="inline-flex items-center gap-2 mt-4 px-4 py-2 text-sm font-medium text-primary border-2 border-primary hover:bg-primary hover:text-white transition-colors">
                     <i data-feather="grid" class="w-4 h-4"></i>
                     Gerer les segments
                 </a>

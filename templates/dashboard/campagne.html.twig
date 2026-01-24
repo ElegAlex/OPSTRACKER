@@ -114,7 +114,7 @@
                 <i data-feather="download" class="w-4 h-4"></i>
                 Export PDF
             </a>
-            <a href="{{ path('app_operation_index', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+            <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
                 <i data-feather="list" class="w-4 h-4"></i>
                 Operations
             </a>
@@ -130,10 +130,10 @@
         <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="py-4 text-sm font-semibold text-ink tab-active">
             Dashboard
         </a>
-        <a href="{{ path('app_operation_index', {id: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+        <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
             Operations
         </a>
-        <a href="{{ path('app_segment_index', {id: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
+        <a href="{{ path('app_segment_index', {campagne: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
             Segments
         </a>
         <a href="{{ path('app_prerequis_index', {campagneId: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
