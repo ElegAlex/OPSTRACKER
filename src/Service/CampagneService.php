@@ -252,4 +252,120 @@ class CampagneService
             'progression_globale' => $progressionGlobale,
         ];
     }
+
+    /**
+     * Retourne les donnees pour le graphique d'evolution (format Chart.js).
+     * Affiche le cumul des realisations sur les 14 derniers jours.
+     *
+     * @return array{labels: string[], datasets: array[]}
+     */
+    public function getEvolutionTemporelle(Campagne $campagne): array
+    {
+        $operations = $campagne->getOperations();
+
+        // Compter les operations realisees par date
+        $parDate = [];
+        foreach ($operations as $operation) {
+            if ($operation->getStatut() === Operation::STATUT_REALISE && $operation->getDateRealisation()) {
+                $date = $operation->getDateRealisation()->format('Y-m-d');
+                $parDate[$date] = ($parDate[$date] ?? 0) + 1;
+            }
+        }
+
+        // Generer les 14 derniers jours
+        $labels = [];
+        $values = [];
+        $cumul = 0;
+
+        $dateDebut = $campagne->getDateDebut();
+        $dateFin = $campagne->getDateFin();
+        $aujourd_hui = new \DateTimeImmutable();
+
+        // Limiter a la periode de la campagne, max 14 jours
+        $debut = max($dateDebut, $aujourd_hui->modify('-13 days'));
+        $fin = min($dateFin, $aujourd_hui);
+
+        $periode = new \DatePeriod($debut, new \DateInterval('P1D'), $fin->modify('+1 day'));
+
+        foreach ($periode as $date) {
+            $dateStr = $date->format('Y-m-d');
+            $labels[] = $date->format('d/m');
+            $cumul += ($parDate[$dateStr] ?? 0);
+            $values[] = $cumul;
+        }
+
+        return [
+            'labels' => $labels,
+            'datasets' => [
+                [
+                    'label' => 'Operations realisees',
+                    'data' => $values,
+                    'borderColor' => '#059669',
+                    'backgroundColor' => 'rgba(5, 150, 105, 0.1)',
+                    'fill' => true,
+                    'tension' => 0.3,
+                    'pointRadius' => 3,
+                    'pointBackgroundColor' => '#059669',
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Retourne les donnees pour le graphique de repartition par statut (format Chart.js).
+     *
+     * @return array{labels: string[], datasets: array[]}
+     */
+    public function getRepartitionStatuts(Campagne $campagne): array
+    {
+        $operations = $campagne->getOperations();
+
+        $parStatut = [
+            'realise' => 0,
+            'planifie' => 0,
+            'reporte' => 0,
+            'a_remedier' => 0,
+            'a_planifier' => 0,
+        ];
+
+        foreach ($operations as $operation) {
+            $statut = $operation->getStatut();
+            if (isset($parStatut[$statut])) {
+                $parStatut[$statut]++;
+            }
+        }
+
+        // Filtrer les statuts avec des valeurs > 0
+        $labels = [];
+        $data = [];
+        $colors = [];
+
+        $statutConfig = [
+            'realise' => ['label' => 'Realise', 'color' => '#059669'],
+            'planifie' => ['label' => 'Planifie', 'color' => '#2563eb'],
+            'reporte' => ['label' => 'Reporte', 'color' => '#d97706'],
+            'a_remedier' => ['label' => 'A remedier', 'color' => '#dc2626'],
+            'a_planifier' => ['label' => 'A planifier', 'color' => '#6b7280'],
+        ];
+
+        foreach ($parStatut as $statut => $count) {
+            if ($count > 0 && isset($statutConfig[$statut])) {
+                $labels[] = $statutConfig[$statut]['label'];
+                $data[] = $count;
+                $colors[] = $statutConfig[$statut]['color'];
+            }
+        }
+
+        return [
+            'labels' => $labels,
+            'datasets' => [
+                [
+                    'data' => $data,
+                    'backgroundColor' => $colors,
+                    'borderWidth' => 2,
+                    'borderColor' => '#ffffff',
+                ],
+            ],
+        ];
+    }
 }

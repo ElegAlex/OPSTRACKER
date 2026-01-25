@@ -112,6 +112,67 @@
             </div>
         </div>
 
+        {# ============================================= #}
+        {# GRAPHIQUES DASHBOARD - Compatible Turbo Drive #}
+        {# ============================================= #}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+
+            {# GRAPHIQUE 1 : Evolution temporelle #}
+            <div class="bg-white border-2 border-ink p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                        <i data-feather="trending-up" class="w-4 h-4"></i>
+                        Evolution des realisations
+                    </h3>
+                    <span class="text-xs text-muted">14 derniers jours</span>
+                </div>
+                <div class="h-48">
+                    {% if evolutionData.labels|length > 0 %}
+                        <canvas data-controller="chart"
+                                data-chart-type-value="line"
+                                data-chart-data-value="{{ evolutionData|json_encode|e('html_attr') }}"
+                                data-chart-options-value="{{ evolutionOptions|json_encode|e('html_attr') }}">
+                        </canvas>
+                    {% else %}
+                        <div class="flex items-center justify-center h-full text-muted">
+                            <div class="text-center">
+                                <i data-feather="bar-chart-2" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                                <p class="text-sm">Aucune donnee disponible</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# GRAPHIQUE 2 : Repartition par statut #}
+            <div class="bg-white border-2 border-ink p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm font-bold text-ink uppercase tracking-wider flex items-center gap-2">
+                        <i data-feather="pie-chart" class="w-4 h-4"></i>
+                        Repartition par statut
+                    </h3>
+                    <span class="text-xs text-muted">{{ statistiques.total }} operations</span>
+                </div>
+                <div class="h-48">
+                    {% if repartitionData.datasets[0].data|length > 0 %}
+                        <canvas data-controller="chart"
+                                data-chart-type-value="doughnut"
+                                data-chart-data-value="{{ repartitionData|json_encode|e('html_attr') }}"
+                                data-chart-options-value="{{ repartitionOptions|json_encode|e('html_attr') }}">
+                        </canvas>
+                    {% else %}
+                        <div class="flex items-center justify-center h-full text-muted">
+                            <div class="text-center">
+                                <i data-feather="pie-chart" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                                <p class="text-sm">Aucune donnee disponible</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
         {# Quick actions #}
         <div class="grid grid-cols-6 gap-6 mb-8">
             <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="bg-white border-2 border-ink p-6 hover:bg-paper transition-colors group">

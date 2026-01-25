@@ -291,7 +291,7 @@ class CampagneController extends AbstractController
     }
 
     /**
-     * Detail d'une campagne.
+     * Detail d'une campagne avec graphiques dashboard.
      */
     #[Route('/{id}', name: 'app_campagne_show', methods: ['GET'])]
     public function show(Campagne $campagne): Response
@@ -299,10 +299,31 @@ class CampagneController extends AbstractController
         $statistiques = $this->campagneService->getStatistiquesCampagne($campagne);
         $transitions = $this->campagneService->getTransitionsDisponibles($campagne);
 
+        // Donnees graphiques (format Chart.js)
+        $evolutionData = $this->campagneService->getEvolutionTemporelle($campagne);
+        $evolutionOptions = [
+            'scales' => [
+                'y' => ['beginAtZero' => true, 'ticks' => ['stepSize' => 1]],
+            ],
+            'plugins' => ['legend' => ['display' => false]],
+        ];
+
+        $repartitionData = $this->campagneService->getRepartitionStatuts($campagne);
+        $repartitionOptions = [
+            'cutout' => '60%',
+            'plugins' => [
+                'legend' => ['position' => 'right', 'labels' => ['boxWidth' => 12, 'padding' => 12]],
+            ],
+        ];
+
         return $this->render('campagne/show.html.twig', [
             'campagne' => $campagne,
             'statistiques' => $statistiques,
             'transitions' => $transitions,
+            'evolutionData' => $evolutionData,
+            'evolutionOptions' => $evolutionOptions,
+            'repartitionData' => $repartitionData,
+            'repartitionOptions' => $repartitionOptions,
         ]);
     }
 
