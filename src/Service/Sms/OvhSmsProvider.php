@@ -42,16 +42,18 @@ class OvhSmsProvider implements SmsProviderInterface
                 'noStopClause' => true, // Pas de mention STOP (notif interne)
             ]);
 
+            // FINDING-002 : Masquer le telephone dans les logs (RGPD Art. 32)
             $this->logger->info('[SMS OVH] Message envoye', [
-                'to' => $to,
+                'to' => $this->maskPhone($to),
                 'jobId' => $result['ids'][0] ?? null,
                 'credits' => $result['totalCreditsRemoved'] ?? null,
             ]);
 
             return true;
         } catch (\Exception $e) {
+            // FINDING-002 : Masquer le telephone dans les logs d'erreur aussi
             $this->logger->error('[SMS OVH] Erreur envoi', [
-                'to' => $to,
+                'to' => $this->maskPhone($to),
                 'error' => $e->getMessage(),
             ]);
 
@@ -62,6 +64,22 @@ class OvhSmsProvider implements SmsProviderInterface
     public function getProviderName(): string
     {
         return 'ovh';
+    }
+
+    /**
+     * Masque le numero de telephone pour les logs (RGPD Art. 32).
+     *
+     * FINDING-002 : Les donnees personnelles ne doivent pas apparaitre en clair dans les logs.
+     * Exemple : +33612345678 → +336****5678
+     */
+    private function maskPhone(string $phone): string
+    {
+        $length = strlen($phone);
+        if ($length < 8) {
+            return '****';
+        }
+
+        return substr($phone, 0, 4) . '****' . substr($phone, -4);
     }
 
     /**

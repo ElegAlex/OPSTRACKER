@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Agent;
 use App\Entity\Notification;
 use App\Entity\Reservation;
+use App\Repository\NotificationRepository;
 use App\Service\Sms\SmsProviderInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -19,6 +20,7 @@ use Psr\Log\LoggerInterface;
  * - SMS envoye uniquement si smsOptIn = true ET telephone valide
  * - SMS desactivable globalement via SMS_ENABLED=false
  * - Historisation dans la table Notification
+ * - FINDING-003 : Protection contre les doubles envois
  */
 class SmsService
 {
@@ -30,6 +32,7 @@ class SmsService
     public function __construct(
         private SmsProviderInterface $provider,
         private EntityManagerInterface $entityManager,
+        private NotificationRepository $notificationRepository,
         private LoggerInterface $logger,
         private bool $smsEnabled,
     ) {
@@ -43,6 +46,16 @@ class SmsService
         $agent = $reservation->getAgent();
 
         if (!$this->canSend($agent)) {
+            return false;
+        }
+
+        // FINDING-003 : Protection contre les doubles envois SMS
+        if ($this->hasAlreadySent($reservation, self::TYPE_RAPPEL_SMS)) {
+            $this->logger->info('[SMS] Rappel deja envoye, skip', [
+                'reservation' => $reservation->getId(),
+                'agent' => $agent->getId(),
+            ]);
+
             return false;
         }
 
@@ -68,6 +81,16 @@ class SmsService
             return false;
         }
 
+        // FINDING-003 : Protection contre les doubles envois SMS
+        if ($this->hasAlreadySent($reservation, self::TYPE_CONFIRMATION_SMS)) {
+            $this->logger->info('[SMS] Confirmation deja envoyee, skip', [
+                'reservation' => $reservation->getId(),
+                'agent' => $agent->getId(),
+            ]);
+
+            return false;
+        }
+
         $creneau = $reservation->getCreneau();
         $message = sprintf(
             '[OpsTracker] Confirme: %s a %s. Details par email.',
@@ -86,6 +109,16 @@ class SmsService
         $agent = $reservation->getAgent();
 
         if (!$this->canSend($agent)) {
+            return false;
+        }
+
+        // FINDING-003 : Protection contre les doubles envois SMS
+        if ($this->hasAlreadySent($reservation, self::TYPE_ANNULATION_SMS)) {
+            $this->logger->info('[SMS] Annulation deja envoyee, skip', [
+                'reservation' => $reservation->getId(),
+                'agent' => $agent->getId(),
+            ]);
+
             return false;
         }
 
@@ -116,6 +149,22 @@ class SmsService
         }
 
         return true;
+    }
+
+    /**
+     * Verifie si un SMS de ce type a deja ete envoye pour cette reservation.
+     *
+     * FINDING-003 : Empeche les doubles envois SMS (couts, spam).
+     */
+    private function hasAlreadySent(Reservation $reservation, string $type): bool
+    {
+        $existing = $this->notificationRepository->findOneBy([
+            'reservation' => $reservation,
+            'type' => $type,
+            'statut' => Notification::STATUT_SENT,
+        ]);
+
+        return $existing !== null;
     }
 
     /**

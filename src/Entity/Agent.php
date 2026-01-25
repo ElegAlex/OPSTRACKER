@@ -71,8 +71,13 @@ class Agent
 
     /**
      * Numero de telephone pour les notifications SMS (format E.164)
+     * FINDING-004 : Validation stricte du format international
      */
     #[ORM\Column(length: 20, nullable: true)]
+    #[Assert\Regex(
+        pattern: '/^\+[1-9]\d{6,14}$/',
+        message: 'Le numero de telephone doit etre au format international E.164 (ex: +33612345678)'
+    )]
     private ?string $telephone = null;
 
     /**
@@ -218,18 +223,49 @@ class Agent
 
     /**
      * Definit le numero de telephone en le normalisant au format E.164.
+     *
+     * FINDING-004 : Validation stricte avec normalisation et rejet des invalides.
+     *
+     * Formats acceptes :
+     * - +33612345678 (E.164 international)
+     * - 0612345678, 06 12 34 56 78, 06-12-34-56-78 (francais mobiles)
+     * - 33612345678 (sans le +)
+     *
+     * @throws \InvalidArgumentException Si le format est invalide apres normalisation
      */
     public function setTelephone(?string $telephone): static
     {
-        if ($telephone !== null) {
-            // Supprimer tous les caracteres non numeriques sauf le +
-            $telephone = preg_replace('/[^0-9+]/', '', $telephone);
-            // Convertir les numeros francais commencant par 0 en format E.164
-            if (str_starts_with($telephone, '0')) {
-                $telephone = '+33' . substr($telephone, 1);
-            }
+        // Accepter null ou chaine vide
+        if ($telephone === null || $telephone === '') {
+            $this->telephone = null;
+
+            return $this;
         }
-        $this->telephone = $telephone;
+
+        // Normaliser : supprimer espaces, tirets, points, parentheses
+        $normalized = preg_replace('/[\s\-\.\(\)]/', '', $telephone);
+
+        // Supprimer tous les caracteres non numeriques sauf le +
+        $normalized = preg_replace('/[^0-9+]/', '', $normalized);
+
+        // Convertir format francais mobile 06/07 → +33
+        if (preg_match('/^0([67]\d{8})$/', $normalized, $matches)) {
+            $normalized = '+33' . $matches[1];
+        }
+
+        // Ajouter + si commence par indicatif 33 sans +
+        if (preg_match('/^33([67]\d{8})$/', $normalized, $matches)) {
+            $normalized = '+33' . $matches[1];
+        }
+
+        // FINDING-004 : Valider format E.164 strict
+        if (!preg_match('/^\+[1-9]\d{6,14}$/', $normalized)) {
+            throw new \InvalidArgumentException(
+                sprintf('Numero de telephone invalide: "%s". Format attendu: +33612345678 (E.164)', $telephone)
+            );
+        }
+
+        $this->telephone = $normalized;
 
         return $this;
     }

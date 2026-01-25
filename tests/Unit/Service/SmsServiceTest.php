@@ -9,6 +9,7 @@ use App\Entity\Campagne;
 use App\Entity\Creneau;
 use App\Entity\Notification;
 use App\Entity\Reservation;
+use App\Repository\NotificationRepository;
 use App\Service\Sms\LogSmsProvider;
 use App\Service\Sms\SmsProviderInterface;
 use App\Service\SmsService;
@@ -26,21 +27,30 @@ use Psr\Log\NullLogger;
  * - Agent avec opt-in sans telephone -> SMS non envoye
  * - SMS desactive globalement -> SMS non envoye
  * - Test des differents types de SMS (rappel, confirmation, annulation)
+ * - FINDING-003 : Protection contre les doubles envois
  */
 class SmsServiceTest extends TestCase
 {
     private EntityManagerInterface&MockObject $entityManager;
+    private NotificationRepository&MockObject $notificationRepository;
     private SmsProviderInterface&MockObject $provider;
     private SmsService $service;
 
     protected function setUp(): void
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->notificationRepository = $this->createMock(NotificationRepository::class);
         $this->provider = $this->createMock(SmsProviderInterface::class);
+
+        // Par defaut, aucune notification existante (pas de doublon)
+        $this->notificationRepository
+            ->method('findOneBy')
+            ->willReturn(null);
 
         $this->service = new SmsService(
             $this->provider,
             $this->entityManager,
+            $this->notificationRepository,
             new NullLogger(),
             true // smsEnabled
         );
@@ -109,6 +119,7 @@ class SmsServiceTest extends TestCase
         $service = new SmsService(
             $this->provider,
             $this->entityManager,
+            $this->notificationRepository,
             new NullLogger(),
             false // smsEnabled = false
         );
@@ -237,6 +248,7 @@ class SmsServiceTest extends TestCase
         $disabledService = new SmsService(
             $this->provider,
             $this->entityManager,
+            $this->notificationRepository,
             new NullLogger(),
             false
         );
@@ -263,6 +275,7 @@ class SmsServiceTest extends TestCase
         $service = new SmsService(
             $logProvider,
             $this->entityManager,
+            $this->notificationRepository,
             new NullLogger(),
             true
         );
@@ -282,6 +295,73 @@ class SmsServiceTest extends TestCase
 
         $this->assertTrue($result);
         $this->assertEquals('log', $logProvider->getProviderName());
+    }
+
+    // ==========================================
+    // FINDING-003 : Tests double envoi
+    // ==========================================
+
+    public function testEnvoyerRappelSkipSiDejaEnvoye(): void
+    {
+        $agent = $this->createAgent(true, '+33612345678');
+        $reservation = $this->createReservation($agent);
+
+        // Simuler une notification existante (deja envoyee)
+        $existingNotification = new Notification();
+        $existingNotification->setType('rappel_sms');
+        $existingNotification->markAsSent();
+
+        $notificationRepo = $this->createMock(NotificationRepository::class);
+        $notificationRepo
+            ->method('findOneBy')
+            ->willReturn($existingNotification); // Doublon trouve
+
+        $service = new SmsService(
+            $this->provider,
+            $this->entityManager,
+            $notificationRepo,
+            new NullLogger(),
+            true
+        );
+
+        // Le provider ne doit PAS etre appele
+        $this->provider
+            ->expects($this->never())
+            ->method('send');
+
+        $result = $service->envoyerRappel($reservation);
+
+        $this->assertFalse($result);
+    }
+
+    public function testEnvoyerConfirmationSkipSiDejaEnvoye(): void
+    {
+        $agent = $this->createAgent(true, '+33612345678');
+        $reservation = $this->createReservation($agent);
+
+        // Simuler une notification existante
+        $existingNotification = new Notification();
+
+        $notificationRepo = $this->createMock(NotificationRepository::class);
+        $notificationRepo
+            ->method('findOneBy')
+            ->willReturn($existingNotification);
+
+        $service = new SmsService(
+            $this->provider,
+            $this->entityManager,
+            $notificationRepo,
+            new NullLogger(),
+            true
+        );
+
+        $this->provider
+            ->expects($this->never())
+            ->method('send');
+
+        $result = $service->envoyerConfirmation($reservation);
+
+        $this->assertFalse($result);
     }
 
     // ==========================================
