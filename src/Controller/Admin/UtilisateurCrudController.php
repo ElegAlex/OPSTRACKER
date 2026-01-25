@@ -25,7 +25,12 @@ use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+/**
+ * CRUD Utilisateurs - Reserve aux administrateurs.
+ */
+#[IsGranted('ROLE_ADMIN')]
 class UtilisateurCrudController extends AbstractCrudController
 {
     public function __construct(

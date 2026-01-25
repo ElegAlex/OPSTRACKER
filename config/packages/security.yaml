@@ -38,7 +38,7 @@ security:
     access_control:
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/share/, roles: PUBLIC_ACCESS }  # US-605 : Partage lecture seule
-        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/admin, roles: ROLE_GESTIONNAIRE }  # Sophie (gestionnaire) accede a admin
         - { path: ^/, roles: ROLE_USER }
 
 when@test:

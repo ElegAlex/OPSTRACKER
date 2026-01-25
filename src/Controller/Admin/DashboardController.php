@@ -8,6 +8,7 @@ use App\Entity\ChecklistTemplate;
 use App\Entity\TypeOperation;
 use App\Entity\Utilisateur;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminDashboard;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Assets;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
@@ -39,6 +40,12 @@ class DashboardController extends AbstractDashboardController
         ;
     }
 
+    public function configureAssets(): Assets
+    {
+        return Assets::new()
+            ->addCssFile('styles/admin.css');
+    }
+
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Tableau de bord', 'fa fa-home');
@@ -51,15 +58,16 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToCrud('Types d\'operation', 'fa fa-cogs', TypeOperation::class);
         yield MenuItem::linkToCrud('Templates checklist', 'fa fa-check-square', ChecklistTemplate::class);
 
-        yield MenuItem::section('Utilisateurs');
-        yield MenuItem::linkToCrud('Utilisateurs', 'fa fa-users', Utilisateur::class);
+        // Section Admin uniquement (gestion utilisateurs)
+        if ($this->isGranted('ROLE_ADMIN')) {
+            yield MenuItem::section('Administration');
+            yield MenuItem::linkToCrud('Utilisateurs', 'fa fa-users', Utilisateur::class);
+            yield MenuItem::linkToRoute('Historique (RG-070)', 'fa fa-history', 'audit_index');
+            yield MenuItem::linkToRoute('Export/Import (RG-100)', 'fa fa-exchange-alt', 'admin_configuration_index');
+        }
 
         yield MenuItem::section('Reservation V2');
         yield MenuItem::linkToCrud('Agents', 'fa fa-user-tie', Agent::class);
-
-        yield MenuItem::section('Audit & Config');
-        yield MenuItem::linkToRoute('Historique (RG-070)', 'fa fa-history', 'audit_index');
-        yield MenuItem::linkToRoute('Export/Import (RG-100)', 'fa fa-exchange-alt', 'admin_configuration_index');
 
         yield MenuItem::section('');
         yield MenuItem::linkToRoute('Retour a OpsTracker', 'fa fa-arrow-left', 'app_home');
