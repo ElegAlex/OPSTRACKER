@@ -1,9 +1,11 @@
 # PROGRESS-V2 — Module Reservation
 
-> **Derniere mise a jour** : 2026-01-24 (Session #25 - Sprint V2.1c Notifications SMS)
+> **Derniere mise a jour** : 2026-01-25 (Sprint V2.1.1 Complete)
 > **Source** : P4.1 - EPIC-10, EPIC-11, EPIC-12
 > **Total V2** : 26 User Stories | 3 EPICs
-> **Audit P6** : Score 100/100 - V2 READY
+> **Audit P6 V2.0** : Score 100/100 - V2.0 READY
+> **Audit P6 V2.1** : Score 98/100 - V2.1 READY
+> **Audit P6 V2.1.1** : Score 95/100 - **V2.1.1 CONFORME** (post-remediation)
 
 ---
 
@@ -225,13 +227,14 @@
 | Taches terminees | 52/52 | 52 | ✅ |
 | User Stories done | 26/26 | 26 | ✅ |
 | Entites creees | 5/5 | 5 | ✅ |
-| Services crees | 4/4 | 4 | ✅ |
-| Routes V2 | 21/21 | 21 | ✅ |
-| Templates V2 | 22/22 | 22 | ✅ |
+| Services crees | 6/6 | 6 | ✅ |
+| Routes V2 | 23/23 | 23 | ✅ |
+| Templates V2 | 24/24 | 24 | ✅ |
 | Fixtures | 55 agents, 60 creneaux, 30 reservations | OK | ✅ |
-| Tests services V2 | 60 | 50+ | ✅ |
+| Tests services V2 | 74 | 50+ | ✅ |
 | Tests E2E | 10 scenarios | 10 | ✅ |
-| Score Audit P6 | **100/100** | >=95% | ✅ |
+| Score Audit P6 V2.0 | **100/100** | >=95% | ✅ |
+| Score Audit P6 V2.1.1 | **95/100** | >=90% | ✅ |
 
 ---
 
@@ -291,10 +294,13 @@
 7. ✅ ~~TAG v2.0.0~~ - CREE
 8. ✅ ~~Sprint V2.1a : Qualite & Quick Wins~~
 9. ✅ ~~Sprint V2.1b : Vue Calendrier~~
+10. ✅ ~~Sprint V2.1c : Notifications SMS~~
+11. ✅ ~~Sprint V2.1.1 : Corrections Securite~~ - TAG v2.1.1
+12. ⏳ Sprint V2.2 : Findings residuels (IDOR, retention, rate limit)
 
 ---
 
-## V2.1b COMPLETE
+## V2.1.1 COMPLETE - MISE EN PRODUCTION AUTORISEE
 
 ---
 
@@ -421,6 +427,44 @@ php bin/console app:send-reminders --dry-run
 
 ---
 
+### Sprint V2.1.1 — Corrections Securite ✅
+
+> **Date** : 2026-01-25
+> **Commit** : `1e83cba`
+> **Tag** : `v2.1.1`
+> **Audit** : 70/100 → 95/100 (CONFORME)
+
+| ID | Finding | Severite | Statut | Correction |
+|----|---------|----------|--------|------------|
+| FINDING-001 | XSS innerHTML modal calendrier | CRITICAL | ✅ CORRIGE | Fonction `escapeHtml()` |
+| FINDING-002 | Telephones en clair dans logs | CRITICAL | ✅ CORRIGE | Fonction `maskPhone()` |
+| FINDING-003 | Pas de protection double envoi SMS | HIGH | ✅ CORRIGE | Methode `hasAlreadySent()` |
+| FINDING-004 | Validation telephone incomplete | HIGH | ✅ CORRIGE | `Assert\Regex` + exception |
+
+**Fichiers modifies Sprint V2.1.1** :
+- `templates/manager/calendar.html.twig` - Ajout `escapeHtml()`, echappement donnees
+- `src/Service/Sms/OvhSmsProvider.php` - Ajout `maskPhone()` pour logs RGPD
+- `src/Service/Sms/LogSmsProvider.php` - Ajout `maskPhone()` pour logs RGPD
+- `src/Service/SmsService.php` - Ajout `NotificationRepository`, `hasAlreadySent()`
+- `src/Entity/Agent.php` - `Assert\Regex` E.164, validation stricte `setTelephone()`
+
+**Fichiers crees Sprint V2.1.1** :
+- `tests/Unit/Entity/AgentTest.php` - 12 tests validation telephone
+- `CADRAGE/P6-Audit-V2.1-Complement.md` - Rapport audit initial (70/100)
+- `CADRAGE/P6-Audit-V2.1.1-Remediation.md` - Rapport remediation
+- `CADRAGE/P6-Audit-V2.1.1-Final.md` - Rapport audit final (95/100)
+
+**Tests ajoutes** :
+- `AgentTest` : 12 tests (normalisation, validation, rejet invalides, canReceiveSms)
+- `SmsServiceTest` : +2 tests (doublon rappel, doublon confirmation)
+
+**Findings residuels (non critiques, backlog V2.2)** :
+- FINDING-005 (MEDIUM) : IDOR campagne - Voter a implementer
+- FINDING-008 (LOW) : Duree conservation notifications
+- FINDING-010 (LOW) : Rate limit SMS par agent/jour
+
+---
+
 ### Phase P7 - Post-deploiement (4-8 semaines)
 
 1. Deploiement sur serveur de test CPAM 92
@@ -430,4 +474,81 @@ php bin/console app:send-reminders --dry-run
 
 ---
 
-_Derniere mise a jour : 2026-01-24 — Sprint V2.1c Notifications SMS Complete_
+---
+
+## Audit P6 V2.1 — Resultats ✅
+
+> **Date** : 2026-01-25
+> **Score Final** : 98/100
+> **Verdict** : V2.1 READY
+
+### Scores par Critere
+
+| Critere | Score | Statut |
+|---------|-------|--------|
+| P6.1 Code Quality (PHPStan) | 20/20 | PASS |
+| P6.2 CI/CD Pipeline | 15/15 | PASS |
+| P6.3 Routes V2.1 | 20/20 | PASS |
+| P6.4 Services V2.1 | 20/20 | PASS |
+| P6.5 Tests V2.1 | 15/15 | PASS |
+| P6.6 Securite & RGPD | 8/10 | WARNING |
+
+---
+
+## Audit P6 V2.1.1 Complementaire — Resultats ✅
+
+> **Date** : 2026-01-25
+> **Score Initial** : 70/100 (INSUFFISANT)
+> **Score Final** : 95/100 (CONFORME)
+> **Verdict** : V2.1.1 MISE EN PRODUCTION AUTORISEE
+
+### Scores par Critere (Post-Remediation)
+
+| Critere | Avant | Apres | Statut |
+|---------|-------|-------|--------|
+| AC-1 XSS Protection | 10/15 | 15/15 | PASS |
+| AC-2 Injection JSON | 10/10 | 10/10 | PASS |
+| AC-3 Permissions | 8/10 | 8/10 | PASS |
+| AC-4 Validation Telephone | 7/15 | 14/15 | PASS |
+| AC-5 Rate Limiting SMS | 4/10 | 9/10 | PASS |
+| AC-6 Gestion Erreurs | 10/10 | 10/10 | PASS |
+| AC-7 RGPD | 9/15 | 14/15 | PASS |
+| AC-8 Tests | 12/15 | 15/15 | PASS |
+
+### Findings Corriges
+
+| Finding | Severite | Correction |
+|---------|----------|------------|
+| FINDING-001 | CRITICAL | `escapeHtml()` dans calendar.html.twig |
+| FINDING-002 | CRITICAL | `maskPhone()` dans providers SMS |
+| FINDING-003 | HIGH | `hasAlreadySent()` dans SmsService |
+| FINDING-004 | HIGH | `Assert\Regex` + exception dans Agent |
+
+### Tests V2.1.1 Ajoutes
+
+- [x] AgentTest : 12 tests validation telephone
+- [x] SmsServiceTest : +2 tests protection doublon
+
+### Tags
+
+```bash
+# V2.1.0 - Fonctionnalites calendrier + SMS
+git tag v2.1.0
+
+# V2.1.1 - Corrections securite (XSS, RGPD, validation)
+git tag v2.1.1
+```
+
+---
+
+## Backlog V2.2 (Findings Residuels)
+
+| Finding | Severite | Description | Effort |
+|---------|----------|-------------|--------|
+| FINDING-005 | MEDIUM | IDOR campagne - Voter a implementer | 2h |
+| FINDING-008 | LOW | Duree conservation notifications | 3h |
+| FINDING-010 | LOW | Rate limit SMS par agent/jour | 2h |
+
+---
+
+_Derniere mise a jour : 2026-01-25 — Sprint V2.1.1 Complete, TAG v2.1.1 cree_
