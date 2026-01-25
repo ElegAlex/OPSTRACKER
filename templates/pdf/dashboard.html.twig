@@ -329,7 +329,7 @@
                     </td>
                     <td>{{ segmentData.total }}</td>
                     <td>{{ segmentData.realise }}</td>
-                    <td>{{ segmentData.planifie + segmentData.en_cours }}</td>
+                    <td>{{ segmentData.planifie + (segmentData.counts_by_statut.en_cours|default(0)) }}</td>
                     <td>{{ segmentData.reporte }}</td>
                     <td>{{ segmentData.a_remedier }}</td>
                     <td>
