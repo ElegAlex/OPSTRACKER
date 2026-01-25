@@ -208,11 +208,32 @@
                 INTERVENTION TERMINEE
             </a>
 
-        {% elseif operation.statut == 'reporte' or operation.statut == 'a_remedier' %}
-            {# Reporte/A remedier -> Retour liste #}
-            <a href="{{ path('terrain_index') }}" class="btn-action w-full bg-ink/10 border-2 border-ink text-ink font-bold text-lg flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
-                <i data-feather="arrow-left" class="w-6 h-6"></i>
-                RETOUR A LA LISTE
+        {% elseif operation.statut == 'a_remedier' %}
+            {# A remedier -> Replanifier pour reprendre #}
+            <form action="{{ path('terrain_replanifier', {id: operation.id}) }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('replanifier_' ~ operation.id) }}">
+                <button type="submit" class="btn-action w-full bg-primary text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors">
+                    <i data-feather="refresh-cw" class="w-6 h-6"></i>
+                    REPRENDRE L'INTERVENTION
+                </button>
+            </form>
+            <a href="{{ path('terrain_index') }}" class="btn-action w-full mt-2 bg-ink/10 border-2 border-ink text-ink font-bold flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="arrow-left" class="w-5 h-5"></i>
+                Retour a la liste
+            </a>
+
+        {% elseif operation.statut == 'reporte' %}
+            {# Reporte -> Replanifier disponible aussi #}
+            <form action="{{ path('terrain_replanifier', {id: operation.id}) }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('replanifier_' ~ operation.id) }}">
+                <button type="submit" class="btn-action w-full bg-primary text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors">
+                    <i data-feather="refresh-cw" class="w-6 h-6"></i>
+                    REPRENDRE L'INTERVENTION
+                </button>
+            </form>
+            <a href="{{ path('terrain_index') }}" class="btn-action w-full mt-2 bg-ink/10 border-2 border-ink text-ink font-bold flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="arrow-left" class="w-5 h-5"></i>
+                Retour a la liste
             </a>
 
         {% else %}

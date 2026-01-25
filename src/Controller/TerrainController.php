@@ -381,6 +381,35 @@ class TerrainController extends AbstractController
     }
 
     /**
+     * Replanifier une intervention (depuis reporte ou a_remedier).
+     * Permet a Karim de reprendre une operation problematique.
+     * Transition reporte|a_remedier -> planifie
+     */
+    #[Route('/{id}/replanifier', name: 'terrain_replanifier', methods: ['POST'])]
+    public function replanifier(Request $request, Operation $operation): Response
+    {
+        $this->denyAccessUnlessGranted('edit', $operation);
+
+        if (!$this->isCsrfTokenValid('replanifier_' . $operation->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token de securite invalide.');
+            return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
+        }
+
+        // Effacer le motif de report/notes si replanification
+        $operation->setMotifReport(null);
+
+        $success = $this->operationService->appliquerTransition($operation, 'replanifier');
+
+        if ($success) {
+            $this->addFlash('success', sprintf('Intervention %s replanifiee.', $operation->getMatricule()));
+            return $this->redirectToRoute('terrain_index');
+        }
+
+        $this->addFlash('error', 'Impossible de replanifier cette intervention.');
+        return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
+    }
+
+    /**
      * Groupe les operations par statut pour l'affichage.
      *
      * @param Operation[] $operations

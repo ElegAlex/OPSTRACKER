@@ -220,15 +220,27 @@
                                     {{ op.getDonneePersonnalisee('bureau') ?? '' }}
                                 </p>
                             </div>
+                            {# Lien vers detail #}
+                            <a href="{{ path('terrain_show', {id: op.id}) }}" class="w-10 h-10 flex items-center justify-center border-2 border-ink hover:bg-ink hover:text-white transition-colors text-ink" aria-label="Voir le detail">
+                                <i data-feather="chevron-right" class="w-5 h-5"></i>
+                            </a>
                         </div>
                         {% if op.motifReport %}
-                            <div class="bg-warning/10 p-2 mt-2">
+                            <div class="bg-warning/10 p-2 mt-2 mb-3">
                                 <p class="text-xs text-warning font-medium">
                                     <i data-feather="info" class="w-3 h-3 inline"></i>
                                     Motif : {{ op.motifReport }}
                                 </p>
                             </div>
                         {% endif %}
+                        {# Bouton Replanifier pour reprendre l'intervention reportee #}
+                        <form action="{{ path('terrain_replanifier', {id: op.id}) }}" method="post" class="mt-3">
+                            <input type="hidden" name="_token" value="{{ csrf_token('replanifier_' ~ op.id) }}">
+                            <button type="submit" class="btn-action w-full bg-primary text-white font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors">
+                                <i data-feather="refresh-cw" class="w-5 h-5"></i>
+                                REPRENDRE L'INTERVENTION
+                            </button>
+                        </form>
                     </div>
                 {% endfor %}
             </div>
@@ -253,15 +265,27 @@
                                 </div>
                                 <p class="text-sm text-ink font-medium">{{ op.nom }}</p>
                             </div>
+                            {# Lien vers detail #}
+                            <a href="{{ path('terrain_show', {id: op.id}) }}" class="w-10 h-10 flex items-center justify-center border-2 border-ink hover:bg-ink hover:text-white transition-colors text-ink" aria-label="Voir le detail">
+                                <i data-feather="chevron-right" class="w-5 h-5"></i>
+                            </a>
                         </div>
                         {% if op.notes %}
-                            <div class="bg-danger/10 p-2 mt-2">
+                            <div class="bg-danger/10 p-2 mt-2 mb-3">
                                 <p class="text-xs text-danger font-medium">
                                     <i data-feather="alert-circle" class="w-3 h-3 inline"></i>
                                     {{ op.notes }}
                                 </p>
                             </div>
                         {% endif %}
+                        {# Bouton Replanifier pour reprendre l'intervention #}
+                        <form action="{{ path('terrain_replanifier', {id: op.id}) }}" method="post" class="mt-3">
+                            <input type="hidden" name="_token" value="{{ csrf_token('replanifier_' ~ op.id) }}">
+                            <button type="submit" class="btn-action w-full bg-primary text-white font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors">
+                                <i data-feather="refresh-cw" class="w-5 h-5"></i>
+                                REPRENDRE L'INTERVENTION
+                            </button>
+                        </form>
                     </div>
                 {% endfor %}
             </div>
