@@ -1,3 +1,16 @@
-body {
-    background-color: skyblue;
+@import "tailwindcss";
+
+/* Theme OpsTracker - Bauhaus style */
+@theme {
+    --font-family-grotesk: 'Space Grotesk', system-ui, sans-serif;
+
+    --color-ink: #0a0a0a;
+    --color-paper: #f5f5f0;
+    --color-cream: #fafaf5;
+    --color-primary: #2563eb;
+    --color-success: #059669;
+    --color-warning: #d97706;
+    --color-danger: #dc2626;
+    --color-complete: #0d9488;
+    --color-muted: #6b6b6b;
 }

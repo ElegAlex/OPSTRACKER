@@ -11,30 +11,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-        {# Tailwind CSS via CDN (dev) #}
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script>
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        fontFamily: {
-                            'grotesk': ['Space Grotesk', 'system-ui', 'sans-serif'],
-                        },
-                        colors: {
-                            'ink': '#0a0a0a',
-                            'paper': '#f5f5f0',
-                            'cream': '#fafaf5',
-                            'primary': '#2563eb',
-                            'success': '#059669',
-                            'warning': '#d97706',
-                            'danger': '#dc2626',
-                            'complete': '#0d9488',
-                            'muted': '#6b6b6b',
-                        }
-                    }
-                }
-            }
-        </script>
+        {# Tailwind CSS via Symfony Bundle #}
 
         {# Feather Icons #}
         <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>

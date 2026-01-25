@@ -46,6 +46,7 @@
         "symfony/web-link": "7.4.*",
         "symfony/workflow": "7.4.*",
         "symfony/yaml": "7.4.*",
+        "symfonycasts/tailwind-bundle": "^0.12.0",
         "twig/extra-bundle": "^2.12|^3.0",
         "twig/twig": "^2.12|^3.0"
     },
@@ -89,7 +90,11 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
-        ]
+        ],
+        "test": "vendor/bin/phpunit",
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=512M",
+        "cs-check": "vendor/bin/php-cs-fixer fix --dry-run --diff",
+        "cs-fix": "vendor/bin/php-cs-fixer fix"
     },
     "conflict": {
         "symfony/symfony": "*"
@@ -103,6 +108,10 @@
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^4.3",
         "fakerphp/faker": "^1.24",
+        "friendsofphp/php-cs-fixer": "^3.65",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-doctrine": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0",
         "phpunit/phpunit": "^12.5",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",
@@ -110,5 +119,11 @@
         "symfony/maker-bundle": "^1.0",
         "symfony/stopwatch": "7.4.*",
         "symfony/web-profiler-bundle": "7.4.*"
+    },
+    "scripts-descriptions": {
+        "test": "Run PHPUnit tests",
+        "analyse": "Run PHPStan static analysis",
+        "cs-check": "Check code style with PHP-CS-Fixer",
+        "cs-fix": "Fix code style with PHP-CS-Fixer"
     }
 }
