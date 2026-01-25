@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Campagne;
+use App\Entity\Prerequis;
 use App\Repository\CampagneRepository;
+use App\Repository\PrerequisRepository;
 use App\Service\CampagneService;
 use App\Service\DashboardService;
 use App\Service\PdfExportService;
@@ -35,6 +37,7 @@ class DashboardController extends AbstractController
         private readonly DashboardService $dashboardService,
         private readonly CampagneService $campagneService,
         private readonly CampagneRepository $campagneRepository,
+        private readonly PrerequisRepository $prerequisRepository,
         private readonly PdfExportService $pdfExportService,
     ) {
     }
@@ -85,6 +88,17 @@ class DashboardController extends AbstractController
             'elements' => ['line' => ['tension' => 0.3]],
         ];
 
+        // Stats prerequis pour le widget dashboard
+        $prerequisStats = [
+            'total' => $this->prerequisRepository->count(['campagne' => $campagne]),
+            'fait' => $this->prerequisRepository->count(['campagne' => $campagne, 'statut' => Prerequis::STATUT_FAIT]),
+            'en_cours' => $this->prerequisRepository->count(['campagne' => $campagne, 'statut' => Prerequis::STATUT_EN_COURS]),
+            'a_faire' => $this->prerequisRepository->count(['campagne' => $campagne, 'statut' => Prerequis::STATUT_A_FAIRE]),
+        ];
+        $prerequisStats['progression'] = $prerequisStats['total'] > 0
+            ? (int) round(($prerequisStats['fait'] / $prerequisStats['total']) * 100)
+            : 0;
+
         return $this->render('dashboard/campagne.html.twig', [
             'campagne' => $campagne,
             'kpi' => $kpi,
@@ -93,6 +107,7 @@ class DashboardController extends AbstractController
             'equipe' => $equipe,
             'evolutionData' => $evolutionData,
             'evolutionOptions' => $evolutionOptions,
+            'prerequisStats' => $prerequisStats,
         ]);
     }
 
