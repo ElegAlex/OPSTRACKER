@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Campagne;
 use App\Repository\CampagneRepository;
+use App\Service\CampagneService;
 use App\Service\DashboardService;
 use App\Service\PdfExportService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,6 +33,7 @@ class DashboardController extends AbstractController
 {
     public function __construct(
         private readonly DashboardService $dashboardService,
+        private readonly CampagneService $campagneService,
         private readonly CampagneRepository $campagneRepository,
         private readonly PdfExportService $pdfExportService,
     ) {
@@ -73,12 +75,24 @@ class DashboardController extends AbstractController
         $activite = $this->dashboardService->getActiviteRecente($campagne);
         $equipe = $this->dashboardService->getStatistiquesEquipe($campagne);
 
+        // Graphique evolution des realisations (14 derniers jours)
+        $evolutionData = $this->campagneService->getEvolutionTemporelle($campagne);
+        $evolutionOptions = [
+            'scales' => [
+                'y' => ['beginAtZero' => true, 'ticks' => ['stepSize' => 1]],
+            ],
+            'plugins' => ['legend' => ['display' => false]],
+            'elements' => ['line' => ['tension' => 0.3]],
+        ];
+
         return $this->render('dashboard/campagne.html.twig', [
             'campagne' => $campagne,
             'kpi' => $kpi,
             'segments' => $segments,
             'activite' => $activite,
             'equipe' => $equipe,
+            'evolutionData' => $evolutionData,
+            'evolutionOptions' => $evolutionOptions,
         ]);
     }
 

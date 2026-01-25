@@ -1,155 +1,179 @@
 {% extends 'campagne/_layout.html.twig' %}
 
-{% block title %}Documents - {{ campagne.nom }}{% endblock %}
+{% block title %}Documents - {{ campagne.nom }} - OpsTracker{% endblock %}
 
 {% block main %}
-<div class="flex-1 overflow-y-auto p-8">
-    {# Header #}
-    <div class="mb-8">
-        <div class="flex items-center gap-2 text-sm text-muted mb-4">
-            <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
-            <i data-feather="chevron-right" class="w-4 h-4"></i>
-            <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
-            <i data-feather="chevron-right" class="w-4 h-4"></i>
-            <span class="text-ink">Documents</span>
+{# HEADER #}
+<header class="bg-white border-b-4 border-ink">
+    <div class="px-10 py-6 flex justify-between items-start">
+        <div>
+            {# Breadcrumb #}
+            <div class="flex items-center gap-2 text-sm text-muted mb-3">
+                <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
+                <i data-feather="chevron-right" class="w-4 h-4"></i>
+                <span class="text-ink font-medium">{{ campagne.nom }}</span>
+            </div>
+
+            {# Title + Status #}
+            <div class="flex items-center gap-4">
+                <h1 class="text-3xl font-bold tracking-tight">Documents</h1>
+                <span class="px-3 py-1 bg-{{ campagne.statutCouleur }} text-white text-[10px] font-bold uppercase tracking-wider">{{ campagne.statutLabel }}</span>
+            </div>
+
+            {# Meta #}
+            <div class="flex items-center gap-6 mt-3 text-sm text-muted">
+                <span class="flex items-center gap-2">
+                    <i data-feather="file-text" class="w-4 h-4"></i>
+                    {{ stats.total }} document{{ stats.total > 1 ? 's' : '' }}
+                </span>
+                {% if stats.taille_totale > 0 %}
+                <span class="flex items-center gap-2">
+                    <i data-feather="hard-drive" class="w-4 h-4"></i>
+                    {% if stats.taille_totale < 1048576 %}
+                        {{ (stats.taille_totale / 1024)|round(1) }} Ko
+                    {% else %}
+                        {{ (stats.taille_totale / 1048576)|round(1) }} Mo
+                    {% endif %}
+                </span>
+                {% endif %}
+            </div>
         </div>
 
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-ink mb-2">Documents</h1>
-                <p class="text-muted">{{ stats.total }} document{{ stats.total > 1 ? 's' : '' }} - {{ campagne.nom }}</p>
-            </div>
+        {# Actions #}
+        <div class="flex items-center gap-3">
             {% if not campagne.readOnly %}
-            <a href="{{ path('app_document_upload', {campagneId: campagne.id}) }}" class="px-6 py-3 bg-primary text-white font-medium hover:bg-primary/80 transition-colors flex items-center gap-2">
-                <i data-feather="upload" class="w-5 h-5"></i>
+            <a href="{{ path('app_document_upload', {campagneId: campagne.id}) }}" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                <i data-feather="upload" class="w-4 h-4"></i>
                 Ajouter un document
             </a>
             {% endif %}
         </div>
     </div>
 
-    {# Flash messages #}
-    {% for label, messages in app.flashes %}
-        {% for message in messages %}
-        <div class="mb-6 p-4 border-2 {{ label == 'success' ? 'border-success bg-success/10 text-success' : (label == 'warning' ? 'border-warning bg-warning/10 text-warning' : 'border-danger bg-danger/10 text-danger') }}">
-            <div class="flex items-center gap-3">
-                <i data-feather="{{ label == 'success' ? 'check-circle' : (label == 'warning' ? 'alert-triangle' : 'alert-circle') }}" class="w-5 h-5"></i>
-                {{ message }}
-            </div>
-        </div>
-        {% endfor %}
-    {% endfor %}
+    {# Onglets navigation campagne #}
+    {% include 'campagne/_tabs.html.twig' with {campagne: campagne, active: 'documents'} only %}
+</header>
 
-    {# Statistiques #}
-    {% if stats.total > 0 %}
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <div class="bg-white border-2 border-ink p-4">
-            <div class="text-2xl font-bold text-ink">{{ stats.total }}</div>
-            <div class="text-sm text-muted">Total</div>
-        </div>
-        {% for type, count in stats.par_type %}
-            {% if count > 0 %}
+{# CONTENT #}
+<div class="flex-1 overflow-auto">
+    <div class="px-10 py-8">
+
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+            <div class="mb-6 p-4 border-2 {{ label == 'success' ? 'border-success bg-success/10 text-success' : (label == 'warning' ? 'border-warning bg-warning/10 text-warning' : 'border-danger bg-danger/10 text-danger') }}">
+                <div class="flex items-center gap-3">
+                    <i data-feather="{{ label == 'success' ? 'check-circle' : (label == 'warning' ? 'alert-triangle' : 'alert-circle') }}" class="w-5 h-5"></i>
+                    {{ message }}
+                </div>
+            </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# Statistiques par type #}
+        {% if stats.total > 0 %}
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
             <div class="bg-white border-2 border-ink p-4">
-                <div class="text-2xl font-bold text-ink">{{ count }}</div>
-                <div class="text-sm text-muted">{{ types[type] }}</div>
+                <div class="text-2xl font-bold text-ink">{{ stats.total }}</div>
+                <div class="text-sm text-muted">Total</div>
             </div>
-            {% endif %}
-        {% endfor %}
-        <div class="bg-white border-2 border-ink p-4">
-            <div class="text-2xl font-bold text-ink">
-                {% if stats.taille_totale < 1048576 %}
-                    {{ (stats.taille_totale / 1024)|round(1) }} Ko
-                {% else %}
-                    {{ (stats.taille_totale / 1048576)|round(1) }} Mo
+            {% for type, count in stats.par_type %}
+                {% if count > 0 %}
+                <div class="bg-white border-2 border-ink p-4">
+                    <div class="text-2xl font-bold text-ink">{{ count }}</div>
+                    <div class="text-sm text-muted">{{ types[type] }}</div>
+                </div>
                 {% endif %}
-            </div>
-            <div class="text-sm text-muted">Taille totale</div>
+            {% endfor %}
         </div>
-    </div>
-    {% endif %}
+        {% endif %}
 
-    {# Liste des documents #}
-    {% if documents|length > 0 %}
-    <div class="bg-white border-2 border-ink">
-        <table class="w-full">
-            <thead class="bg-paper border-b-2 border-ink">
-                <tr>
-                    <th class="px-6 py-4 text-left text-sm font-bold text-ink uppercase tracking-wider">Document</th>
-                    <th class="px-6 py-4 text-left text-sm font-bold text-ink uppercase tracking-wider">Type</th>
-                    <th class="px-6 py-4 text-left text-sm font-bold text-ink uppercase tracking-wider">Taille</th>
-                    <th class="px-6 py-4 text-left text-sm font-bold text-ink uppercase tracking-wider">Uploade par</th>
-                    <th class="px-6 py-4 text-left text-sm font-bold text-ink uppercase tracking-wider">Date</th>
-                    <th class="px-6 py-4 text-right text-sm font-bold text-ink uppercase tracking-wider">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-ink/10">
-                {% for document in documents %}
-                <tr class="hover:bg-paper/50 transition-colors">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-{{ document.script ? 'warning' : 'primary' }}/10 flex items-center justify-center">
-                                <i data-feather="{{ document.icone }}" class="w-5 h-5 text-{{ document.script ? 'warning' : 'primary' }}"></i>
+        {# Liste des documents #}
+        {% if documents|length > 0 %}
+        <div class="bg-white border-2 border-ink">
+            <table class="w-full">
+                <thead class="bg-paper border-b-2 border-ink">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-ink uppercase tracking-wider">Document</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-ink uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-ink uppercase tracking-wider">Taille</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-ink uppercase tracking-wider">Uploade par</th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-ink uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-4 text-right text-xs font-bold text-ink uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-ink/10">
+                    {% for document in documents %}
+                    <tr class="hover:bg-paper/50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-{{ document.script ? 'warning' : 'primary' }}/10 flex items-center justify-center">
+                                    <i data-feather="{{ document.icone }}" class="w-5 h-5 text-{{ document.script ? 'warning' : 'primary' }}"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-ink">{{ document.nomOriginal }}</div>
+                                    {% if document.description %}
+                                    <div class="text-sm text-muted">{{ document.description|length > 50 ? document.description|slice(0, 50) ~ '...' : document.description }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div>
-                                <div class="font-medium text-ink">{{ document.nomOriginal }}</div>
-                                {% if document.description %}
-                                <div class="text-sm text-muted">{{ document.description|length > 50 ? document.description|slice(0, 50) ~ '...' : document.description }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 text-xs font-medium bg-ink/5 text-ink">{{ document.typeLabel }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-muted">{{ document.tailleFormatee }}</td>
+                        <td class="px-6 py-4 text-sm text-muted">{{ document.uploadePar.nomComplet }}</td>
+                        <td class="px-6 py-4 text-sm text-muted">{{ document.createdAt|date('d/m/Y H:i') }}</td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{{ path('app_document_download', {campagneId: campagne.id, id: document.id}) }}" class="p-2 text-primary hover:bg-primary/10 transition-colors" title="Telecharger">
+                                    <i data-feather="download" class="w-4 h-4"></i>
+                                </a>
+                                {% if not campagne.readOnly %}
+                                <form action="{{ path('app_document_delete', {campagneId: campagne.id, id: document.id}) }}" method="post" class="inline" onsubmit="return confirm('Etes-vous sur de vouloir supprimer ce document ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-document-' ~ document.id) }}">
+                                    <button type="submit" class="p-2 text-danger hover:bg-danger/10 transition-colors" title="Supprimer">
+                                        <i data-feather="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
                                 {% endif %}
                             </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 text-xs font-medium bg-ink/5 text-ink">{{ document.typeLabel }}</span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-muted">{{ document.tailleFormatee }}</td>
-                    <td class="px-6 py-4 text-sm text-muted">{{ document.uploadePar.nomComplet }}</td>
-                    <td class="px-6 py-4 text-sm text-muted">{{ document.createdAt|date('d/m/Y H:i') }}</td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex items-center justify-end gap-2">
-                            <a href="{{ path('app_document_download', {campagneId: campagne.id, id: document.id}) }}" class="p-2 text-primary hover:bg-primary/10 transition-colors" title="Telecharger">
-                                <i data-feather="download" class="w-4 h-4"></i>
-                            </a>
-                            {% if not campagne.readOnly %}
-                            <form action="{{ path('app_document_delete', {campagneId: campagne.id, id: document.id}) }}" method="post" class="inline" onsubmit="return confirm('Etes-vous sur de vouloir supprimer ce document ?');">
-                                <input type="hidden" name="_token" value="{{ csrf_token('delete-document-' ~ document.id) }}">
-                                <button type="submit" class="p-2 text-danger hover:bg-danger/10 transition-colors" title="Supprimer">
-                                    <i data-feather="trash-2" class="w-4 h-4"></i>
-                                </button>
-                            </form>
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="bg-white border-2 border-ink p-12 text-center">
-        <i data-feather="file" class="w-16 h-16 text-muted mx-auto mb-4"></i>
-        <h3 class="text-xl font-bold text-ink mb-2">Aucun document</h3>
-        <p class="text-muted mb-6">Cette campagne n'a pas encore de documents.</p>
-        {% if not campagne.readOnly %}
-        <a href="{{ path('app_document_upload', {campagneId: campagne.id}) }}" class="px-6 py-3 bg-primary text-white font-medium hover:bg-primary/80 transition-colors inline-flex items-center gap-2">
-            <i data-feather="upload" class="w-5 h-5"></i>
-            Ajouter un document
-        </a>
-        {% endif %}
-    </div>
-    {% endif %}
-
-    {# Aide RG-050 #}
-    <div class="mt-8 p-4 bg-paper border-2 border-ink/20">
-        <h3 class="font-bold text-ink mb-2">RG-050 : Formats autorises</h3>
-        <div class="flex flex-wrap gap-2 text-sm text-muted">
-            <span class="px-2 py-1 bg-white border border-ink/10">PDF</span>
-            <span class="px-2 py-1 bg-white border border-ink/10">DOCX/DOC</span>
-            <span class="px-2 py-1 bg-warning/10 border border-warning/30 text-warning">PS1</span>
-            <span class="px-2 py-1 bg-warning/10 border border-warning/30 text-warning">BAT</span>
-            <span class="px-2 py-1 bg-white border border-ink/10">ZIP</span>
-            <span class="px-2 py-1 bg-warning/10 border border-warning/30 text-warning">EXE</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <p class="text-sm text-muted mt-2">Taille maximale : 50 Mo. Les fichiers executables (PS1, BAT, EXE) sont autorises pour usage interne uniquement.</p>
+        {% else %}
+        <div class="bg-white border-2 border-ink/20 border-dashed p-12 text-center">
+            <div class="w-16 h-16 mx-auto bg-primary/10 flex items-center justify-center mb-4">
+                <i data-feather="file" class="w-8 h-8 text-primary"></i>
+            </div>
+            <h3 class="text-lg font-bold text-ink mb-2">Aucun document</h3>
+            <p class="text-sm text-muted mb-6">Cette campagne n'a pas encore de documents.</p>
+            {% if not campagne.readOnly %}
+            <a href="{{ path('app_document_upload', {campagneId: campagne.id}) }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                <i data-feather="upload" class="w-4 h-4"></i>
+                Ajouter un document
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# Aide RG-050 #}
+        <div class="mt-8 p-4 bg-paper border-2 border-ink/20">
+            <h3 class="font-bold text-ink mb-2">RG-050 : Formats autorises</h3>
+            <div class="flex flex-wrap gap-2 text-sm text-muted">
+                <span class="px-2 py-1 bg-white border border-ink/10">PDF</span>
+                <span class="px-2 py-1 bg-white border border-ink/10">DOCX/DOC</span>
+                <span class="px-2 py-1 bg-warning/10 border border-warning/30 text-warning">PS1</span>
+                <span class="px-2 py-1 bg-warning/10 border border-warning/30 text-warning">BAT</span>
+                <span class="px-2 py-1 bg-white border border-ink/10">ZIP</span>
+                <span class="px-2 py-1 bg-warning/10 border border-warning/30 text-warning">EXE</span>
+            </div>
+            <p class="text-sm text-muted mt-2">Taille maximale : 50 Mo. Les fichiers executables (PS1, BAT, EXE) sont autorises pour usage interne uniquement.</p>
+        </div>
+
     </div>
 </div>
 {% endblock %}

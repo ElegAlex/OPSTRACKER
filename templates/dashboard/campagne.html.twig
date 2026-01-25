@@ -34,19 +34,6 @@
     .status-reporte { border-left: 4px solid #d97706; }
     .status-remedier { border-left: 4px solid #dc2626; }
 
-    /* Tab active state */
-    .tab-active {
-        position: relative;
-    }
-    .tab-active::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: #0a0a0a;
-    }
 </style>
 {% endblock %}
 
@@ -125,21 +112,8 @@
         </div>
     </div>
 
-    {# Tabs Navigation #}
-    <div class="px-10 flex items-center gap-8">
-        <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="py-4 text-sm font-semibold text-ink tab-active">
-            Dashboard
-        </a>
-        <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
-            Operations
-        </a>
-        <a href="{{ path('app_segment_index', {campagne: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
-            Segments
-        </a>
-        <a href="{{ path('app_prerequis_index', {campagneId: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
-            Prerequis
-        </a>
-    </div>
+    {# Onglets navigation campagne #}
+    {% include 'campagne/_tabs.html.twig' with {campagne: campagne, active: 'dashboard'} only %}
 </header>
 
 {# ========================================
@@ -246,6 +220,36 @@
                 </div>
             </div>
         </turbo-frame>
+
+        {# ========================================
+           GRAPHIQUE EVOLUTION DES REALISATIONS
+           ======================================== #}
+        <div class="bg-white border-2 border-ink p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-ink flex items-center gap-2">
+                    <i data-feather="trending-up" class="w-5 h-5"></i>
+                    Evolution des realisations
+                </h3>
+                <span class="text-sm text-muted">14 derniers jours</span>
+            </div>
+
+            <div class="h-64">
+                {% if evolutionData is defined and evolutionData.labels|length > 0 %}
+                    <canvas data-controller="chart"
+                            data-chart-type-value="line"
+                            data-chart-data-value="{{ evolutionData|json_encode|e('html_attr') }}"
+                            data-chart-options-value="{{ evolutionOptions|json_encode|e('html_attr') }}">
+                    </canvas>
+                {% else %}
+                    <div class="flex items-center justify-center h-full text-muted">
+                        <div class="text-center">
+                            <i data-feather="bar-chart-2" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                            <p class="text-sm">Aucune donnee disponible</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
 
         {# ========================================
            GRID: Segments + Activite recente
