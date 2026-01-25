@@ -1,0 +1,36 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}
+    {% block title %}Administration{% endblock %}
+{% endblock %}
+
+{% block head_stylesheets %}
+    {{ parent() }}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ink: '#0a0a0a',
+                        paper: '#fafafa',
+                        cream: '#fefdfb',
+                        muted: '#737373',
+                        primary: '#2563eb',
+                        success: '#059669',
+                        warning: '#d97706',
+                        danger: '#dc2626',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Reset pour éviter conflits Bootstrap/Tailwind */
+        .ea-content .tw-container { all: unset; }
+    </style>
+{% endblock %}
+
+{% block main %}
+    {% block content %}{% endblock %}
+{% endblock %}

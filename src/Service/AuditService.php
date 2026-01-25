@@ -23,10 +23,18 @@ class AuditService
     ) {
     }
 
-    private function getReader(): Reader
+    private function getReader(): ?Reader
     {
         if ($this->reader === null) {
-            $this->reader = $this->doctrineProvider->getAuditingServices()[0]->getReader();
+            try {
+                $services = $this->doctrineProvider->getAuditingServices();
+                if (!is_array($services) || !isset($services[0])) {
+                    return null;
+                }
+                $this->reader = $services[0]->getReader();
+            } catch (\Throwable $e) {
+                return null;
+            }
         }
 
         return $this->reader;
@@ -45,6 +53,9 @@ class AuditService
     public function getHistorique(string $entityClass, int $entityId, int $page = 1, int $pageSize = 20): array
     {
         $reader = $this->getReader();
+        if ($reader === null) {
+            return ['entries' => [], 'total' => 0, 'page' => 1, 'pageSize' => $pageSize, 'totalPages' => 0];
+        }
 
         // Recuperer les entrees d'audit
         $entries = $reader->createQuery($entityClass)
@@ -93,6 +104,9 @@ class AuditService
         int $pageSize = 50
     ): array {
         $reader = $this->getReader();
+        if ($reader === null) {
+            return ['entries' => [], 'total' => 0, 'page' => 1, 'pageSize' => $pageSize, 'totalPages' => 0, 'entityTypes' => []];
+        }
 
         // Liste des entites auditees
         $entityClasses = [
