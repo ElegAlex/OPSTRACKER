@@ -85,23 +85,108 @@ class ImportCsvService
     /**
      * Detecte l'encodage d'un fichier CSV.
      * RG-012 : Encodage UTF-8/ISO auto-detecte
+     *
+     * Gere les encodages courants des fichiers Excel francais :
+     * - UTF-8 (avec ou sans BOM)
+     * - Windows-1252 (Excel par defaut)
+     * - ISO-8859-1 (Latin-1)
      */
     public function detectEncoding(string $filePath): string
     {
-        $content = file_get_contents($filePath, false, null, 0, 8192);
+        $content = file_get_contents($filePath, false, null, 0, 16384);
 
-        // Detecter BOM UTF-8
+        // Detecter et retirer le BOM pour l'analyse
+        $contentWithoutBom = $this->removeBom($content);
+        if ($contentWithoutBom !== $content) {
+            // BOM UTF-8 detecte
+            return 'UTF-8';
+        }
+
+        // Tenter la detection avec mb_detect_encoding (ordre important)
+        $encoding = mb_detect_encoding($content, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
+
+        // Verification supplementaire pour UTF-8
+        if ($encoding === 'UTF-8' || $encoding === 'ASCII') {
+            // Verifier que c'est vraiment du UTF-8 valide
+            if (mb_check_encoding($content, 'UTF-8')) {
+                // Verifier l'absence de caracteres de controle Windows-1252 (0x80-0x9F)
+                // Ces caracteres ne sont pas valides en UTF-8 mais peuvent passer mb_check_encoding
+                if (!preg_match('/[\x80-\x9F]/', $content)) {
+                    return 'UTF-8';
+                }
+            }
+        }
+
+        // Test heuristique pour Windows-1252 vs ISO-8859-1
+        // Windows-1252 utilise 0x80-0x9F pour des caracteres comme €, œ, etc.
+        if (preg_match('/[\x80-\x9F]/', $content)) {
+            return 'Windows-1252';
+        }
+
+        // Test heuristique pour les caracteres francais accentues
+        // En ISO-8859-1/Windows-1252 : é=0xE9, è=0xE8, ê=0xEA, à=0xE0, ô=0xF4
+        if (preg_match('/[\xC0-\xFF]/', $content)) {
+            // Contient des caracteres hauts, probablement ISO-8859-1 ou Windows-1252
+            // Preferer Windows-1252 car c'est le defaut Excel
+            return 'Windows-1252';
+        }
+
+        // Par defaut pour les fichiers francais, utiliser Windows-1252
+        if ($encoding === false || $encoding === 'ASCII') {
+            return 'UTF-8';
+        }
+
+        return $encoding ?: 'Windows-1252';
+    }
+
+    /**
+     * Convertit le contenu en UTF-8.
+     */
+    private function convertToUtf8(string $content, string $sourceEncoding): string
+    {
+        if ($sourceEncoding === 'UTF-8') {
+            return $this->removeBom($content);
+        }
+
+        // Conversion avec mb_convert_encoding
+        $converted = mb_convert_encoding($content, 'UTF-8', $sourceEncoding);
+        if ($converted !== false && $converted !== '') {
+            return $converted;
+        }
+
+        // Fallback avec iconv (gere mieux certains caracteres)
+        $converted = @iconv($sourceEncoding, 'UTF-8//TRANSLIT//IGNORE', $content);
+        if ($converted !== false && $converted !== '') {
+            return $converted;
+        }
+
+        // Dernier recours : retourner le contenu original
+        $this->logger->warning('Encoding conversion failed', [
+            'source_encoding' => $sourceEncoding,
+        ]);
+
+        return $content;
+    }
+
+    /**
+     * Supprime le BOM (Byte Order Mark) du contenu.
+     */
+    private function removeBom(string $content): string
+    {
+        // BOM UTF-8 (EF BB BF)
         if (str_starts_with($content, "\xEF\xBB\xBF")) {
-            return 'UTF-8';
+            return substr($content, 3);
+        }
+        // BOM UTF-16 LE (FF FE)
+        if (str_starts_with($content, "\xFF\xFE")) {
+            return substr($content, 2);
+        }
+        // BOM UTF-16 BE (FE FF)
+        if (str_starts_with($content, "\xFE\xFF")) {
+            return substr($content, 2);
         }
 
-        // Tester si c'est du UTF-8 valide
-        if (mb_check_encoding($content, 'UTF-8') && !preg_match('/[\x80-\x9F]/', $content)) {
-            return 'UTF-8';
-        }
-
-        // Sinon, supposer ISO-8859-1 (Windows-1252)
-        return 'ISO-8859-1';
+        return $content;
     }
 
     /**
@@ -152,40 +237,64 @@ class ImportCsvService
         $encoding = $this->detectEncoding($filePath);
         $separator = $this->detectSeparator($filePath, $encoding);
 
-        $reader = Reader::createFromPath($filePath, 'r');
-        $reader->setDelimiter($separator);
+        // Convertir le fichier en UTF-8 si necessaire
+        $workingPath = $filePath;
+        $tempFile = null;
 
-        // Convertir l'encodage si necessaire
         if ($encoding !== 'UTF-8') {
-            CharsetConverter::addTo($reader, $encoding, 'UTF-8');
-        }
+            $content = file_get_contents($filePath);
+            $utf8Content = $this->convertToUtf8($content, $encoding);
 
-        $reader->setHeaderOffset(0);
-
-        $headers = $reader->getHeader();
-        $records = $reader->getRecords();
-
-        // Compter les lignes et creer un apercu
-        $preview = [];
-        $count = 0;
-        foreach ($records as $record) {
-            $count++;
-            if ($count <= 5) {
-                $preview[] = $record;
-            }
-            // RG-012 : Verifier limite 100k lignes
-            if ($count > self::MAX_LINES) {
-                break;
+            // Creer un fichier temporaire UTF-8
+            $tempFile = tempnam(sys_get_temp_dir(), 'csv_utf8_');
+            file_put_contents($tempFile, $utf8Content);
+            $workingPath = $tempFile;
+        } else {
+            // Meme en UTF-8, retirer le BOM si present
+            $content = file_get_contents($filePath);
+            $cleanContent = $this->removeBom($content);
+            if ($cleanContent !== $content) {
+                $tempFile = tempnam(sys_get_temp_dir(), 'csv_nobom_');
+                file_put_contents($tempFile, $cleanContent);
+                $workingPath = $tempFile;
             }
         }
 
-        return [
-            'headers' => $headers,
-            'preview' => $preview,
-            'total_lines' => min($count, self::MAX_LINES),
-            'encoding' => $encoding,
-            'separator' => $separator,
-        ];
+        try {
+            $reader = Reader::createFromPath($workingPath, 'r');
+            $reader->setDelimiter($separator);
+            $reader->setHeaderOffset(0);
+
+            $headers = $reader->getHeader();
+            $records = $reader->getRecords();
+
+            // Compter les lignes et creer un apercu
+            $preview = [];
+            $count = 0;
+            foreach ($records as $record) {
+                $count++;
+                if ($count <= 5) {
+                    $preview[] = $record;
+                }
+                // RG-012 : Verifier limite 100k lignes
+                if ($count > self::MAX_LINES) {
+                    break;
+                }
+            }
+
+            return [
+                'headers' => $headers,
+                'preview' => $preview,
+                'total_lines' => min($count, self::MAX_LINES),
+                'encoding' => $encoding,
+                'separator' => $separator,
+            ];
+        } finally {
+            // Nettoyer le fichier temporaire
+            if ($tempFile !== null && file_exists($tempFile)) {
+                @unlink($tempFile);
+            }
+        }
     }
 
     /**
@@ -243,74 +352,103 @@ class ImportCsvService
     ): ImportResult {
         $result = new ImportResult();
 
-        $reader = Reader::createFromPath($filePath, 'r');
-        $reader->setDelimiter($separator);
+        // Convertir le fichier en UTF-8 si necessaire (plus fiable que CharsetConverter)
+        $workingPath = $filePath;
+        $tempFile = null;
 
         if ($encoding !== 'UTF-8') {
-            CharsetConverter::addTo($reader, $encoding, 'UTF-8');
+            $content = file_get_contents($filePath);
+            $utf8Content = $this->convertToUtf8($content, $encoding);
+
+            $tempFile = tempnam(sys_get_temp_dir(), 'csv_import_');
+            file_put_contents($tempFile, $utf8Content);
+            $workingPath = $tempFile;
+
+            $this->logger->info('CSV converted to UTF-8', [
+                'original_encoding' => $encoding,
+                'campagne_id' => $campagne->getId(),
+            ]);
+        } else {
+            // Meme en UTF-8, retirer le BOM si present
+            $content = file_get_contents($filePath);
+            $cleanContent = $this->removeBom($content);
+            if ($cleanContent !== $content) {
+                $tempFile = tempnam(sys_get_temp_dir(), 'csv_nobom_');
+                file_put_contents($tempFile, $cleanContent);
+                $workingPath = $tempFile;
+            }
         }
 
-        $reader->setHeaderOffset(0);
-        $headers = $reader->getHeader();
+        try {
+            $reader = Reader::createFromPath($workingPath, 'r');
+            $reader->setDelimiter($separator);
+            $reader->setHeaderOffset(0);
+            $headers = $reader->getHeader();
 
-        // Cache des segments crees (RG-093)
-        $segmentsCache = [];
-        foreach ($campagne->getSegments() as $segment) {
-            $segmentsCache[mb_strtolower($segment->getNom())] = $segment;
-        }
-
-        $lineNumber = 1; // La ligne 1 est l'en-tete
-        foreach ($reader->getRecords() as $record) {
-            $lineNumber++;
-
-            // RG-012 : Verifier limite
-            if ($lineNumber > self::MAX_LINES + 1) {
-                $result->addError($lineNumber, 'general', 'Limite de 100 000 lignes atteinte.');
-                break;
+            // Cache des segments crees (RG-093)
+            $segmentsCache = [];
+            foreach ($campagne->getSegments() as $segment) {
+                $segmentsCache[mb_strtolower($segment->getNom())] = $segment;
             }
 
-            try {
-                $operation = $this->createOperationFromRecord(
-                    $campagne,
-                    $record,
-                    $headers,
-                    $mapping,
-                    $customFieldsMapping,
-                    $segmentsCache,
-                    $lineNumber,
-                    $result
-                );
+            $lineNumber = 1; // La ligne 1 est l'en-tete
+            foreach ($reader->getRecords() as $record) {
+                $lineNumber++;
 
-                if ($operation !== null) {
-                    $this->entityManager->persist($operation);
-                    $result->incrementImported();
+                // RG-012 : Verifier limite
+                if ($lineNumber > self::MAX_LINES + 1) {
+                    $result->addError($lineNumber, 'general', 'Limite de 100 000 lignes atteinte.');
+                    break;
                 }
-            } catch (\Exception $e) {
-                $result->addError($lineNumber, 'exception', $e->getMessage());
-                $this->logger->warning('Import CSV error', [
-                    'line' => $lineNumber,
-                    'error' => $e->getMessage(),
-                    'campagne_id' => $campagne->getId(),
-                ]);
+
+                try {
+                    $operation = $this->createOperationFromRecord(
+                        $campagne,
+                        $record,
+                        $headers,
+                        $mapping,
+                        $customFieldsMapping,
+                        $segmentsCache,
+                        $lineNumber,
+                        $result
+                    );
+
+                    if ($operation !== null) {
+                        $this->entityManager->persist($operation);
+                        $result->incrementImported();
+                    }
+                } catch (\Exception $e) {
+                    $result->addError($lineNumber, 'exception', $e->getMessage());
+                    $this->logger->warning('Import CSV error', [
+                        'line' => $lineNumber,
+                        'error' => $e->getMessage(),
+                        'campagne_id' => $campagne->getId(),
+                    ]);
+                }
+            }
+
+            // Persister les nouveaux segments
+            foreach ($segmentsCache as $segment) {
+                if ($segment->getId() === null) {
+                    $this->entityManager->persist($segment);
+                }
+            }
+
+            $this->entityManager->flush();
+
+            $this->logger->info('Import CSV completed', [
+                'campagne_id' => $campagne->getId(),
+                'imported' => $result->getImportedCount(),
+                'errors' => $result->getErrorCount(),
+            ]);
+
+            return $result;
+        } finally {
+            // Nettoyer le fichier temporaire
+            if ($tempFile !== null && file_exists($tempFile)) {
+                @unlink($tempFile);
             }
         }
-
-        // Persister les nouveaux segments
-        foreach ($segmentsCache as $segment) {
-            if ($segment->getId() === null) {
-                $this->entityManager->persist($segment);
-            }
-        }
-
-        $this->entityManager->flush();
-
-        $this->logger->info('Import CSV completed', [
-            'campagne_id' => $campagne->getId(),
-            'imported' => $result->getImportedCount(),
-            'errors' => $result->getErrorCount(),
-        ]);
-
-        return $result;
     }
 
     /**

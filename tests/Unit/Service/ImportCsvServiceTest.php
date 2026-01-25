@@ -86,15 +86,17 @@ class ImportCsvServiceTest extends TestCase
         $this->assertSame('UTF-8', $encoding);
     }
 
-    public function testDetectEncodingIso88591(): void
+    public function testDetectEncodingIso88591OrWindows1252(): void
     {
         // Creer un contenu ISO-8859-1 avec des caracteres accentues
+        // Note: Windows-1252 est prefere car c'est le defaut Excel francais
         $content = mb_convert_encoding("Matricule;Nom;Segment\nPC-001;Jean Dupont;Bâtiment A", 'ISO-8859-1', 'UTF-8');
         $filePath = $this->createTempFile($content);
 
         $encoding = $this->service->detectEncoding($filePath);
 
-        $this->assertSame('ISO-8859-1', $encoding);
+        // Accepter ISO-8859-1 ou Windows-1252 (superset fonctionnel)
+        $this->assertContains($encoding, ['ISO-8859-1', 'Windows-1252']);
     }
 
     public function testDetectSeparatorSemicolon(): void
