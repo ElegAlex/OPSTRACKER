@@ -262,13 +262,13 @@
             {# COLONNE DROITE #}
             <div class="col-span-4 space-y-6">
 
+                {# Equipe #}
+                {% include 'dashboard/_equipe.html.twig' %}
+
                 {# Activite recente #}
                 <turbo-frame id="activite-recente" src="{{ path('app_dashboard_activite', {id: campagne.id}) }}">
                     {% include 'dashboard/_activite.html.twig' %}
                 </turbo-frame>
-
-                {# Equipe #}
-                {% include 'dashboard/_equipe.html.twig' %}
             </div>
         </div>
 
