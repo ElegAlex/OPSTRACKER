@@ -90,53 +90,45 @@ class ImportCsvService
      * - UTF-8 (avec ou sans BOM)
      * - Windows-1252 (Excel par defaut)
      * - ISO-8859-1 (Latin-1)
+     *
+     * IMPORTANT: Priorite a la detection UTF-8 pour eviter le double encodage !
      */
     public function detectEncoding(string $filePath): string
     {
         $content = file_get_contents($filePath, false, null, 0, 16384);
 
-        // Detecter et retirer le BOM pour l'analyse
-        $contentWithoutBom = $this->removeBom($content);
-        if ($contentWithoutBom !== $content) {
-            // BOM UTF-8 detecte
+        // PRIORITE 1 : Detecter le BOM UTF-8
+        if (str_starts_with($content, "\xEF\xBB\xBF")) {
             return 'UTF-8';
         }
 
-        // Tenter la detection avec mb_detect_encoding (ordre important)
-        $encoding = mb_detect_encoding($content, ['UTF-8', 'Windows-1252', 'ISO-8859-1', 'ASCII'], true);
-
-        // Verification supplementaire pour UTF-8
-        if ($encoding === 'UTF-8' || $encoding === 'ASCII') {
-            // Verifier que c'est vraiment du UTF-8 valide
-            if (mb_check_encoding($content, 'UTF-8')) {
-                // Verifier l'absence de caracteres de controle Windows-1252 (0x80-0x9F)
-                // Ces caracteres ne sont pas valides en UTF-8 mais peuvent passer mb_check_encoding
-                if (!preg_match('/[\x80-\x9F]/', $content)) {
-                    return 'UTF-8';
-                }
-            }
+        // PRIORITE 2 : Verifier si c'est du UTF-8 valide
+        // C'est LE test le plus important pour eviter le double encodage !
+        if ($this->isValidUtf8($content)) {
+            return 'UTF-8';
         }
 
-        // Test heuristique pour Windows-1252 vs ISO-8859-1
-        // Windows-1252 utilise 0x80-0x9F pour des caracteres comme €, œ, etc.
+        // PRIORITE 3 : Ce n'est PAS du UTF-8 valide, donc c'est un encodage 8-bit
+        // Caracteres typiques Windows-1252 dans plage 0x80-0x9F (€, œ, etc.)
         if (preg_match('/[\x80-\x9F]/', $content)) {
             return 'Windows-1252';
         }
 
-        // Test heuristique pour les caracteres francais accentues
-        // En ISO-8859-1/Windows-1252 : é=0xE9, è=0xE8, ê=0xEA, à=0xE0, ô=0xF4
-        if (preg_match('/[\xC0-\xFF]/', $content)) {
-            // Contient des caracteres hauts, probablement ISO-8859-1 ou Windows-1252
-            // Preferer Windows-1252 car c'est le defaut Excel
-            return 'Windows-1252';
-        }
+        // Par defaut : ISO-8859-1 (fichiers Excel francais)
+        return 'ISO-8859-1';
+    }
 
-        // Par defaut pour les fichiers francais, utiliser Windows-1252
-        if ($encoding === false || $encoding === 'ASCII') {
-            return 'UTF-8';
-        }
-
-        return $encoding ?: 'Windows-1252';
+    /**
+     * Verifie si le contenu est du UTF-8 valide.
+     *
+     * Utilise mb_check_encoding qui est fiable pour detecter les sequences
+     * multi-octets UTF-8 invalides (ex: bytes isoles 0x80-0xFF).
+     */
+    private function isValidUtf8(string $content): bool
+    {
+        // mb_check_encoding retourne false si le contenu contient des
+        // sequences UTF-8 invalides (bytes isoles > 127, sequences mal formees)
+        return mb_check_encoding($content, 'UTF-8');
     }
 
     /**
