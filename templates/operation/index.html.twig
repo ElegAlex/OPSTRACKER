@@ -41,16 +41,14 @@
 
 {% block main %}
 {# HEADER #}
-<header class="bg-white px-12 py-8 border-b-4 border-ink">
-    <div class="flex justify-between items-start">
+<header class="bg-white border-b-4 border-ink">
+    <div class="px-10 py-6 flex justify-between items-start">
         <div>
             {# Breadcrumb #}
             <div class="flex items-center gap-2 text-sm text-muted mb-3">
                 <a href="{{ path('app_campagne_index') }}" class="hover:text-ink">Campagnes</a>
                 <i data-feather="chevron-right" class="w-4 h-4"></i>
-                <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="hover:text-ink">{{ campagne.nom }}</a>
-                <i data-feather="chevron-right" class="w-4 h-4"></i>
-                <span class="text-ink font-medium">Operations</span>
+                <span class="text-ink font-medium">{{ campagne.nom }}</span>
             </div>
 
             {# Title + Status #}
@@ -76,21 +74,20 @@
 
         {# Actions #}
         <div class="flex items-center gap-3">
-            <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
-                <i data-feather="bar-chart-2" class="w-4 h-4"></i>
-                Dashboard
-            </a>
             <a href="{{ path('app_campagne_operation_new', {id: campagne.id}) }}" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
                 <i data-feather="plus" class="w-4 h-4"></i>
                 Ajouter
             </a>
         </div>
     </div>
+
+    {# Onglets navigation campagne #}
+    {% include 'campagne/_tabs.html.twig' with {campagne: campagne, active: 'operations'} only %}
 </header>
 
 {# CONTENT #}
 <div class="flex-1 overflow-auto">
-    <div class="px-12 py-8">
+    <div class="px-10 py-8">
 
         {# Flash messages #}
         {% for label, messages in app.flashes %}

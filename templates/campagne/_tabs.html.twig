@@ -1,0 +1,31 @@
+{#
+    Onglets de navigation campagne - Composant reutilisable
+
+    Parametres requis :
+    - campagne : l'entite Campagne
+    - active : string ('dashboard'|'operations'|'segments'|'prerequis')
+#}
+
+{% set tabs = [
+    { id: 'dashboard', label: 'Dashboard', route: 'app_campagne_show', params: {id: campagne.id}, icon: 'bar-chart-2' },
+    { id: 'operations', label: 'Operations', route: 'app_operation_index', params: {campagne: campagne.id}, icon: 'list' },
+    { id: 'segments', label: 'Segments', route: 'app_segment_index', params: {campagne: campagne.id}, icon: 'grid' },
+    { id: 'prerequis', label: 'Prerequis', route: 'app_prerequis_index', params: {campagneId: campagne.id}, icon: 'check-square' },
+] %}
+
+<nav class="px-10 flex items-center gap-8 border-t border-ink/10" aria-label="Navigation campagne">
+    {% for tab in tabs %}
+        <a href="{{ path(tab.route, tab.params) }}"
+           class="relative py-4 text-sm font-medium transition-colors flex items-center gap-2
+                  {{ active == tab.id
+                     ? 'text-ink'
+                     : 'text-muted hover:text-ink' }}"
+           {% if active == tab.id %}aria-current="page"{% endif %}>
+            <i data-feather="{{ tab.icon }}" class="w-4 h-4"></i>
+            {{ tab.label }}
+            {% if active == tab.id %}
+            <span class="absolute bottom-0 left-0 right-0 h-[3px] bg-ink"></span>
+            {% endif %}
+        </a>
+    {% endfor %}
+</nav>

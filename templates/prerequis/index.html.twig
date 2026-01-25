@@ -35,19 +35,6 @@
         transform: rotate(180deg);
     }
 
-    /* Tab styles */
-    .tab-active {
-        position: relative;
-    }
-    .tab-active::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: #0a0a0a;
-    }
 </style>
 {% endblock %}
 
@@ -66,12 +53,10 @@
                 <span class="text-ink font-medium">{{ campagne.nom }}</span>
             </div>
 
-            {# Title #}
+            {# Title + Status #}
             <div class="flex items-center gap-4">
                 <h1 class="text-3xl font-bold tracking-tight">Prerequis</h1>
-                <span class="px-3 py-1 bg-{{ campagne.statutCouleur }} text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                    {{ campagne.statutLabel }}
-                </span>
+                <span class="px-3 py-1 bg-{{ campagne.statutCouleur }} text-white text-[10px] font-bold uppercase tracking-wider">{{ campagne.statutLabel }}</span>
             </div>
 
             {# Meta #}
@@ -91,10 +76,6 @@
 
         {# Actions #}
         <div class="flex items-center gap-3">
-            <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
-                <i data-feather="bar-chart-2" class="w-4 h-4"></i>
-                Dashboard
-            </a>
             {% if not campagne.isReadOnly %}
             <a href="{{ path('app_prerequis_global_new', {campagneId: campagne.id}) }}" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
                 <i data-feather="plus" class="w-4 h-4"></i>
@@ -104,21 +85,8 @@
         </div>
     </div>
 
-    {# Tabs Navigation #}
-    <div class="px-10 flex items-center gap-8">
-        <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
-            Dashboard
-        </a>
-        <a href="{{ path('app_operation_index', {campagne: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
-            Operations
-        </a>
-        <a href="{{ path('app_segment_index', {campagne: campagne.id}) }}" class="py-4 text-sm font-medium text-muted hover:text-ink transition-colors">
-            Segments
-        </a>
-        <a href="{{ path('app_prerequis_index', {campagneId: campagne.id}) }}" class="py-4 text-sm font-semibold text-ink tab-active">
-            Prerequis
-        </a>
-    </div>
+    {# Onglets navigation campagne #}
+    {% include 'campagne/_tabs.html.twig' with {campagne: campagne, active: 'prerequis'} only %}
 </header>
 
 {# ========================================
