@@ -1,77 +1,52 @@
 # CURRENT_TASK.md — Tache en Cours
 
-> **Assigne le** : 2026-01-22
-> **Session** : #15 (terminee)
+> **Assigne le** : 2026-01-25
+> **Session** : #26 (terminee)
 
 ---
 
-## Tache : Sprint 14 — Polish V1 & Tag ✅ COMPLETE
+## Tache : Ameliorations V2 — Karim + Import CSV ✅ COMPLETE
 
-**Sprint** : 14 - Polish V1 & Tag
-**Priorite** : V1
+**Sprint** : V2 - Ameliorations continues
+**Priorite** : V2
 **Statut** : ✅ TERMINE
 
 ---
 
 ## Taches realisees
 
-| ID     | Tache                              | Statut | Cible             |
-| ------ | ---------------------------------- | ------ | ----------------- |
-| T-1401 | Completer couverture tests (80%)   | ✅      | Services (240 tests) |
-| T-1402 | Test de charge V1                  | ✅      | 50 users, 10k ops |
-| T-1403 | Audit securite (OWASP basics)      | ✅      | OWASP Top 10      |
-| T-1404 | Documentation utilisateur          | ✅      | Guide Sophie + Karim |
-| T-1405 | **TAG v1.0.0**                     | ✅      | -                 |
+| ID | Tache | Statut | Description |
+| -- | ----- | ------ | ----------- |
+| - | Vue Karim "A remedier" | ✅ | Bouton reprendre intervention |
+| - | Import CSV encodage | ✅ | Detection UTF-8/Windows-1252/ISO-8859-1 |
+| - | Fix double encodage | ✅ | Eviter "Hopital" -> "HÃ´pital" |
 
 ---
 
-## Fichiers crees/modifies
+## Fichiers modifies
 
-### Tests unitaires (T-1401)
-- `tests/Unit/Service/ExportCsvServiceTest.php` — 11 tests export CSV
-- `tests/Unit/Service/ShareServiceTest.php` — 14 tests liens partage
-- `tests/Unit/Service/PdfExportServiceTest.php` — 6 tests export PDF
-- `tests/Unit/Service/ConfigurationServiceTest.php` — 10 tests config
+### Vue Karim
+- `src/Controller/TerrainController.php` — Route `terrain_replanifier`
+- `templates/terrain/index.html.twig` — Boutons "REPRENDRE L'INTERVENTION"
+- `templates/terrain/show.html.twig` — Actions pour statuts reporte/a_remedier
 
-### Tests de charge (T-1402)
-- `tests/Load/LoadTestFixtures.php` — Generateur 50 users, 10k ops
-- `src/Command/LoadTestCommand.php` — Commande de benchmark
-- `tests/Load/LOAD_TEST_REPORT.md` — Documentation tests charge
-
-### Audit securite (T-1403)
-- `docs/SECURITY_AUDIT_V1.md` — Audit OWASP complet
-
-### Documentation (T-1404)
-- `docs/USER_GUIDE.md` — Guide utilisateur Sophie + Karim
-
-### Corrections
-- `src/Service/ConfigurationService.php` — Fix getEtapes/setEtapes
+### Import CSV
+- `src/Service/ImportCsvService.php` — Detection encodage robuste + conversion UTF-8
+- `tests/Unit/Service/ImportCsvServiceTest.php` — Test adapte
 
 ---
 
-## Resultats Tests
+## Commits
 
-```bash
-# Tous les tests passent
-php bin/phpunit
-# OK, Tests: 240, Assertions: 745
+```
+91b20ec [FEAT] Vue Karim: permettre interaction sur operations "A remedier"
+a1700bb [FIX] Import CSV : detection encodage + conversion UTF-8
+c7af1c9 [FIX] Import CSV : eviter double encodage UTF-8
 ```
 
 ---
 
-## Tag v1.0.0
-
-Version 1.0.0 de OpsTracker comprenant :
-- 14 sprints completes
-- 103 taches terminees
-- 76 User Stories implementees
-- 240 tests passants
-- Audit OWASP valide
-- Documentation utilisateur complete
-
----
-
-## Prochaine etape : V2
+## Prochaine etape
 
 Le backlog V2 comprend :
 - EPIC-10 : Reservation End-Users

@@ -31,6 +31,43 @@
 
 ## Sessions
 
+### Session #26 — 2026-01-25
+
+**Duree** : ~30 min
+**Tache(s)** : Ameliorations Vue Karim + Fix Import CSV
+**Statut** : ✅ Termine
+
+### Realise
+
+- **Vue Karim - Interaction "A remedier"**
+  - Nouvelle route `terrain_replanifier` dans TerrainController
+  - Bouton "REPRENDRE L'INTERVENTION" pour operations reportees/a_remedier
+  - Lien vers detail depuis les cards reportees/a_remedier
+  - Karim peut maintenant reprendre une intervention problematique
+
+- **Fix Import CSV - Encodage**
+  - Detection automatique UTF-8, Windows-1252, ISO-8859-1
+  - Methode `isValidUtf8()` avec `mb_check_encoding`
+  - Conversion UTF-8 avant parsing (plus fiable que CharsetConverter)
+  - Suppression BOM si present
+  - Fix double encodage ("Hopital" -> "HÃ´pital")
+
+### Fichiers modifies
+
+- `src/Controller/TerrainController.php` - route replanifier
+- `templates/terrain/index.html.twig` - boutons reprise
+- `templates/terrain/show.html.twig` - boutons reprise
+- `src/Service/ImportCsvService.php` - detection encodage robuste
+- `tests/Unit/Service/ImportCsvServiceTest.php` - test adapte
+
+### Commits
+
+- `91b20ec` [FEAT] Vue Karim: permettre interaction sur operations "A remedier"
+- `a1700bb` [FIX] Import CSV : detection encodage + conversion UTF-8
+- `c7af1c9` [FIX] Import CSV : eviter double encodage UTF-8
+
+---
+
 ### Session #25 — 2026-01-24
 
 **Duree** : ~40 min
