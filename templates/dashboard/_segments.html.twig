@@ -1,159 +1,116 @@
 <turbo-frame id="segments-list">
-{# T-702 : Progression unifiee avec hierarchie claire #}
-<div class="card-elevated border-2 border-ink">
+{# ===== SECTION PROGRESSION ===== #}
+<div class="bg-white border-2 border-ink">
 
     {# Header principal #}
-    <div class="p-6 border-b-2 border-ink/10">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-3 h-3 bg-primary"></div>
-                <h2 class="text-lg font-bold">Progression</h2>
-            </div>
-            <span class="text-xs text-muted">{{ segments|length }} segment{{ segments|length > 1 ? 's' : '' }} • {{ kpi.total ?? 0 }} operations</span>
-        </div>
+    <div class="px-6 py-4 border-b border-ink/10 flex items-center justify-between">
+        <h3 class="font-semibold text-ink flex items-center gap-2">
+            <span class="w-3 h-3 bg-primary rounded-sm"></span>
+            Progression
+        </h3>
+        <span class="text-sm text-muted">
+            {{ segments|length }} segment{{ segments|length > 1 ? 's' : '' }} • {{ kpi.total ?? 0 }} operations
+        </span>
     </div>
 
-    {# ===== PREREQUIS GLOBAUX (Simple, coherent avec segments) ===== #}
+    {# ===== SOUS-SECTION PREREQUIS GLOBAUX ===== #}
     {% if prerequisGlobauxStats is defined and prerequisGlobauxStats.total > 0 %}
         <div class="px-6 py-4 border-b border-ink/10">
-            <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center gap-2">
-                    <i data-feather="check-square" class="w-4 h-4 text-primary"></i>
-                    <span class="font-medium text-ink">Prerequis globaux</span>
-                    <span class="text-sm text-muted">{{ prerequisGlobauxStats.fait }}/{{ prerequisGlobauxStats.total }}</span>
+            {# Titre sous-section #}
+            <div class="flex items-center gap-2 mb-4">
+                <span class="w-2 h-2 bg-ink rounded-sm"></span>
+                <span class="text-sm font-bold text-ink uppercase tracking-wide">Prerequis globaux</span>
+            </div>
 
-                    {# Badge meme style que EN RETARD #}
-                    {% if prerequisGlobauxStats.progression == 100 %}
-                        <span class="px-2 py-0.5 text-xs font-semibold bg-success text-white rounded">
-                            COMPLET
-                        </span>
-                    {% elseif prerequisGlobauxStats.a_faire > 0 %}
-                        <span class="px-2 py-0.5 text-xs font-semibold bg-warning text-white rounded">
-                            {{ prerequisGlobauxStats.a_faire }} A FAIRE
-                        </span>
-                    {% endif %}
-                </div>
+            {# Contenu #}
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm text-muted">{{ prerequisGlobauxStats.fait }}/{{ prerequisGlobauxStats.total }}</span>
                 <span class="font-semibold {{ prerequisGlobauxStats.progression == 100 ? 'text-success' : 'text-ink' }}">
                     {{ prerequisGlobauxStats.progression }}%
                 </span>
             </div>
-
-            {# Barre de progression #}
-            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div class="h-full rounded-full transition-all duration-300
-                            {{ prerequisGlobauxStats.progression == 100 ? 'bg-success' : 'bg-primary' }}"
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div class="h-full rounded-full {{ prerequisGlobauxStats.progression == 100 ? 'bg-success' : 'bg-primary' }}"
                      style="width: {{ prerequisGlobauxStats.progression }}%"></div>
             </div>
         </div>
     {% endif %}
 
-    {# ===== SOUS-TITRE SEGMENTS ===== #}
-    <div class="px-6 py-3 bg-gray-50 border-y border-ink/5">
-        <div class="flex items-center gap-2 text-sm">
-            <i data-feather="layers" class="w-4 h-4 text-muted"></i>
-            <span class="font-medium text-muted uppercase tracking-wide">
-                Progression par segment
-            </span>
+    {# ===== SOUS-SECTION PROGRESSION PAR SEGMENT ===== #}
+    <div class="px-6 py-4">
+        {# Titre sous-section #}
+        <div class="flex items-center gap-2 mb-4">
+            <span class="w-2 h-2 bg-ink rounded-sm"></span>
+            <span class="text-sm font-bold text-ink uppercase tracking-wide">Progression par segment</span>
         </div>
-    </div>
 
-    {# ===== SEGMENTS ===== #}
-    {% if segments|length == 0 %}
-    <div class="p-8 text-center text-muted">
-        <i data-feather="layers" class="w-12 h-12 mx-auto mb-4 text-ink/20"></i>
-        <p class="font-medium">Aucun segment</p>
-        <p class="text-sm mt-1">Creez des segments pour organiser vos operations</p>
-        <a href="{{ path('app_segment_new', {campagne: campagne.id}) }}" class="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-ink text-white text-sm font-medium hover:bg-ink/90 transition-colors">
-            <i data-feather="plus" class="w-4 h-4"></i>
-            Creer un segment
-        </a>
-    </div>
-    {% else %}
-    <div class="divide-y divide-ink/10">
-        {% for item in segments %}
-        <a href="{{ path('app_segment_show', {campagne: campagne.id, id: item.segment.id}) }}" class="segment-row px-6 py-4 block cursor-pointer {{ item.is_late ? 'bg-danger/5' : '' }}">
-            {# Ligne principale segment #}
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-3">
-                    <div class="w-3 h-3 bg-{{ item.is_late ? 'warning' : 'success' }}"></div>
-                    <h3 class="font-semibold text-ink">{{ item.segment.nom }}</h3>
-                    <span class="text-xs text-muted">{{ item.total }} operation{{ item.total > 1 ? 's' : '' }}</span>
-                    {% if item.is_late %}
-                    <span class="flex items-center gap-1 px-2 py-0.5 bg-danger text-white text-[10px] font-bold uppercase rounded">
-                        <i data-feather="alert-triangle" class="w-3 h-3"></i>
-                        En retard
-                    </span>
-                    {% endif %}
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="text-2xl font-bold num {{ item.is_late ? 'text-danger' : 'text-ink' }}">{{ item.progression|round }}%</span>
-                    <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
-                </div>
+        {% if segments|length == 0 %}
+            <div class="py-8 text-center text-muted">
+                <i data-feather="layers" class="w-12 h-12 mx-auto mb-4 text-ink/20"></i>
+                <p class="font-medium">Aucun segment</p>
+                <p class="text-sm mt-1">Creez des segments pour organiser vos operations</p>
+                <a href="{{ path('app_segment_new', {campagne: campagne.id}) }}" class="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-ink text-white text-sm font-medium hover:bg-ink/90 transition-colors">
+                    <i data-feather="plus" class="w-4 h-4"></i>
+                    Creer un segment
+                </a>
             </div>
-
-            {# Barre de progression multi-statuts #}
-            <div class="h-3 bg-paper rounded-full flex overflow-hidden mb-2">
-                {% set realise_pct = item.total > 0 ? (item.realise / item.total * 100) : 0 %}
-                {% set planifie_pct = item.total > 0 ? (item.planifie / item.total * 100) : 0 %}
-                {% set reporte_pct = item.total > 0 ? (item.reporte / item.total * 100) : 0 %}
-                {% set remedier_pct = item.total > 0 ? (item.a_remedier / item.total * 100) : 0 %}
-                <div class="bg-success h-full" style="width: {{ realise_pct }}%"></div>
-                <div class="bg-primary h-full" style="width: {{ planifie_pct }}%"></div>
-                <div class="bg-warning h-full" style="width: {{ reporte_pct }}%"></div>
-                <div class="bg-danger h-full" style="width: {{ remedier_pct }}%"></div>
-            </div>
-
-            {# Legende operations - RG-080 Triple signalisation #}
-            <div class="flex items-center gap-6 text-xs text-muted">
-                <span class="flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-success"></span>
-                    {{ item.realise }} realise{{ item.realise > 1 ? 's' : '' }}
-                </span>
-                <span class="flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-primary"></span>
-                    {{ item.planifie }} planifie{{ item.planifie > 1 ? 's' : '' }}
-                </span>
-                <span class="flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-warning"></span>
-                    {{ item.reporte }} reporte{{ item.reporte > 1 ? 's' : '' }}
-                </span>
-                <span class="flex items-center gap-1">
-                    <span class="w-2 h-2 rounded-full bg-danger"></span>
-                    {{ item.a_remedier }} a remedier
-                </span>
-            </div>
-
-            {# Prerequis du segment - Indente et fin #}
-            {% if item.prerequis is defined and item.prerequis.total > 0 %}
-                <div class="mt-3 ml-5 pl-4 border-l-2 border-ink/10">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-sm">
-                            <i data-feather="check-square" class="w-3.5 h-3.5 text-muted"></i>
-                            <span class="text-muted">Prerequis :</span>
-                            <span class="font-medium {{ item.prerequis.progression == 100 ? 'text-success' : 'text-ink' }}">
-                                {{ item.prerequis.fait }}/{{ item.prerequis.total }}
+        {% else %}
+            {# Liste segments #}
+            <div class="space-y-6">
+                {% for item in segments %}
+                    <a href="{{ path('app_segment_show', {campagne: campagne.id, id: item.segment.id}) }}" class="block cursor-pointer hover:bg-paper/50 -mx-2 px-2 py-2 rounded transition-colors">
+                        {# Ligne titre segment #}
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-sm" style="background-color: {{ item.segment.couleur ?? '#3b82f6' }}"></span>
+                                <span class="font-medium text-ink">{{ item.segment.nom }}</span>
+                                <span class="text-sm text-muted">{{ item.total }} operation{{ item.total > 1 ? 's' : '' }}</span>
+                                {% if item.is_late %}
+                                    <span class="px-2 py-0.5 text-xs font-semibold bg-danger text-white rounded">EN RETARD</span>
+                                {% endif %}
+                            </div>
+                            <span class="font-semibold {{ item.is_late ? 'text-danger' : 'text-ink' }}">
+                                {{ item.progression|round }}%
                             </span>
-                            {% if item.prerequis.progression == 100 %}
-                                <i data-feather="check-circle" class="w-3.5 h-3.5 text-success"></i>
-                            {% else %}
-                                <span class="text-warning text-xs">!</span>
+                        </div>
+
+                        {# Barre multi-couleur #}
+                        <div class="h-3 bg-gray-100 rounded-full overflow-hidden flex mb-2">
+                            {% set total = item.total %}
+                            {% if total > 0 %}
+                                <div class="h-full bg-success" style="width: {{ (item.realise / total * 100) }}%"></div>
+                                <div class="h-full bg-primary" style="width: {{ (item.planifie / total * 100) }}%"></div>
+                                <div class="h-full bg-warning" style="width: {{ (item.reporte / total * 100) }}%"></div>
+                                <div class="h-full bg-danger" style="width: {{ (item.a_remedier / total * 100) }}%"></div>
                             {% endif %}
                         </div>
-                        <span class="text-sm font-medium {{ item.prerequis.progression == 100 ? 'text-success' : 'text-muted' }}">
-                            {{ item.prerequis.progression }}%
-                        </span>
-                    </div>
-                    <div class="mt-1.5 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div class="h-full rounded-full transition-all duration-300
-                                    {{ item.prerequis.progression == 100 ? 'bg-success' : 'bg-primary/70' }}"
-                             style="width: {{ item.prerequis.progression }}%"></div>
-                    </div>
-                </div>
-            {% endif %}
-        </a>
-        {% endfor %}
+
+                        {# Legende #}
+                        <div class="flex items-center gap-4 text-xs text-muted">
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-success"></span>{{ item.realise }} realise{{ item.realise > 1 ? 's' : '' }}</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-primary"></span>{{ item.planifie }} planifie{{ item.planifie > 1 ? 's' : '' }}</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-warning"></span>{{ item.reporte }} reporte{{ item.reporte > 1 ? 's' : '' }}</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-danger"></span>{{ item.a_remedier }} a remedier</span>
+                        </div>
+
+                        {# Prerequis segment si existants #}
+                        {% if item.prerequis is defined and item.prerequis.total > 0 %}
+                            <div class="mt-3 ml-5 pl-3 border-l-2 border-gray-200">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-muted">Prerequis : {{ item.prerequis.fait }}/{{ item.prerequis.total }}</span>
+                                    <span class="{{ item.prerequis.progression == 100 ? 'text-success' : 'text-muted' }}">{{ item.prerequis.progression }}%</span>
+                                </div>
+                                <div class="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div class="h-full rounded-full {{ item.prerequis.progression == 100 ? 'bg-success' : 'bg-primary' }}"
+                                         style="width: {{ item.prerequis.progression }}%"></div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
-    {% endif %}
 
 </div>
 </turbo-frame>
