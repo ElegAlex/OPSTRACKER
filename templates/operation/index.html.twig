@@ -208,47 +208,18 @@
                             {% endif %}
                         </td>
 
-                        {# Statut avec select inline (RG-080: Triple signalisation) #}
+                        {# Statut avec select inline - tous les statuts disponibles #}
                         <td class="px-4 py-3">
-                            <div class="relative" data-controller="dropdown">
-                                {# Badge statut actuel #}
-                                <button type="button"
-                                        data-action="dropdown#toggle"
-                                        class="inline-flex items-center gap-2 px-2 py-1 bg-{{ operation.statutCouleur }}/10 hover:bg-{{ operation.statutCouleur }}/20 transition-colors cursor-pointer">
-                                    <i data-feather="{{ statistiques[operation.statut].icone }}" class="w-3.5 h-3.5 text-{{ operation.statutCouleur }}"></i>
-                                    <span class="text-xs font-bold text-{{ operation.statutCouleur }} uppercase tracking-wider">{{ operation.statutLabel }}</span>
-                                    {% if transitions[operation.id]|length > 0 %}
-                                    <i data-feather="chevron-down" class="w-3 h-3 text-{{ operation.statutCouleur }}"></i>
-                                    {% endif %}
-                                </button>
-
-                                {# Dropdown transitions #}
-                                {% if transitions[operation.id]|length > 0 %}
-                                <div class="dropdown-menu" data-dropdown-target="menu">
-                                    <div class="bg-white border-2 border-ink shadow-lg py-1">
-                                        {% for trans, label in transitions[operation.id] %}
-                                        <form action="{{ path('app_operation_transition', {campagne: campagne.id, id: operation.id, transition: trans}) }}"
-                                              method="post"
-                                              class="block">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('operation_transition_' ~ operation.id) }}">
-                                            {% if trans == 'reporter' %}
-                                            <button type="button"
-                                                    data-action="click->modal#open"
-                                                    data-modal-target="report-{{ operation.id }}"
-                                                    class="w-full text-left px-4 py-2 text-sm text-ink hover:bg-paper transition-colors">
-                                                {{ label }}
-                                            </button>
-                                            {% else %}
-                                            <button type="submit" class="w-full text-left px-4 py-2 text-sm text-ink hover:bg-paper transition-colors">
-                                                {{ label }}
-                                            </button>
-                                            {% endif %}
-                                        </form>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
+                            <form action="{{ path('app_operation_update_statut', {campagne: campagne.id, id: operation.id}) }}" method="post" class="inline-block">
+                                <input type="hidden" name="_token" value="{{ csrf_token('operation_statut_' ~ operation.id) }}">
+                                <select name="statut"
+                                        onchange="this.form.submit()"
+                                        class="select-inline text-xs px-2 py-1 border border-ink/10 focus:border-ink bg-{{ operation.statutCouleur }}/10 text-{{ operation.statutCouleur }} font-bold uppercase tracking-wider min-w-[120px]">
+                                    {% for statut, label in constant('App\\Entity\\Operation::STATUTS') %}
+                                    <option value="{{ statut }}" {{ operation.statut == statut ? 'selected' : '' }}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
                         </td>
 
                         {# Technicien avec select inline #}
@@ -300,30 +271,6 @@
                             </div>
                         </td>
                     </tr>
-
-                    {# Modal report (pour motif) #}
-                    {% if 'reporter' in transitions[operation.id]|keys %}
-                    <div id="report-{{ operation.id }}" class="fixed inset-0 bg-ink/50 hidden items-center justify-center z-50" data-modal>
-                        <div class="bg-white border-2 border-ink p-6 w-full max-w-md">
-                            <h3 class="text-lg font-bold mb-4">Reporter l'operation</h3>
-                            <form action="{{ path('app_operation_transition', {campagne: campagne.id, id: operation.id, transition: 'reporter'}) }}" method="post">
-                                <input type="hidden" name="_token" value="{{ csrf_token('operation_transition_' ~ operation.id) }}">
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-ink mb-2">Motif du report (optionnel)</label>
-                                    <textarea name="motif" rows="3" class="w-full px-3 py-2 border-2 border-ink/20 focus:border-ink outline-none text-sm" placeholder="Indiquez la raison du report..."></textarea>
-                                </div>
-                                <div class="flex justify-end gap-3">
-                                    <button type="button" data-action="click->modal#close" class="px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
-                                        Annuler
-                                    </button>
-                                    <button type="submit" class="px-4 py-2 text-sm font-semibold text-white bg-warning hover:bg-warning/90 transition-colors">
-                                        Reporter
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                    {% endif %}
                     {% endfor %}
                 </tbody>
             </table>

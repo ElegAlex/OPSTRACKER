@@ -288,6 +288,60 @@ class OperationController extends AbstractController
     }
 
     /**
+     * Modifier le statut d'une operation directement (sans workflow).
+     * Permet de passer a n'importe quel statut valide.
+     */
+    #[Route('/{id}/statut', name: 'app_operation_update_statut', methods: ['POST'])]
+    public function updateStatut(
+        Campagne $campagne,
+        Operation $operation,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response {
+        // Verifier que l'operation appartient a la campagne
+        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+            throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
+        }
+
+        // Verifier le token CSRF
+        if (!$this->isCsrfTokenValid('operation_statut_' . $operation->getId(), $request->request->get('_token'))) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['error' => 'Token CSRF invalide.'], Response::HTTP_FORBIDDEN);
+            }
+            $this->addFlash('danger', 'Token CSRF invalide.');
+            return $this->redirectToRoute('app_operation_index', ['campagne' => $campagne->getId()]);
+        }
+
+        $newStatut = $request->request->get('statut');
+
+        // Liste des statuts valides
+        $validStatuts = array_keys(Operation::STATUTS);
+
+        if (in_array($newStatut, $validStatuts, true)) {
+            $operation->setStatut($newStatut);
+            $entityManager->flush();
+
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse([
+                    'success' => true,
+                    'statut' => $operation->getStatut(),
+                    'statutLabel' => $operation->getStatutLabel(),
+                    'statutCouleur' => $operation->getStatutCouleur(),
+                ]);
+            }
+
+            $this->addFlash('success', 'Statut mis a jour.');
+        } else {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['error' => 'Statut invalide.'], Response::HTTP_BAD_REQUEST);
+            }
+            $this->addFlash('danger', 'Statut invalide.');
+        }
+
+        return $this->redirectToRoute('app_operation_index', ['campagne' => $campagne->getId()]);
+    }
+
+    /**
      * US-305 : Voir le detail d'une operation.
      * Affiche toutes les informations de l'operation.
      */
