@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use DH\Auditor\Provider\Doctrine\Persistence\Reader\Filter\SimpleFilter;
+use DH\Auditor\Provider\Doctrine\Persistence\Reader\Query;
 use DH\Auditor\Provider\Doctrine\Persistence\Reader\Reader;
 
 /**
@@ -32,8 +34,8 @@ class AuditService
     {
         // Recuperer les entrees d'audit
         $entries = $this->reader->createQuery($entityClass)
-            ->filterBy(['object_id' => $entityId])
-            ->orderBy(['created_at' => 'DESC'])
+            ->addFilter(new SimpleFilter(Query::OBJECT_ID, (string) $entityId))
+            ->addOrderBy(Query::CREATED_AT, 'DESC')
             ->execute();
 
         $total = count($entries);
@@ -98,16 +100,11 @@ class AuditService
             try {
                 $query = $this->reader->createQuery($entityClass);
 
-                $filters = [];
                 if ($utilisateur) {
-                    $filters['blame_user'] = $utilisateur;
+                    $query->addFilter(new SimpleFilter('blame_user', $utilisateur));
                 }
 
-                if (!empty($filters)) {
-                    $query->filterBy($filters);
-                }
-
-                $entries = $query->orderBy(['created_at' => 'DESC'])->execute();
+                $entries = $query->addOrderBy(Query::CREATED_AT, 'DESC')->execute();
 
                 // Filtrer par date
                 foreach ($entries as $entry) {
