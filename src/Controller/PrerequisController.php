@@ -51,14 +51,6 @@ class PrerequisController extends AbstractController
         $campagne = $this->getCampagne($campagneId);
         $data = $this->prerequisService->getDonneesOngletPrerequis($campagne);
 
-        // Support Turbo Frame pour rafraichissement partiel
-        if ($request->headers->has('Turbo-Frame')) {
-            return $this->render('prerequis/_content.html.twig', [
-                'campagne' => $campagne,
-                'data' => $data,
-            ]);
-        }
-
         return $this->render('prerequis/index.html.twig', [
             'campagne' => $campagne,
             'data' => $data,
@@ -185,6 +177,14 @@ class PrerequisController extends AbstractController
                 'prerequis' => $prerequis,
                 'campagne' => $campagne,
             ], new Response('', 200, ['Content-Type' => 'text/vnd.turbo-stream.html']));
+        }
+
+        // Retourner le partial _row wrappe dans le turbo-frame pour mise a jour inline
+        if ($request->headers->has('Turbo-Frame')) {
+            return $this->render('prerequis/_row_frame.html.twig', [
+                'prerequis' => $prerequis,
+                'campagne' => $campagne,
+            ]);
         }
 
         return $this->redirectToRoute('app_prerequis_index', ['campagneId' => $campagneId]);

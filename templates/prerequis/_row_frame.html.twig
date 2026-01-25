@@ -1,0 +1,4 @@
+{# Wrapper Turbo Frame pour une ligne de prerequis #}
+<turbo-frame id="prerequis-row-{{ prerequis.id }}">
+    {% include 'prerequis/_row.html.twig' with {prerequis: prerequis, campagne: campagne} %}
+</turbo-frame>

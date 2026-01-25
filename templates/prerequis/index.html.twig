@@ -135,7 +135,9 @@
                     {% endif %}
                 </div>
                 {% if not campagne.isReadOnly %}
-                <a href="{{ path('app_prerequis_global_new', {campagneId: campagne.id}) }}" class="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
+                <a href="{{ path('app_prerequis_global_new', {campagneId: campagne.id}) }}"
+                   class="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80"
+                   data-turbo-frame="_top">
                     <i data-feather="plus" class="w-4 h-4"></i>
                     Ajouter un prerequis global
                 </a>
@@ -166,7 +168,9 @@
                 <i data-feather="clipboard" class="w-12 h-12 mx-auto text-muted mb-4"></i>
                 <p class="text-muted">Aucun prerequis global defini</p>
                 {% if not campagne.isReadOnly %}
-                <a href="{{ path('app_prerequis_global_new', {campagneId: campagne.id}) }}" class="inline-flex items-center gap-2 mt-4 px-4 py-2 text-sm font-medium text-primary border-2 border-primary hover:bg-primary hover:text-white transition-colors">
+                <a href="{{ path('app_prerequis_global_new', {campagneId: campagne.id}) }}"
+                   class="inline-flex items-center gap-2 mt-4 px-4 py-2 text-sm font-medium text-primary border-2 border-primary hover:bg-primary hover:text-white transition-colors"
+                   data-turbo-frame="_top">
                     <i data-feather="plus" class="w-4 h-4"></i>
                     Ajouter le premier prerequis
                 </a>
@@ -244,7 +248,9 @@
                             {# Add prerequis link #}
                             {% if not campagne.isReadOnly %}
                             <div class="p-4 border-t border-ink/10 bg-paper">
-                                <a href="{{ path('app_prerequis_segment_new', {campagneId: campagne.id, segmentId: segmentData.segment.id}) }}" class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
+                                <a href="{{ path('app_prerequis_segment_new', {campagneId: campagne.id, segmentId: segmentData.segment.id}) }}"
+                                   class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80"
+                                   data-turbo-frame="_top">
                                     <i data-feather="plus" class="w-4 h-4"></i>
                                     Ajouter un prerequis pour {{ segmentData.segment.nom }}
                                 </a>

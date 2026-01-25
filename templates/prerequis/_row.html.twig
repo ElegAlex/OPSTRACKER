@@ -56,7 +56,8 @@
         {% if not campagne.isReadOnly %}
         <a href="{{ path('app_prerequis_edit', {campagneId: campagne.id, id: prerequis.id}) }}"
            class="w-8 h-8 flex items-center justify-center text-muted hover:text-ink hover:bg-paper border border-ink/10 transition-colors"
-           title="Modifier">
+           title="Modifier"
+           data-turbo-frame="_top">
             <i data-feather="edit-2" class="w-4 h-4"></i>
         </a>
         <form action="{{ path('app_prerequis_delete', {campagneId: campagne.id, id: prerequis.id}) }}" method="POST"
