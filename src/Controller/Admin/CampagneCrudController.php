@@ -60,7 +60,7 @@ class CampagneCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         $viewFrontend = Action::new('viewFrontend', 'Voir sur le site')
-            ->linkToRoute('app_campagne_show', fn (Campagne $c) => ['id' => $c->getId()])
+            ->linkToRoute('app_dashboard_campagne', fn (Campagne $c) => ['id' => $c->getId()])
             ->setIcon('fa fa-eye');
 
         return $actions

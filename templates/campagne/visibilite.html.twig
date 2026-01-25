@@ -14,7 +14,7 @@
             <h1 class="text-4xl font-bold tracking-tight">Partage & Visibilite</h1>
             <p class="text-sm text-muted mt-2">{{ campagne.nom }}</p>
         </div>
-        <a href="{{ path('app_campagne_show', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted hover:text-ink transition-colors">
+        <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted hover:text-ink transition-colors">
             <i data-feather="arrow-left" class="w-4 h-4"></i>
             Retour
         </a>
@@ -95,7 +95,7 @@
                         <i data-feather="save" class="w-4 h-4"></i>
                         Enregistrer
                     </button>
-                    <a href="{{ path('app_campagne_show', {id: campagne.id}) }}" class="px-6 py-3 text-sm font-medium text-muted hover:text-ink transition-colors">
+                    <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="px-6 py-3 text-sm font-medium text-muted hover:text-ink transition-colors">
                         Annuler
                     </a>
                 </div>

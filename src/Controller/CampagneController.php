@@ -263,7 +263,7 @@ class CampagneController extends AbstractController
         // RG-016 : Campagne archivee = lecture seule
         if ($campagne->isReadOnly()) {
             $this->addFlash('danger', 'Cette campagne est archivee et ne peut pas etre modifiee.');
-            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
         $form = $this->createForm(CampagneStep4Type::class, $campagne);
@@ -279,7 +279,7 @@ class CampagneController extends AbstractController
 
             $this->addFlash('success', 'Configuration de la campagne mise a jour.');
 
-            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
         return $this->render('campagne/step4.html.twig', [
@@ -291,40 +291,16 @@ class CampagneController extends AbstractController
     }
 
     /**
-     * Detail d'une campagne avec graphiques dashboard.
+     * Redirection vers le nouveau dashboard.
+     *
+     * @deprecated Utiliser app_dashboard_campagne directement
      */
     #[Route('/{id}', name: 'app_campagne_show', methods: ['GET'])]
     public function show(Campagne $campagne): Response
     {
-        $statistiques = $this->campagneService->getStatistiquesCampagne($campagne);
-        $transitions = $this->campagneService->getTransitionsDisponibles($campagne);
-
-        // Donnees graphiques (format Chart.js)
-        $evolutionData = $this->campagneService->getEvolutionTemporelle($campagne);
-        $evolutionOptions = [
-            'scales' => [
-                'y' => ['beginAtZero' => true, 'ticks' => ['stepSize' => 1]],
-            ],
-            'plugins' => ['legend' => ['display' => false]],
-        ];
-
-        $repartitionData = $this->campagneService->getRepartitionStatuts($campagne);
-        $repartitionOptions = [
-            'cutout' => '60%',
-            'plugins' => [
-                'legend' => ['position' => 'right', 'labels' => ['boxWidth' => 12, 'padding' => 12]],
-            ],
-        ];
-
-        return $this->render('campagne/show.html.twig', [
-            'campagne' => $campagne,
-            'statistiques' => $statistiques,
-            'transitions' => $transitions,
-            'evolutionData' => $evolutionData,
-            'evolutionOptions' => $evolutionOptions,
-            'repartitionData' => $repartitionData,
-            'repartitionOptions' => $repartitionOptions,
-        ]);
+        return $this->redirectToRoute('app_dashboard_campagne', [
+            'id' => $campagne->getId(),
+        ], 301);
     }
 
     /**
@@ -339,7 +315,7 @@ class CampagneController extends AbstractController
         // RG-016 : Campagne archivee = lecture seule
         if ($campagne->isReadOnly()) {
             $this->addFlash('danger', 'Cette campagne est archivee et ne peut pas etre modifiee.');
-            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
         $operation = new Operation();
@@ -357,7 +333,7 @@ class CampagneController extends AbstractController
 
             $this->addFlash('success', 'Operation ajoutee avec succes.');
 
-            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
         return $this->render('campagne/operation_new.html.twig', [
@@ -375,7 +351,7 @@ class CampagneController extends AbstractController
     {
         if (!$this->isCsrfTokenValid('campagne_transition_' . $campagne->getId(), $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
-            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
         if ($this->campagneService->appliquerTransition($campagne, $transition)) {
@@ -384,7 +360,7 @@ class CampagneController extends AbstractController
             $this->addFlash('danger', 'Cette transition n\'est pas disponible.');
         }
 
-        return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+        return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
     }
 
     /**
@@ -437,14 +413,14 @@ class CampagneController extends AbstractController
         // RG-016 : Campagne archivee = lecture seule
         if ($campagne->isReadOnly()) {
             $this->addFlash('danger', 'Cette campagne est archivee et ne peut pas etre modifiee.');
-            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
         // Seul le proprietaire ou un admin peut transferer
         $currentUser = $this->getUser();
         if ($campagne->getProprietaire() !== $currentUser && !$this->isGranted('ROLE_ADMIN')) {
             $this->addFlash('danger', 'Seul le proprietaire ou un administrateur peut transferer la propriete.');
-            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
         $form = $this->createForm(TransfertProprietaireType::class, null, [
@@ -465,7 +441,7 @@ class CampagneController extends AbstractController
                 $nouveauProprietaire->getNom()
             ));
 
-            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
         return $this->render('campagne/proprietaire.html.twig', [
@@ -485,14 +461,14 @@ class CampagneController extends AbstractController
         // RG-016 : Campagne archivee = lecture seule
         if ($campagne->isReadOnly()) {
             $this->addFlash('danger', 'Cette campagne est archivee et ne peut pas etre modifiee.');
-            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
         // Seul le proprietaire ou un admin peut modifier la visibilite
         $currentUser = $this->getUser();
         if ($campagne->getProprietaire() !== $currentUser && !$this->isGranted('ROLE_ADMIN')) {
             $this->addFlash('danger', 'Seul le proprietaire ou un administrateur peut modifier la visibilite.');
-            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
         $form = $this->createForm(VisibiliteCampagneType::class, $campagne);
@@ -503,7 +479,7 @@ class CampagneController extends AbstractController
 
             $this->addFlash('success', 'Visibilite mise a jour.');
 
-            return $this->redirectToRoute('app_campagne_show', ['id' => $campagne->getId()]);
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
         return $this->render('campagne/visibilite.html.twig', [
