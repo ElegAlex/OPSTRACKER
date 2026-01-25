@@ -88,16 +88,36 @@ class DashboardController extends AbstractController
             'elements' => ['line' => ['tension' => 0.3]],
         ];
 
-        // Stats prerequis pour le widget dashboard
-        $prerequisStats = [
-            'total' => $this->prerequisRepository->count(['campagne' => $campagne]),
-            'fait' => $this->prerequisRepository->count(['campagne' => $campagne, 'statut' => Prerequis::STATUT_FAIT]),
-            'en_cours' => $this->prerequisRepository->count(['campagne' => $campagne, 'statut' => Prerequis::STATUT_EN_COURS]),
-            'a_faire' => $this->prerequisRepository->count(['campagne' => $campagne, 'statut' => Prerequis::STATUT_A_FAIRE]),
+        // Prerequis globaux (sans segment)
+        $prerequisGlobaux = $this->prerequisRepository->findBy(
+            ['campagne' => $campagne, 'segment' => null]
+        );
+        $prerequisGlobauxStats = [
+            'total' => count($prerequisGlobaux),
+            'fait' => count(array_filter($prerequisGlobaux, fn($p) => $p->getStatut() === Prerequis::STATUT_FAIT)),
+            'en_cours' => count(array_filter($prerequisGlobaux, fn($p) => $p->getStatut() === Prerequis::STATUT_EN_COURS)),
+            'a_faire' => count(array_filter($prerequisGlobaux, fn($p) => $p->getStatut() === Prerequis::STATUT_A_FAIRE)),
         ];
-        $prerequisStats['progression'] = $prerequisStats['total'] > 0
-            ? (int) round(($prerequisStats['fait'] / $prerequisStats['total']) * 100)
-            : 0;
+        $prerequisGlobauxStats['progression'] = $prerequisGlobauxStats['total'] > 0
+            ? (int) round(($prerequisGlobauxStats['fait'] / $prerequisGlobauxStats['total']) * 100)
+            : null;
+
+        // Enrichir chaque segment avec ses prerequis
+        foreach ($segments as &$segmentData) {
+            $segmentPrerequis = $this->prerequisRepository->findBy([
+                'campagne' => $campagne,
+                'segment' => $segmentData['segment'],
+            ]);
+
+            $segmentData['prerequis'] = [
+                'total' => count($segmentPrerequis),
+                'fait' => count(array_filter($segmentPrerequis, fn($p) => $p->getStatut() === Prerequis::STATUT_FAIT)),
+            ];
+            $segmentData['prerequis']['progression'] = $segmentData['prerequis']['total'] > 0
+                ? (int) round(($segmentData['prerequis']['fait'] / $segmentData['prerequis']['total']) * 100)
+                : null;
+        }
+        unset($segmentData);
 
         return $this->render('dashboard/campagne.html.twig', [
             'campagne' => $campagne,
@@ -107,7 +127,7 @@ class DashboardController extends AbstractController
             'equipe' => $equipe,
             'evolutionData' => $evolutionData,
             'evolutionOptions' => $evolutionOptions,
-            'prerequisStats' => $prerequisStats,
+            'prerequisGlobauxStats' => $prerequisGlobauxStats,
         ]);
     }
 
@@ -205,10 +225,44 @@ class DashboardController extends AbstractController
     public function segments(Campagne $campagne): Response
     {
         $segments = $this->dashboardService->getProgressionParSegment($campagne);
+        $kpi = $this->dashboardService->getKpiCampagne($campagne);
+
+        // Prerequis globaux (sans segment)
+        $prerequisGlobaux = $this->prerequisRepository->findBy(
+            ['campagne' => $campagne, 'segment' => null]
+        );
+        $prerequisGlobauxStats = [
+            'total' => count($prerequisGlobaux),
+            'fait' => count(array_filter($prerequisGlobaux, fn($p) => $p->getStatut() === Prerequis::STATUT_FAIT)),
+            'en_cours' => count(array_filter($prerequisGlobaux, fn($p) => $p->getStatut() === Prerequis::STATUT_EN_COURS)),
+            'a_faire' => count(array_filter($prerequisGlobaux, fn($p) => $p->getStatut() === Prerequis::STATUT_A_FAIRE)),
+        ];
+        $prerequisGlobauxStats['progression'] = $prerequisGlobauxStats['total'] > 0
+            ? (int) round(($prerequisGlobauxStats['fait'] / $prerequisGlobauxStats['total']) * 100)
+            : null;
+
+        // Enrichir chaque segment avec ses prerequis
+        foreach ($segments as &$segmentData) {
+            $segmentPrerequis = $this->prerequisRepository->findBy([
+                'campagne' => $campagne,
+                'segment' => $segmentData['segment'],
+            ]);
+
+            $segmentData['prerequis'] = [
+                'total' => count($segmentPrerequis),
+                'fait' => count(array_filter($segmentPrerequis, fn($p) => $p->getStatut() === Prerequis::STATUT_FAIT)),
+            ];
+            $segmentData['prerequis']['progression'] = $segmentData['prerequis']['total'] > 0
+                ? (int) round(($segmentData['prerequis']['fait'] / $segmentData['prerequis']['total']) * 100)
+                : null;
+        }
+        unset($segmentData);
 
         return $this->render('dashboard/_segments.html.twig', [
             'campagne' => $campagne,
             'segments' => $segments,
+            'kpi' => $kpi,
+            'prerequisGlobauxStats' => $prerequisGlobauxStats,
         ]);
     }
 
