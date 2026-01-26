@@ -203,42 +203,15 @@
                 </div>
                 {% endif %}
 
-                {# Checklist (si presente) #}
-                {% if checklist %}
+                {# Checklist (editable) #}
                 <div class="bg-white border-2 border-ink">
-                    <div class="px-6 py-4 border-b-2 border-ink/10">
-                        <h2 class="font-bold text-ink flex items-center gap-2">
-                            <i data-feather="check-square" class="w-4 h-4"></i>
-                            Checklist
-                            {% set progression = checklist.getProgressionPercentage() %}
-                            <span class="ml-auto text-sm font-normal text-muted">{{ progression }}% complete</span>
-                        </h2>
-                    </div>
-                    <div class="p-6">
-                        {# Barre de progression #}
-                        <div class="h-2 bg-paper mb-4">
-                            <div class="h-full bg-success transition-all" style="width: {{ progression }}%"></div>
-                        </div>
-
-                        {# Phases et etapes #}
-                        {% for phase in checklist.snapshot.phases|default([]) %}
-                            <div class="mb-4 last:mb-0">
-                                <h3 class="text-sm font-semibold text-ink mb-2">{{ phase.nom }}</h3>
-                                <div class="space-y-1">
-                                    {% for etape in phase.etapes|default([]) %}
-                                        {% set etapeId = etape.id|default(loop.index) %}
-                                        {% set isChecked = checklist.isEtapeValidee(etapeId) %}
-                                        <div class="flex items-center gap-2 text-sm {{ isChecked ? 'text-success' : 'text-muted' }}">
-                                            <i data-feather="{{ isChecked ? 'check-square' : 'square' }}" class="w-4 h-4"></i>
-                                            <span class="{{ isChecked ? 'line-through' : '' }}">{{ etape.nom }}</span>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
+                    {% include 'operation/_checklist.html.twig' with {
+                        operation: operation,
+                        campagne: campagne,
+                        checklist_progression: checklist_progression,
+                        documents: documents|default({})
+                    } only %}
                 </div>
-                {% endif %}
             </div>
 
             {# COLONNE LATERALE #}

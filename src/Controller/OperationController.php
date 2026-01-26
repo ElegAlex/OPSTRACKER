@@ -4,8 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Campagne;
 use App\Entity\Operation;
+use App\Repository\DocumentRepository;
 use App\Repository\SegmentRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\ChecklistService;
 use App\Service\OperationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,6 +34,8 @@ class OperationController extends AbstractController
         private readonly OperationService $operationService,
         private readonly SegmentRepository $segmentRepository,
         private readonly UtilisateurRepository $utilisateurRepository,
+        private readonly ChecklistService $checklistService,
+        private readonly DocumentRepository $documentRepository,
     ) {
     }
 
@@ -421,13 +425,94 @@ class OperationController extends AbstractController
         $techniciens = $this->utilisateurRepository->findTechniciensActifs();
         $segments = $this->segmentRepository->findByCampagne($campagne->getId());
 
+        // Calculer la progression de la checklist si elle existe
+        $checklistProgression = null;
+        $documentsById = [];
+        if ($operation->getChecklistInstance()) {
+            $checklistProgression = $this->checklistService->getProgression($operation->getChecklistInstance());
+
+            // Charger les documents de la campagne pour la checklist
+            $documents = $this->documentRepository->findByCampagne($campagne->getId());
+            foreach ($documents as $doc) {
+                $documentsById[$doc->getId()] = $doc;
+            }
+        }
+
         return $this->render('operation/show.html.twig', [
             'operation' => $operation,
             'campagne' => $campagne,
             'checklist' => $operation->getChecklistInstance(),
+            'checklist_progression' => $checklistProgression,
+            'documents' => $documentsById,
             'transitions' => $transitions,
             'techniciens' => $techniciens,
             'segments' => $segments,
+        ]);
+    }
+
+    /**
+     * Toggle (coche/decoche) une etape de la checklist.
+     * Accessible aux gestionnaires et admins (en plus des techniciens via terrain).
+     */
+    #[Route('/{id}/checklist/toggle/{etapeId}', name: 'app_operation_checklist_toggle', methods: ['POST'])]
+    public function toggleChecklistEtape(
+        Campagne $campagne,
+        Operation $operation,
+        string $etapeId,
+        Request $request
+    ): Response {
+        // Verifier que l'operation appartient a la campagne
+        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+            throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
+        }
+
+        // Verifier le token CSRF
+        if (!$this->isCsrfTokenValid('checklist_' . $operation->getId(), $request->request->get('_token'))) {
+            $this->addFlash('danger', 'Token de securite invalide.');
+            return $this->redirectToRoute('app_operation_show', [
+                'campagne' => $campagne->getId(),
+                'id' => $operation->getId(),
+            ]);
+        }
+
+        $instance = $operation->getChecklistInstance();
+        if (!$instance) {
+            $this->addFlash('danger', 'Pas de checklist pour cette operation.');
+            return $this->redirectToRoute('app_operation_show', [
+                'campagne' => $campagne->getId(),
+                'id' => $operation->getId(),
+            ]);
+        }
+
+        try {
+            $this->checklistService->toggleEtape($instance, $etapeId, $this->getUser());
+        } catch (\InvalidArgumentException $e) {
+            $this->addFlash('danger', $e->getMessage());
+        }
+
+        // Calculer la nouvelle progression
+        $progression = $this->checklistService->getProgression($instance);
+
+        // Charger les documents pour la checklist
+        $documents = $this->documentRepository->findByCampagne($campagne->getId());
+        $documentsById = [];
+        foreach ($documents as $doc) {
+            $documentsById[$doc->getId()] = $doc;
+        }
+
+        // Si requete Turbo, retourner uniquement le fragment
+        if ($request->headers->has('Turbo-Frame')) {
+            return $this->render('operation/_checklist.html.twig', [
+                'operation' => $operation,
+                'campagne' => $campagne,
+                'checklist_progression' => $progression,
+                'documents' => $documentsById,
+            ]);
+        }
+
+        return $this->redirectToRoute('app_operation_show', [
+            'campagne' => $campagne->getId(),
+            'id' => $operation->getId(),
         ]);
     }
 }
