@@ -24,7 +24,7 @@ class DocumentUploadType extends AbstractType
                 'label' => 'Fichier',
                 'attr' => [
                     'class' => 'w-full px-4 py-3 border-2 border-ink focus:outline-none focus:ring-2 focus:ring-primary',
-                    'accept' => '.pdf,.docx,.doc,.ps1,.bat,.zip,.exe',
+                    'accept' => '.pdf,.docx,.doc,.ps1,.bat,.zip,.exe,.txt,.md,.markdown',
                 ],
                 'constraints' => [
                     new NotBlank(['message' => 'Veuillez selectionner un fichier.']),
@@ -36,12 +36,14 @@ class DocumentUploadType extends AbstractType
                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                             'application/msword',
                             'text/plain',
+                            'text/markdown',
+                            'text/x-markdown',
                             'application/zip',
                             'application/x-zip-compressed',
                             'application/x-msdownload',
                             'application/octet-stream',
                         ],
-                        'mimeTypesMessage' => 'RG-050 : Type de fichier non autorise. Formats acceptes : PDF, DOCX, DOC, PS1, BAT, ZIP, EXE.',
+                        'mimeTypesMessage' => 'RG-050 : Type de fichier non autorise. Formats acceptes : PDF, DOCX, DOC, PS1, BAT, ZIP, EXE, TXT, MD.',
                     ]),
                 ],
             ])

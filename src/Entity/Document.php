@@ -28,9 +28,12 @@ class Document
         'bat' => 'text/plain',
         'zip' => 'application/zip',
         'exe' => 'application/x-msdownload',
+        'txt' => 'text/plain',
+        'md' => 'text/markdown',
+        'markdown' => 'text/markdown',
     ];
 
-    public const EXTENSIONS_AUTORISEES = ['pdf', 'docx', 'doc', 'ps1', 'bat', 'zip', 'exe'];
+    public const EXTENSIONS_AUTORISEES = ['pdf', 'docx', 'doc', 'ps1', 'bat', 'zip', 'exe', 'txt', 'md', 'markdown'];
 
     // RG-050 : Taille max 50 Mo (en octets)
     public const TAILLE_MAX_OCTETS = 52428800; // 50 * 1024 * 1024
@@ -288,6 +291,7 @@ class Document
         return match($this->extension) {
             'pdf' => 'file-text',
             'docx', 'doc' => 'file-text',
+            'txt', 'md', 'markdown' => 'file-text',
             'ps1', 'bat' => 'terminal',
             'exe' => 'cpu',
             'zip' => 'archive',
