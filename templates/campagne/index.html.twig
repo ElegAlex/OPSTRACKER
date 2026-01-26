@@ -3,6 +3,7 @@
 {% block title %}Campagnes - OpsTracker{% endblock %}
 
 {% block main %}
+<div data-controller="campaign-search">
 {# HEADER - Asymetrique, bold #}
 <header class="bg-white px-12 py-10 border-b-4 border-ink">
     <div class="flex justify-between items-end">
@@ -15,7 +16,9 @@
         </div>
         <div class="flex items-center gap-5">
             <div class="relative">
-                <input type="text" placeholder="Rechercher..."
+                <input type="text" placeholder="Rechercher une campagne..."
+                       data-campaign-search-target="input"
+                       data-action="input->campaign-search#filter keydown->campaign-search#clearOnEscape"
                        class="w-64 px-5 py-3 text-sm bg-paper border-2 border-transparent focus:border-ink focus:bg-white outline-none transition-all">
                 <i data-feather="search" class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"></i>
             </div>
@@ -113,12 +116,12 @@
         {% endfor %}
 
         {% if actives|length > 0 %}
-        <section class="mb-12" id="section-actives">
+        <section class="mb-12" id="section-actives" data-campaign-search-target="section" data-section-id="actives">
             <button onclick="toggleSection('actives')" class="flex items-center gap-4 mb-8 group w-full text-left">
                 <i data-feather="chevron-down" class="w-5 h-5 text-muted chevron"></i>
                 <span class="text-sm font-bold text-ink uppercase tracking-[0.15em]">Actives</span>
                 <div class="flex-1 h-0.5 bg-ink/10"></div>
-                <span class="w-8 h-8 bg-success text-white text-sm font-bold flex items-center justify-center">{{ actives|length }}</span>
+                <span class="w-8 h-8 bg-success text-white text-sm font-bold flex items-center justify-center" data-campaign-search-target="counter" data-section="actives">{{ actives|length }}</span>
             </button>
 
             <div class="section-content space-y-4">
@@ -133,12 +136,12 @@
         {# Section TERMINEE #}
         {% set terminees = campagnes_groupees['terminee'].campagnes %}
         {% if terminees|length > 0 %}
-        <section class="mb-12" id="section-terminees">
+        <section class="mb-12" id="section-terminees" data-campaign-search-target="section" data-section-id="terminees">
             <button onclick="toggleSection('terminees')" class="flex items-center gap-4 mb-8 group w-full text-left">
                 <i data-feather="chevron-down" class="w-5 h-5 text-muted chevron"></i>
                 <span class="text-sm font-bold text-ink uppercase tracking-[0.15em]">Terminees</span>
                 <div class="flex-1 h-0.5 bg-ink/10"></div>
-                <span class="w-8 h-8 bg-complete text-white text-sm font-bold flex items-center justify-center">{{ terminees|length }}</span>
+                <span class="w-8 h-8 bg-complete text-white text-sm font-bold flex items-center justify-center" data-campaign-search-target="counter" data-section="terminees">{{ terminees|length }}</span>
             </button>
 
             <div class="section-content space-y-3">
@@ -153,12 +156,12 @@
         {# Section ARCHIVEE (collapsed par defaut) #}
         {% set archivees = campagnes_groupees['archivee'].campagnes %}
         {% if archivees|length > 0 %}
-        <section class="mb-12 section-collapsed" id="section-archivees">
+        <section class="mb-12 section-collapsed" id="section-archivees" data-campaign-search-target="section" data-section-id="archivees">
             <button onclick="toggleSection('archivees')" class="flex items-center gap-4 mb-8 group w-full text-left">
                 <i data-feather="chevron-down" class="w-5 h-5 text-muted chevron"></i>
                 <span class="text-sm font-bold text-muted uppercase tracking-[0.15em]">Archivees</span>
                 <div class="flex-1 h-0.5 bg-ink/5"></div>
-                <span class="w-8 h-8 bg-ink/10 text-muted text-sm font-bold flex items-center justify-center">{{ archivees|length }}</span>
+                <span class="w-8 h-8 bg-ink/10 text-muted text-sm font-bold flex items-center justify-center" data-campaign-search-target="counter" data-section="archivees">{{ archivees|length }}</span>
             </button>
 
             <div class="section-content space-y-3">
@@ -185,8 +188,18 @@
         </div>
         {% endif %}
 
+        {# Message si aucun resultat de recherche #}
+        <div class="text-center py-16 hidden" data-campaign-search-target="noResults">
+            <div class="w-16 h-16 mx-auto bg-warning/10 flex items-center justify-center mb-4">
+                <i data-feather="search" class="w-8 h-8 text-warning"></i>
+            </div>
+            <h2 class="text-xl font-bold text-ink mb-2">Aucune campagne trouvee</h2>
+            <p class="text-muted">Essayez avec d'autres termes de recherche.</p>
+        </div>
+
     </div>
 </div>
+</div>{# Fin data-controller="campaign-search" #}
 
 <script>
     function toggleSection(sectionId) {
