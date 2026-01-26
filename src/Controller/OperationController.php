@@ -342,6 +342,70 @@ class OperationController extends AbstractController
     }
 
     /**
+     * Modifier la date planifiee d'une operation (inline).
+     */
+    #[Route('/{id}/date', name: 'app_operation_update_date', methods: ['POST'])]
+    public function updateDate(
+        Campagne $campagne,
+        Operation $operation,
+        Request $request,
+        EntityManagerInterface $entityManager
+    ): Response {
+        // Verifier que l'operation appartient a la campagne
+        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+            throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
+        }
+
+        // Verifier le token CSRF
+        if (!$this->isCsrfTokenValid('operation_date_' . $operation->getId(), $request->request->get('_token'))) {
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse(['error' => 'Token CSRF invalide.'], Response::HTTP_FORBIDDEN);
+            }
+            $this->addFlash('danger', 'Token CSRF invalide.');
+            return $this->redirectToRoute('app_operation_index', ['campagne' => $campagne->getId()]);
+        }
+
+        $dateStr = $request->request->get('date_planifiee');
+
+        if ($dateStr !== null && $dateStr !== '') {
+            try {
+                $date = new \DateTimeImmutable($dateStr);
+                $operation->setDatePlanifiee($date);
+                $entityManager->flush();
+
+                if ($request->isXmlHttpRequest()) {
+                    return new JsonResponse([
+                        'success' => true,
+                        'date' => $date->format('d/m/Y'),
+                    ]);
+                }
+
+                $this->addFlash('success', 'Date planifiee mise a jour.');
+            } catch (\Exception $e) {
+                if ($request->isXmlHttpRequest()) {
+                    return new JsonResponse(['error' => 'Format de date invalide.'], Response::HTTP_BAD_REQUEST);
+                }
+                $this->addFlash('danger', 'Format de date invalide.');
+            }
+        } else {
+            // Permet d'effacer la date
+            $operation->setDatePlanifiee(null);
+            $entityManager->flush();
+
+            if ($request->isXmlHttpRequest()) {
+                return new JsonResponse([
+                    'success' => true,
+                    'date' => null,
+                ]);
+            }
+
+            $this->addFlash('success', 'Date planifiee supprimee.');
+        }
+
+        return $this->redirectToRoute('app_operation_index', ['campagne' => $campagne->getId()]);
+    }
+
+    /**
      * US-305 : Voir le detail d'une operation.
      * Affiche toutes les informations de l'operation.
      */
