@@ -39,7 +39,7 @@
                                         <small class="text-muted">{{ etape.description }}</small>
                                     {% endif %}
                                 </div>
-                                {% if etape.documentId %}
+                                {% if etape.documentId|default(null) %}
                                     <span class="badge bg-info" title="Document associe">
                                         <i class="fa fa-file"></i>
                                     </span>

@@ -108,7 +108,7 @@
                                            value="{{ etape.description }}" placeholder="Description (optionnel)"
                                            class="flex-1 px-3 py-2 border border-ink/10 focus:border-ink outline-none text-sm">
                                     <input type="number" name="phases[{{ loop.parent.loop.index0 }}][etapes][{{ loop.index0 }}][documentId]"
-                                           value="{{ etape.documentId }}" placeholder="ID Doc"
+                                           value="{{ etape.documentId|default('') }}" placeholder="ID Doc"
                                            class="w-20 px-3 py-2 border border-ink/10 focus:border-ink outline-none text-sm">
                                     <label class="flex items-center gap-1 text-xs">
                                         <input type="checkbox" name="phases[{{ loop.parent.loop.index0 }}][etapes][{{ loop.index0 }}][obligatoire]"

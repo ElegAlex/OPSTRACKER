@@ -110,7 +110,7 @@
                             {% if etape.obligatoire %}
                             <span class="text-xs text-danger">*</span>
                             {% endif %}
-                            {% if etape.documentId %}
+                            {% if etape.documentId|default(null) %}
                             <i data-feather="file-text" class="w-4 h-4 text-primary"></i>
                             {% endif %}
                         </div>

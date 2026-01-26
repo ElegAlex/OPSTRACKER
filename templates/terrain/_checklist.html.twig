@@ -89,8 +89,8 @@
                                 </div>
 
                                 {# T-1106, T-1107 : Lien document si present #}
-                                {% if etape.documentId %}
-                                    {% set doc = documents[etape.documentId]|default(null) %}
+                                {% if etape.documentId|default(null) %}
+                                    {% set doc = documents[etape.documentId|default(0)]|default(null) %}
                                     {% if doc %}
                                         {% if doc.isScript %}
                                             {# T-1107 : Script - telechargement direct #}
