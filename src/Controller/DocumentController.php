@@ -99,13 +99,18 @@ class DocumentController extends AbstractController
 
             } catch (\InvalidArgumentException $e) {
                 $this->addFlash('danger', $e->getMessage());
+                // Redirection obligatoire pour Turbo Drive
+                return $this->redirectToRoute('app_document_upload', ['campagneId' => $campagneId]);
             }
         }
+
+        // Status 422 pour les erreurs de validation (compatibilité Turbo)
+        $response = new Response(null, $form->isSubmitted() ? Response::HTTP_UNPROCESSABLE_ENTITY : Response::HTTP_OK);
 
         return $this->render('document/upload.html.twig', [
             'campagne' => $campagne,
             'form' => $form->createView(),
-        ]);
+        ], $response);
     }
 
     /**
