@@ -146,7 +146,7 @@
                                                 <option value="">— Aucun —</option>
                                                 {% for doc in documents %}
                                                     <option value="{{ doc.id }}" {{ etape.documentId|default(null) == doc.id ? 'selected' : '' }}>
-                                                        {{ doc.nomOriginal|u.truncate(25) }}
+                                                        {{ doc.nomOriginal|length > 25 ? doc.nomOriginal|slice(0, 22) ~ '...' : doc.nomOriginal }}
                                                     </option>
                                                 {% endfor %}
                                             </select>
@@ -199,7 +199,7 @@
                                 <select name="documentId" class="form-select form-select-sm">
                                     <option value="">— Aucun —</option>
                                     {% for doc in documents %}
-                                        <option value="{{ doc.id }}">{{ doc.nomOriginal|u.truncate(20) }}</option>
+                                        <option value="{{ doc.id }}">{{ doc.nomOriginal|length > 20 ? doc.nomOriginal|slice(0, 17) ~ '...' : doc.nomOriginal }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
