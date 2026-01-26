@@ -51,7 +51,7 @@ class CampagneCrudController extends AbstractCrudController
         return $filters
             ->add(ChoiceFilter::new('statut')
                 ->setLabel('Statut')
-                ->setChoices(Campagne::STATUTS))
+                ->setChoices(array_flip(Campagne::STATUTS)))
             ->add(EntityFilter::new('typeOperation')->setLabel('Type d\'operation'))
             ->add(EntityFilter::new('proprietaire')->setLabel('Proprietaire'))
         ;
@@ -82,7 +82,7 @@ class CampagneCrudController extends AbstractCrudController
             ->setHelp('RG-011: Nom obligatoire');
 
         yield ChoiceField::new('statut', 'Statut')
-            ->setChoices(Campagne::STATUTS)
+            ->setChoices(array_flip(Campagne::STATUTS))
             ->renderAsBadges([
                 Campagne::STATUT_PREPARATION => 'warning',
                 Campagne::STATUT_A_VENIR => 'primary',
