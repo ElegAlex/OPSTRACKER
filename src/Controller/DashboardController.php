@@ -282,4 +282,53 @@ class DashboardController extends AbstractController
             'Content-Length' => strlen($pdfContent),
         ]);
     }
+
+    /**
+     * Turbo Frame pour l'histogramme empile planifie vs realise.
+     * Affiche la progression temporelle avec granularite ajustable.
+     */
+    #[Route('/campagne/{id}/progression', name: 'app_dashboard_progression', methods: ['GET'])]
+    public function progression(Campagne $campagne, Request $request): Response
+    {
+        $granularity = $request->query->get('granularity', 'day');
+
+        // Valider la granularite
+        if (!in_array($granularity, ['day', 'week', 'month'], true)) {
+            $granularity = 'week';
+        }
+
+        $chartData = $this->dashboardService->getProgressionPlanifieVsRealise($campagne, $granularity);
+
+        // Options pour l'histogramme empile
+        $chartOptions = [
+            'scales' => [
+                'x' => [
+                    'stacked' => true,
+                ],
+                'y' => [
+                    'stacked' => true,
+                    'beginAtZero' => true,
+                    'title' => [
+                        'display' => true,
+                        'text' => 'Nombre d\'operations',
+                    ],
+                ],
+            ],
+            'plugins' => [
+                'legend' => [
+                    'position' => 'bottom',
+                ],
+                'tooltip' => [
+                    'mode' => 'index',
+                ],
+            ],
+        ];
+
+        return $this->render('dashboard/_progression_chart.html.twig', [
+            'campagne' => $campagne,
+            'chartData' => $chartData,
+            'chartOptions' => $chartOptions,
+            'granularity' => $granularity,
+        ]);
+    }
 }

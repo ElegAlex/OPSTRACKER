@@ -1,0 +1,53 @@
+<turbo-frame id="progression-chart">
+    <div class="bg-white border-2 border-ink p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-ink flex items-center gap-2">
+                <i data-feather="bar-chart-2" class="w-5 h-5"></i>
+                Planifie vs Realise
+            </h3>
+
+            {# Selecteur de granularite #}
+            <div class="flex gap-1" data-controller="granularity" data-granularity-campagne-value="{{ campagne.id }}">
+                <button
+                    type="button"
+                    class="px-3 py-1.5 text-xs font-medium transition-colors {{ granularity == 'day' ? 'bg-ink text-white' : 'bg-paper text-muted hover:text-ink hover:bg-ink/5' }}"
+                    data-action="click->granularity#change"
+                    data-value="day"
+                    aria-pressed="{{ granularity == 'day' ? 'true' : 'false' }}"
+                >Jour</button>
+                <button
+                    type="button"
+                    class="px-3 py-1.5 text-xs font-medium transition-colors {{ granularity == 'week' ? 'bg-ink text-white' : 'bg-paper text-muted hover:text-ink hover:bg-ink/5' }}"
+                    data-action="click->granularity#change"
+                    data-value="week"
+                    aria-pressed="{{ granularity == 'week' ? 'true' : 'false' }}"
+                >Semaine</button>
+                <button
+                    type="button"
+                    class="px-3 py-1.5 text-xs font-medium transition-colors {{ granularity == 'month' ? 'bg-ink text-white' : 'bg-paper text-muted hover:text-ink hover:bg-ink/5' }}"
+                    data-action="click->granularity#change"
+                    data-value="month"
+                    aria-pressed="{{ granularity == 'month' ? 'true' : 'false' }}"
+                >Mois</button>
+            </div>
+        </div>
+
+        <div class="h-64">
+            {% if chartData.labels|length > 0 %}
+                <canvas data-controller="chart"
+                        data-chart-type-value="bar"
+                        data-chart-data-value="{{ chartData|json_encode|e('html_attr') }}"
+                        data-chart-options-value="{{ chartOptions|json_encode|e('html_attr') }}">
+                </canvas>
+            {% else %}
+                <div class="flex items-center justify-center h-full text-muted">
+                    <div class="text-center">
+                        <i data-feather="bar-chart-2" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                        <p class="text-sm">Aucune donnee disponible</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</turbo-frame>

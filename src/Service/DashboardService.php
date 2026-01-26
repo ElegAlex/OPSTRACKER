@@ -424,4 +424,176 @@ class DashboardService
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * Retourne les donnees pour l'histogramme empile planifie vs realise.
+     *
+     * @param string $granularity 'day' | 'week' | 'month'
+     *
+     * @return array{
+     *     labels: string[],
+     *     datasets: array<int, array{label: string, data: int[], backgroundColor: string, borderColor: string, borderWidth: int}>
+     * }
+     */
+    public function getProgressionPlanifieVsRealise(Campagne $campagne, string $granularity = 'week'): array
+    {
+        $operations = $campagne->getOperations();
+
+        // Trouver la date la plus ancienne parmi les operations
+        $dateDebut = null;
+        $dateFin = null;
+
+        foreach ($operations as $operation) {
+            $datePlanifiee = $operation->getDatePlanifiee();
+            $dateRealisation = $operation->getDateRealisation();
+
+            // Date de debut : la plus ancienne
+            if ($datePlanifiee && ($dateDebut === null || $datePlanifiee < $dateDebut)) {
+                $dateDebut = $datePlanifiee;
+            }
+            if ($dateRealisation && ($dateDebut === null || $dateRealisation < $dateDebut)) {
+                $dateDebut = \DateTimeImmutable::createFromInterface($dateRealisation);
+            }
+
+            // Date de fin : la plus recente
+            if ($datePlanifiee && ($dateFin === null || $datePlanifiee > $dateFin)) {
+                $dateFin = $datePlanifiee;
+            }
+            if ($dateRealisation && ($dateFin === null || $dateRealisation > $dateFin)) {
+                $dateFin = \DateTimeImmutable::createFromInterface($dateRealisation);
+            }
+        }
+
+        // Fallback si aucune operation
+        $today = new \DateTimeImmutable('today');
+        $dateDebut = $dateDebut ?? $today->modify('-30 days');
+        $dateFin = $dateFin ?? $today->modify('+7 days');
+
+        // Ne pas aller au-dela d'aujourd'hui + 7 jours
+        if ($dateFin > $today->modify('+7 days')) {
+            $dateFin = $today->modify('+7 days');
+        }
+
+        // Generer les periodes selon la granularite
+        $periods = $this->generatePeriods($dateDebut, $dateFin, $granularity);
+
+        $planifiees = [];
+        $realisees = [];
+
+        foreach ($periods as $period) {
+            $countPlanifie = 0;
+            $countRealise = 0;
+
+            foreach ($operations as $operation) {
+                $datePlanifiee = $operation->getDatePlanifiee();
+                $statut = $operation->getStatut();
+
+                // Compter planifiees : statut PLANIFIE ou EN_COURS avec datePlanifiee dans la periode
+                if (($statut === Operation::STATUT_PLANIFIE || $statut === Operation::STATUT_EN_COURS)
+                    && $datePlanifiee
+                    && $this->isDateInPeriod($datePlanifiee, $period['start'], $period['end'])) {
+                    ++$countPlanifie;
+                }
+
+                // Compter realisees : statut REALISE avec dateRealisation (ou datePlanifiee) dans la periode
+                if ($statut === Operation::STATUT_REALISE) {
+                    $dateRealisation = $operation->getDateRealisation() ?? $datePlanifiee;
+                    if ($dateRealisation && $this->isDateInPeriod($dateRealisation, $period['start'], $period['end'])) {
+                        ++$countRealise;
+                    }
+                }
+            }
+
+            $planifiees[] = $countPlanifie;
+            $realisees[] = $countRealise;
+        }
+
+        return [
+            'labels' => array_map(fn ($p) => $p['label'], $periods),
+            'datasets' => [
+                [
+                    'label' => 'Planifiees',
+                    'data' => $planifiees,
+                    'backgroundColor' => 'rgba(37, 99, 235, 0.8)',
+                    'borderColor' => 'rgb(37, 99, 235)',
+                    'borderWidth' => 1,
+                ],
+                [
+                    'label' => 'Realisees',
+                    'data' => $realisees,
+                    'backgroundColor' => 'rgba(5, 150, 105, 0.8)',
+                    'borderColor' => 'rgb(5, 150, 105)',
+                    'borderWidth' => 1,
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Genere les periodes selon la granularite.
+     *
+     * @return array<int, array{start: \DateTimeImmutable, end: \DateTimeImmutable, label: string}>
+     */
+    private function generatePeriods(\DateTimeInterface $start, \DateTimeInterface $end, string $granularity): array
+    {
+        $periods = [];
+        $current = \DateTimeImmutable::createFromInterface($start);
+        $endDate = \DateTimeImmutable::createFromInterface($end);
+
+        switch ($granularity) {
+            case 'day':
+                while ($current <= $endDate) {
+                    $periods[] = [
+                        'start' => $current,
+                        'end' => $current->modify('+1 day -1 second'),
+                        'label' => $current->format('d/m'),
+                    ];
+                    $current = $current->modify('+1 day');
+                }
+                break;
+
+            case 'week':
+                // Aligner sur le lundi de la semaine de debut
+                $dayOfWeek = (int) $current->format('N');
+                if ($dayOfWeek !== 1) {
+                    $current = $current->modify('-'.($dayOfWeek - 1).' days');
+                }
+
+                while ($current <= $endDate) {
+                    $weekEnd = $current->modify('+6 days');
+                    $periods[] = [
+                        'start' => $current,
+                        'end' => $weekEnd->modify('+1 day -1 second'),
+                        'label' => 'S'.$current->format('W'),
+                    ];
+                    $current = $current->modify('+7 days');
+                }
+                break;
+
+            case 'month':
+                // Aligner sur le premier du mois
+                $current = $current->modify('first day of this month');
+
+                while ($current <= $endDate) {
+                    $monthEnd = $current->modify('last day of this month');
+                    $periods[] = [
+                        'start' => $current,
+                        'end' => $monthEnd->modify('+1 day -1 second'),
+                        'label' => $current->format('M Y'),
+                    ];
+                    $current = $current->modify('first day of next month');
+                }
+                break;
+        }
+
+        return $periods;
+    }
+
+    /**
+     * Verifie si une date est dans une periode.
+     */
+    private function isDateInPeriod(\DateTimeInterface $date, \DateTimeInterface $start, \DateTimeInterface $end): bool
+    {
+        return $date >= $start && $date <= $end;
+    }
 }

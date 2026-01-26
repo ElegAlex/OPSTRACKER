@@ -218,34 +218,23 @@
         </turbo-frame>
 
         {# ========================================
-           GRAPHIQUE EVOLUTION DES REALISATIONS
+           GRAPHIQUE PLANIFIE VS REALISE (Histogramme empile)
            ======================================== #}
-        <div class="bg-white border-2 border-ink p-6 mb-8">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-ink flex items-center gap-2">
-                    <i data-feather="trending-up" class="w-5 h-5"></i>
-                    Evolution des realisations
-                </h3>
-                <span class="text-sm text-muted">14 derniers jours</span>
-            </div>
-
-            <div class="h-64">
-                {% if evolutionData is defined and evolutionData.labels|length > 0 %}
-                    <canvas data-controller="chart"
-                            data-chart-type-value="line"
-                            data-chart-data-value="{{ evolutionData|json_encode|e('html_attr') }}"
-                            data-chart-options-value="{{ evolutionOptions|json_encode|e('html_attr') }}">
-                    </canvas>
-                {% else %}
-                    <div class="flex items-center justify-center h-full text-muted">
-                        <div class="text-center">
-                            <i data-feather="bar-chart-2" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
-                            <p class="text-sm">Aucune donnee disponible</p>
-                        </div>
+        <div class="mb-8">
+            <turbo-frame
+                id="progression-chart"
+                src="{{ path('app_dashboard_progression', {id: campagne.id, granularity: 'day'}) }}"
+                loading="lazy"
+            >
+                <div class="bg-white border-2 border-ink p-6">
+                    <div class="animate-pulse">
+                        <div class="h-6 bg-paper w-48 mb-4"></div>
+                        <div class="h-64 bg-paper"></div>
                     </div>
-                {% endif %}
-            </div>
+                </div>
+            </turbo-frame>
         </div>
+
 
         {# ========================================
            GRID: Segments + Activite recente
