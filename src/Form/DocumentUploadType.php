@@ -32,15 +32,22 @@ class DocumentUploadType extends AbstractType
                         'maxSize' => '50M',
                         'maxSizeMessage' => 'RG-050 : Le fichier est trop volumineux ({{ size }} {{ suffix }}). Taille max : {{ limit }} {{ suffix }}.',
                         'mimeTypes' => [
+                            // Documents
                             'application/pdf',
                             'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                             'application/msword',
+                            // Texte et Markdown (toutes variantes)
                             'text/plain',
                             'text/markdown',
                             'text/x-markdown',
+                            'application/x-markdown',
+                            // Archives
                             'application/zip',
                             'application/x-zip-compressed',
+                            // Executables et binaires
                             'application/x-msdownload',
+                            'application/x-msdos-program',
+                            'application/x-dosexec',
                             'application/octet-stream',
                         ],
                         'mimeTypesMessage' => 'RG-050 : Type de fichier non autorise. Formats acceptes : PDF, DOCX, DOC, PS1, BAT, ZIP, EXE, TXT, MD.',
