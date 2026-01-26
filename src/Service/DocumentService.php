@@ -57,8 +57,13 @@ class DocumentService
             ));
         }
 
+        // Recuperer les metadonnees AVANT le move() (le fichier temp est supprime apres)
+        $originalName = $file->getClientOriginalName();
+        $mimeType = $file->getClientMimeType() ?? 'application/octet-stream';
+        $size = $file->getSize();
+
         // Generer un nom de fichier unique
-        $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $originalFilename = pathinfo($originalName, PATHINFO_FILENAME);
         $safeFilename = $this->slugger->slug($originalFilename);
         $newFilename = sprintf('%s-%s.%s', $safeFilename, uniqid(), $extension);
 
@@ -74,9 +79,9 @@ class DocumentService
         // Creer l'entite Document
         $document = new Document();
         $document->setNomFichier($newFilename);
-        $document->setNomOriginal($file->getClientOriginalName());
-        $document->setMimeType($file->getClientMimeType() ?? 'application/octet-stream');
-        $document->setTaille($file->getSize());
+        $document->setNomOriginal($originalName);
+        $document->setMimeType($mimeType);
+        $document->setTaille($size);
         $document->setExtension($extension);
         $document->setType($type);
         $document->setDescription($description);
