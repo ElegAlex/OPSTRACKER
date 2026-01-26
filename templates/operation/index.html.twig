@@ -334,50 +334,26 @@
 {% block javascripts %}
 {{ parent() }}
 <script>
-// === DROPDOWNS ===
-function initDropdowns() {
-    document.querySelectorAll('[data-controller="dropdown"]:not([data-dropdown-init])').forEach(function(dropdown) {
-        dropdown.setAttribute('data-dropdown-init', 'true');
-
-        const button = dropdown.querySelector('[data-action="dropdown#toggle"]');
-        const menu = dropdown.querySelector('[data-dropdown-target="menu"]');
-
-        if (button && menu) {
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                // Close other dropdowns
-                document.querySelectorAll('.dropdown-menu.active').forEach(function(m) {
-                    if (m !== menu) m.classList.remove('active');
-                });
-                menu.classList.toggle('active');
-            });
-        }
-    });
-}
-
 // === MODALS ===
+// Note: Les dropdowns sont geres par le controller Stimulus dropdown_controller.js
 function initModals() {
     // Open modal buttons
-    document.querySelectorAll('[data-action="click->modal#open"]:not([data-modal-init])').forEach(function(btn) {
+    document.querySelectorAll('[data-modal-open]:not([data-modal-init])').forEach(function(btn) {
         btn.setAttribute('data-modal-init', 'true');
 
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            const modalId = btn.getAttribute('data-modal-target');
+            const modalId = btn.getAttribute('data-modal-open');
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             }
-            // Close dropdown
-            document.querySelectorAll('.dropdown-menu.active').forEach(function(m) {
-                m.classList.remove('active');
-            });
         });
     });
 
     // Close modal buttons
-    document.querySelectorAll('[data-action="click->modal#close"]:not([data-modal-close-init])').forEach(function(btn) {
+    document.querySelectorAll('[data-modal-close]:not([data-modal-close-init])').forEach(function(btn) {
         btn.setAttribute('data-modal-close-init', 'true');
 
         btn.addEventListener('click', function() {
@@ -402,27 +378,12 @@ function initModals() {
     });
 }
 
-// === GLOBAL LISTENERS (une seule fois) ===
-function initGlobalListeners() {
-    if (window._opsTrackerGlobalInit) return;
-    window._opsTrackerGlobalInit = true;
-
-    // Close dropdowns on outside click
-    document.addEventListener('click', function() {
-        document.querySelectorAll('.dropdown-menu.active').forEach(function(menu) {
-            menu.classList.remove('active');
-        });
-    });
-}
-
 // === INIT ===
 function initAllInteractions() {
-    initDropdowns();
     initModals();
-    initGlobalListeners();
 }
 
 document.addEventListener('DOMContentLoaded', initAllInteractions);
-document.addEventListener('turbo:load', initAllInteractions);
+document.addEventListener('turbo:render', initAllInteractions);
 </script>
 {% endblock %}
