@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Campagne;
 use App\Entity\ChecklistInstance;
 use App\Entity\ChecklistTemplate;
 use App\Entity\Operation;
@@ -13,11 +14,20 @@ use Doctrine\ORM\EntityManagerInterface;
 /**
  * Service metier pour la gestion des checklists.
  *
+ * Architecture retroactive :
+ * - La structure de la checklist est stockee dans Campagne.checklistStructure
+ * - Les modifications impactent toutes les operations immediatement
+ * - ChecklistInstance ne stocke que les IDs des etapes cochees
+ *
  * Regles metier implementees :
  * - RG-030 : Template = Nom + Version + Etapes ordonnees + Phases optionnelles
- * - RG-031 : Snapshot Pattern - l'instance conserve une copie du template
  * - RG-032 : Phases verrouillables (phase suivante accessible si precedente complete)
  * - RG-033 : Persistance progression - chaque coche est sauvegardee immediatement
+ *
+ * Regles Sophie (gestionnaire) :
+ * - Peut ajouter des etapes a tout moment
+ * - Peut desactiver/reactiver des etapes
+ * - Ne peut pas modifier le contenu ni supprimer des etapes
  */
 class ChecklistService
 {
@@ -105,17 +115,204 @@ class ChecklistService
         return $template;
     }
 
+    // ========================================================================
+    // GESTION CHECKLIST AU NIVEAU CAMPAGNE (Architecture retroactive)
+    // ========================================================================
+
     /**
-     * Cree une instance de checklist pour une operation (Snapshot Pattern).
-     * RG-031 : L'instance conserve une copie complete du template
+     * Copie la structure d'un template vers une campagne.
+     * Ajoute le champ 'actif' a chaque etape pour permettre la desactivation.
+     */
+    public function copierTemplateVersCampagne(Campagne $campagne, ChecklistTemplate $template): Campagne
+    {
+        $structure = $template->getEtapes();
+
+        // Ajouter le champ 'actif' a chaque etape
+        foreach ($structure['phases'] as &$phase) {
+            foreach ($phase['etapes'] as &$etape) {
+                $etape['actif'] = true;
+                $etape['createdAt'] = (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
+                $etape['disabledAt'] = null;
+            }
+        }
+
+        // Tracer l'origine du template
+        $structure['sourceTemplateId'] = $template->getId();
+        $structure['sourceTemplateVersion'] = $template->getVersion();
+
+        $campagne->setChecklistStructure($structure);
+        $this->entityManager->flush();
+
+        return $campagne;
+    }
+
+    /**
+     * Desactive une etape dans la checklist de la campagne.
+     * RG-Sophie : Peut desactiver mais pas supprimer
+     *
+     * @throws \InvalidArgumentException Si pas de checklist ou etape introuvable
+     */
+    public function desactiverEtape(Campagne $campagne, string $etapeId): void
+    {
+        $structure = $campagne->getChecklistStructure();
+        if (!$structure) {
+            throw new \InvalidArgumentException('Aucune checklist configuree pour cette campagne.');
+        }
+
+        $found = false;
+        foreach ($structure['phases'] as &$phase) {
+            foreach ($phase['etapes'] as &$etape) {
+                if ($etape['id'] === $etapeId) {
+                    $etape['actif'] = false;
+                    $etape['disabledAt'] = (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
+                    $found = true;
+                    break 2;
+                }
+            }
+        }
+
+        if (!$found) {
+            throw new \InvalidArgumentException(sprintf('Etape "%s" introuvable.', $etapeId));
+        }
+
+        $campagne->setChecklistStructure($structure);
+        $this->entityManager->flush();
+    }
+
+    /**
+     * Reactive une etape precedemment desactivee.
+     *
+     * @throws \InvalidArgumentException Si pas de checklist ou etape introuvable
+     */
+    public function reactiverEtape(Campagne $campagne, string $etapeId): void
+    {
+        $structure = $campagne->getChecklistStructure();
+        if (!$structure) {
+            throw new \InvalidArgumentException('Aucune checklist configuree pour cette campagne.');
+        }
+
+        foreach ($structure['phases'] as &$phase) {
+            foreach ($phase['etapes'] as &$etape) {
+                if ($etape['id'] === $etapeId) {
+                    $etape['actif'] = true;
+                    $etape['disabledAt'] = null;
+                    $campagne->setChecklistStructure($structure);
+                    $this->entityManager->flush();
+
+                    return;
+                }
+            }
+        }
+
+        throw new \InvalidArgumentException(sprintf('Etape "%s" introuvable.', $etapeId));
+    }
+
+    /**
+     * Ajoute une nouvelle etape a une phase de la campagne.
+     * RG-Sophie : Peut ajouter des etapes a tout moment
+     *
+     * @return string L'ID de l'etape creee
+     *
+     * @throws \InvalidArgumentException Si pas de checklist ou phase introuvable
+     */
+    public function ajouterEtapeCampagne(
+        Campagne $campagne,
+        string $phaseId,
+        string $titre,
+        ?string $description = null,
+        bool $obligatoire = true,
+        ?int $documentId = null
+    ): string {
+        $structure = $campagne->getChecklistStructure();
+        if (!$structure) {
+            throw new \InvalidArgumentException('Aucune checklist configuree pour cette campagne.');
+        }
+
+        $phaseFound = false;
+        $maxOrdre = 0;
+        $etapeId = '';
+
+        foreach ($structure['phases'] as &$phase) {
+            if ($phase['id'] === $phaseId) {
+                $phaseFound = true;
+
+                // Trouver le max ordre
+                foreach ($phase['etapes'] as $e) {
+                    if (($e['ordre'] ?? 0) > $maxOrdre) {
+                        $maxOrdre = $e['ordre'];
+                    }
+                }
+
+                // Generer un ID unique
+                $etapeId = $phaseId.'-etape-'.uniqid();
+
+                $phase['etapes'][] = [
+                    'id' => $etapeId,
+                    'titre' => $titre,
+                    'description' => $description,
+                    'ordre' => $maxOrdre + 1,
+                    'obligatoire' => $obligatoire,
+                    'documentId' => $documentId,
+                    'actif' => true,
+                    'createdAt' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
+                    'disabledAt' => null,
+                ];
+
+                break;
+            }
+        }
+
+        if (!$phaseFound) {
+            throw new \InvalidArgumentException(sprintf('Phase "%s" introuvable.', $phaseId));
+        }
+
+        $campagne->setChecklistStructure($structure);
+        $this->entityManager->flush();
+
+        return $etapeId;
+    }
+
+    // ========================================================================
+    // GESTION INSTANCES (pour retrocompatibilite)
+    // ========================================================================
+
+    /**
+     * Cree une instance de checklist pour une operation.
+     * Architecture retroactive : la structure est lue depuis Campagne.checklistStructure
+     *
+     * @param Operation              $operation L'operation
+     * @param ChecklistTemplate|null $template  (optionnel, pour retrocompatibilite)
      */
     public function creerInstancePourOperation(
         Operation $operation,
-        ChecklistTemplate $template
-    ): ChecklistInstance {
+        ?ChecklistTemplate $template = null
+    ): ?ChecklistInstance {
         // Verifier qu'il n'y a pas deja une instance
         if ($operation->getChecklistInstance() !== null) {
             return $operation->getChecklistInstance();
+        }
+
+        $campagne = $operation->getCampagne();
+
+        // Nouvelle architecture : verifier si la campagne a une structure de checklist
+        if ($campagne && $campagne->hasChecklistStructure()) {
+            $instance = new ChecklistInstance();
+            $instance->setOperation($operation);
+            // Plus de snapshot - la structure est lue depuis Campagne
+
+            $this->entityManager->persist($instance);
+            $this->entityManager->flush();
+
+            return $instance;
+        }
+
+        // Retrocompatibilite : utiliser le template fourni ou celui de la campagne
+        if (!$template && $campagne) {
+            $template = $campagne->getChecklistTemplate();
+        }
+
+        if (!$template) {
+            return null;
         }
 
         $instance = new ChecklistInstance();
@@ -133,21 +330,21 @@ class ChecklistService
      * RG-033 : Persistance immediate de la progression
      * RG-032 : Verifie que la phase est accessible
      *
-     * @throws \InvalidArgumentException Si l'etape n'existe pas ou la phase n'est pas accessible
+     * @throws \InvalidArgumentException Si l'etape n'existe pas, est desactivee, ou la phase n'est pas accessible
      */
     public function cocherEtape(
         ChecklistInstance $instance,
         string $etapeId,
         Utilisateur $utilisateur
     ): ChecklistInstance {
-        // Verifier que l'etape existe
+        // Verifier que l'etape existe et est active
         if (!$this->etapeExiste($instance, $etapeId)) {
-            throw new \InvalidArgumentException(sprintf('Etape "%s" introuvable.', $etapeId));
+            throw new \InvalidArgumentException(sprintf('Etape "%s" introuvable ou desactivee.', $etapeId));
         }
 
         // Verifier que la phase est accessible (RG-032)
         $phaseId = $this->getPhaseIdFromEtapeId($instance, $etapeId);
-        if ($phaseId !== null && !$instance->isPhaseAccessible($phaseId)) {
+        if ($phaseId !== null && !$this->isPhaseAccessible($instance, $phaseId)) {
             throw new \InvalidArgumentException('Phase non accessible. Terminez d\'abord la phase precedente.');
         }
 
@@ -192,6 +389,8 @@ class ChecklistService
 
     /**
      * Calcule les statistiques de progression d'une instance.
+     * Architecture retroactive : lit la structure depuis Campagne.checklistStructure
+     * IMPORTANT : Les etapes desactivees sont EXCLUES du compteur
      *
      * @return array{
      *     total: int,
@@ -199,15 +398,122 @@ class ChecklistService
      *     percentage: float,
      *     is_complete: bool,
      *     phases: array<string, array{
+     *         id: string,
      *         nom: string,
+     *         verrouillable: bool,
      *         total: int,
      *         completed: int,
      *         is_complete: bool,
-     *         is_accessible: bool
+     *         is_accessible: bool,
+     *         etapes: array
      *     }>
      * }
      */
     public function getProgression(ChecklistInstance $instance): array
+    {
+        $operation = $instance->getOperation();
+        $campagne = $operation?->getCampagne();
+
+        // Nouvelle architecture : lire depuis Campagne.checklistStructure
+        if ($campagne && $campagne->hasChecklistStructure()) {
+            return $this->getProgressionFromCampagne($instance, $campagne);
+        }
+
+        // Fallback retrocompatibilite : lire depuis le snapshot
+        return $this->getProgressionFromSnapshot($instance);
+    }
+
+    /**
+     * Calcule la progression depuis Campagne.checklistStructure (nouvelle architecture)
+     * Les etapes desactivees sont EXCLUES du compteur mais incluses dans l'affichage
+     */
+    private function getProgressionFromCampagne(ChecklistInstance $instance, Campagne $campagne): array
+    {
+        $structure = $campagne->getChecklistStructure();
+        $etapesCocheesIds = $instance->getEtapesCocheesIds();
+
+        // Fallback: si etapesCochees est vide, utiliser l'ancien format progression
+        if (empty($etapesCocheesIds)) {
+            foreach ($instance->getProgression() as $etapeId => $data) {
+                if ($data['cochee'] ?? false) {
+                    $etapesCocheesIds[] = $etapeId;
+                }
+            }
+        }
+
+        $totalEtapes = 0;
+        $etapesCompletees = 0;
+        $phasesStats = [];
+
+        foreach ($structure['phases'] ?? [] as $phase) {
+            $phaseTotal = 0;
+            $phaseCompleted = 0;
+            $phaseEtapes = [];
+
+            foreach ($phase['etapes'] ?? [] as $etape) {
+                $isActif = $etape['actif'] ?? true;
+                $isCochee = in_array($etape['id'], $etapesCocheesIds, true);
+
+                // Info pour l'affichage (toutes les etapes)
+                $phaseEtapes[] = [
+                    'id' => $etape['id'],
+                    'titre' => $etape['titre'],
+                    'description' => $etape['description'] ?? null,
+                    'obligatoire' => $etape['obligatoire'] ?? true,
+                    'documentId' => $etape['documentId'] ?? null,
+                    'actif' => $isActif,
+                    'cochee' => $isCochee,
+                    'cocheeMaisDesactivee' => !$isActif && $isCochee,
+                ];
+
+                // Comptage UNIQUEMENT des etapes actives
+                if ($isActif) {
+                    ++$totalEtapes;
+                    ++$phaseTotal;
+
+                    if ($isCochee) {
+                        ++$etapesCompletees;
+                        ++$phaseCompleted;
+                    }
+                }
+            }
+
+            $phasesStats[$phase['id']] = [
+                'id' => $phase['id'],
+                'nom' => $phase['nom'],
+                'verrouillable' => $phase['verrouillable'] ?? false,
+                'total' => $phaseTotal,
+                'completed' => $phaseCompleted,
+                'is_complete' => $phaseTotal > 0 && $phaseTotal === $phaseCompleted,
+                'is_accessible' => true, // Sera calcule apres
+                'etapes' => $phaseEtapes,
+            ];
+        }
+
+        // Calculer l'accessibilite des phases (RG-032)
+        $previousComplete = true;
+        foreach ($phasesStats as $phaseId => &$stats) {
+            $stats['is_accessible'] = $previousComplete;
+            if ($stats['verrouillable']) {
+                $previousComplete = $stats['is_complete'];
+            }
+        }
+
+        $percentage = $totalEtapes > 0 ? round(($etapesCompletees / $totalEtapes) * 100, 1) : 100.0;
+
+        return [
+            'total' => $totalEtapes,
+            'completed' => $etapesCompletees,
+            'percentage' => $percentage,
+            'is_complete' => $totalEtapes > 0 && $totalEtapes === $etapesCompletees,
+            'phases' => $phasesStats,
+        ];
+    }
+
+    /**
+     * Calcule la progression depuis le snapshot (retrocompatibilite)
+     */
+    private function getProgressionFromSnapshot(ChecklistInstance $instance): array
     {
         $phases = $instance->getPhases();
         $totalEtapes = 0;
@@ -217,21 +523,37 @@ class ChecklistService
         foreach ($phases as $phase) {
             $phaseTotal = count($phase['etapes'] ?? []);
             $phaseCompleted = 0;
+            $phaseEtapes = [];
 
             foreach ($phase['etapes'] ?? [] as $etape) {
-                $totalEtapes++;
-                if ($instance->isEtapeCochee($etape['id'])) {
-                    $etapesCochees++;
-                    $phaseCompleted++;
+                ++$totalEtapes;
+                $isCochee = $instance->isEtapeCochee($etape['id']);
+                if ($isCochee) {
+                    ++$etapesCochees;
+                    ++$phaseCompleted;
                 }
+
+                $phaseEtapes[] = [
+                    'id' => $etape['id'],
+                    'titre' => $etape['titre'],
+                    'description' => $etape['description'] ?? null,
+                    'obligatoire' => $etape['obligatoire'] ?? true,
+                    'documentId' => $etape['documentId'] ?? null,
+                    'actif' => true,
+                    'cochee' => $isCochee,
+                    'cocheeMaisDesactivee' => false,
+                ];
             }
 
             $phasesStats[$phase['id']] = [
+                'id' => $phase['id'],
                 'nom' => $phase['nom'],
+                'verrouillable' => $phase['verrouillable'] ?? false,
                 'total' => $phaseTotal,
                 'completed' => $phaseCompleted,
                 'is_complete' => $instance->isPhaseComplete($phase['id']),
                 'is_accessible' => $instance->isPhaseAccessible($phase['id']),
+                'etapes' => $phaseEtapes,
             ];
         }
 
@@ -276,10 +598,28 @@ class ChecklistService
     }
 
     /**
-     * Verifie si une etape existe dans l'instance.
+     * Verifie si une etape existe et est active.
+     * Nouvelle architecture : lit depuis Campagne.checklistStructure
      */
     private function etapeExiste(ChecklistInstance $instance, string $etapeId): bool
     {
+        $campagne = $instance->getOperation()?->getCampagne();
+
+        // Nouvelle architecture : lire depuis Campagne
+        if ($campagne && $campagne->hasChecklistStructure()) {
+            $structure = $campagne->getChecklistStructure();
+            foreach ($structure['phases'] ?? [] as $phase) {
+                foreach ($phase['etapes'] ?? [] as $etape) {
+                    if ($etape['id'] === $etapeId && ($etape['actif'] ?? true)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // Fallback : lire depuis le snapshot
         foreach ($instance->getPhases() as $phase) {
             foreach ($phase['etapes'] ?? [] as $etape) {
                 if ($etape['id'] === $etapeId) {
@@ -293,9 +633,27 @@ class ChecklistService
 
     /**
      * Recupere l'ID de la phase contenant une etape.
+     * Nouvelle architecture : lit depuis Campagne.checklistStructure
      */
     private function getPhaseIdFromEtapeId(ChecklistInstance $instance, string $etapeId): ?string
     {
+        $campagne = $instance->getOperation()?->getCampagne();
+
+        // Nouvelle architecture : lire depuis Campagne
+        if ($campagne && $campagne->hasChecklistStructure()) {
+            $structure = $campagne->getChecklistStructure();
+            foreach ($structure['phases'] ?? [] as $phase) {
+                foreach ($phase['etapes'] ?? [] as $etape) {
+                    if ($etape['id'] === $etapeId) {
+                        return $phase['id'];
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        // Fallback : lire depuis le snapshot
         foreach ($instance->getPhases() as $phase) {
             foreach ($phase['etapes'] ?? [] as $etape) {
                 if ($etape['id'] === $etapeId) {
@@ -305,6 +663,25 @@ class ChecklistService
         }
 
         return null;
+    }
+
+    /**
+     * Verifie si une phase est accessible (RG-032)
+     * Nouvelle architecture : calcule depuis Campagne.checklistStructure
+     */
+    private function isPhaseAccessible(ChecklistInstance $instance, string $phaseId): bool
+    {
+        $campagne = $instance->getOperation()?->getCampagne();
+
+        // Nouvelle architecture
+        if ($campagne && $campagne->hasChecklistStructure()) {
+            $progression = $this->getProgressionFromCampagne($instance, $campagne);
+
+            return $progression['phases'][$phaseId]['is_accessible'] ?? true;
+        }
+
+        // Fallback : utiliser la methode de l'instance
+        return $instance->isPhaseAccessible($phaseId);
     }
 
     /**

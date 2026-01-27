@@ -10,9 +10,12 @@ use Doctrine\ORM\Mapping as ORM;
  * Entite ChecklistInstance pour OpsTracker.
  *
  * Regles metier implementees :
- * - RG-031 : Snapshot Pattern - l'instance conserve une copie du template
- *            Les modifications du template n'affectent pas les instances existantes
  * - RG-033 : Persistance progression - chaque coche est sauvegardee immediatement
+ *
+ * Architecture retroactive :
+ * - La structure de la checklist est lue depuis Campagne.checklistStructure
+ * - Cette instance ne stocke que les IDs des etapes cochees (etapesCochees)
+ * - Les modifications de la structure impactent toutes les operations immediatement
  */
 #[ORM\Entity(repositoryClass: ChecklistInstanceRepository::class)]
 #[ORM\Table(name: 'checklist_instance')]
@@ -38,25 +41,33 @@ class ChecklistInstance
     private int $templateVersion = 1;
 
     /**
-     * RG-031 : Snapshot du template au moment de la creation
-     * Copie complete de la structure des etapes
+     * @deprecated Utiliser Campagne.checklistStructure a la place
+     * Conserve pour retrocompatibilite pendant la migration
      */
-    #[ORM\Column(type: Types::JSON)]
-    private array $snapshot = ['phases' => []];
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $snapshot = null;
 
     /**
-     * RG-033 : Progression des etapes cochees
+     * @deprecated Utiliser etapesCochees a la place
+     * Conserve pour retrocompatibilite pendant la migration
+     */
+    #[ORM\Column(type: Types::JSON)]
+    private array $progression = [];
+
+    /**
+     * RG-033 : Liste des etapes cochees (architecture retroactive)
+     * Stocke uniquement les IDs des etapes cochees avec leurs metadonnees
      * Structure :
      * {
      *   "etape-1-1": {
-     *     "cochee": true,
      *     "dateCoche": "2026-01-22T10:30:00+00:00",
      *     "utilisateurId": 42
      *   }
      * }
+     * Note: Si l'etape est decochee, elle est supprimee de ce tableau
      */
     #[ORM\Column(type: Types::JSON)]
-    private array $progression = [];
+    private array $etapesCochees = [];
 
     #[ORM\OneToOne(targetEntity: Operation::class, inversedBy: 'checklistInstance')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -97,12 +108,18 @@ class ChecklistInstance
         return $this;
     }
 
-    public function getSnapshot(): array
+    /**
+     * @deprecated Utiliser Campagne.checklistStructure a la place
+     */
+    public function getSnapshot(): ?array
     {
         return $this->snapshot;
     }
 
-    public function setSnapshot(array $snapshot): static
+    /**
+     * @deprecated Utiliser Campagne.checklistStructure a la place
+     */
+    public function setSnapshot(?array $snapshot): static
     {
         $this->snapshot = $snapshot;
 
@@ -110,7 +127,7 @@ class ChecklistInstance
     }
 
     /**
-     * RG-031 : Cree un snapshot a partir d'un template
+     * @deprecated Utiliser ChecklistService::copierTemplateVersCampagne() a la place
      */
     public function createSnapshotFromTemplate(ChecklistTemplate $template): static
     {
@@ -122,8 +139,7 @@ class ChecklistInstance
     }
 
     /**
-     * Retourne les phases du snapshot
-     *
+     * @deprecated Utiliser Campagne.checklistStructure a la place
      * @return array<array>
      */
     public function getPhases(): array
@@ -131,11 +147,17 @@ class ChecklistInstance
         return $this->snapshot['phases'] ?? [];
     }
 
+    /**
+     * @deprecated Utiliser getEtapesCochees() a la place
+     */
     public function getProgression(): array
     {
         return $this->progression;
     }
 
+    /**
+     * @deprecated Utiliser setEtapesCochees() a la place
+     */
     public function setProgression(array $progression): static
     {
         $this->progression = $progression;
@@ -144,13 +166,45 @@ class ChecklistInstance
     }
 
     /**
-     * RG-033 : Coche une etape
+     * Retourne les etapes cochees avec leurs metadonnees
+     */
+    public function getEtapesCochees(): array
+    {
+        return $this->etapesCochees;
+    }
+
+    /**
+     * Retourne uniquement les IDs des etapes cochees
+     *
+     * @return string[]
+     */
+    public function getEtapesCocheesIds(): array
+    {
+        return array_keys($this->etapesCochees);
+    }
+
+    public function setEtapesCochees(array $etapesCochees): static
+    {
+        $this->etapesCochees = $etapesCochees;
+
+        return $this;
+    }
+
+    /**
+     * RG-033 : Coche une etape (nouvelle architecture)
      */
     public function cocherEtape(string $etapeId, int $utilisateurId): static
     {
+        // Nouvelle architecture : stocke dans etapesCochees
+        $this->etapesCochees[$etapeId] = [
+            'dateCoche' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
+            'utilisateurId' => $utilisateurId,
+        ];
+
+        // Retrocompatibilite : met aussi a jour progression
         $this->progression[$etapeId] = [
             'cochee' => true,
-            'dateCoche' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
+            'dateCoche' => $this->etapesCochees[$etapeId]['dateCoche'],
             'utilisateurId' => $utilisateurId,
         ];
 
@@ -158,10 +212,14 @@ class ChecklistInstance
     }
 
     /**
-     * RG-033 : Decoche une etape
+     * RG-033 : Decoche une etape (nouvelle architecture)
      */
     public function decocherEtape(string $etapeId): static
     {
+        // Nouvelle architecture : supprime de etapesCochees
+        unset($this->etapesCochees[$etapeId]);
+
+        // Retrocompatibilite : met aussi a jour progression
         if (isset($this->progression[$etapeId])) {
             $this->progression[$etapeId]['cochee'] = false;
             $this->progression[$etapeId]['dateDecoche'] = (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
@@ -171,10 +229,16 @@ class ChecklistInstance
     }
 
     /**
-     * Verifie si une etape est cochee
+     * Verifie si une etape est cochee (nouvelle architecture)
      */
     public function isEtapeCochee(string $etapeId): bool
     {
+        // Nouvelle architecture : verifie dans etapesCochees
+        if (isset($this->etapesCochees[$etapeId])) {
+            return true;
+        }
+
+        // Fallback retrocompatibilite : verifie dans progression
         return ($this->progression[$etapeId]['cochee'] ?? false) === true;
     }
 
@@ -183,10 +247,16 @@ class ChecklistInstance
      */
     public function getNombreEtapesCochees(): int
     {
+        // Nouvelle architecture
+        if (!empty($this->etapesCochees)) {
+            return count($this->etapesCochees);
+        }
+
+        // Fallback retrocompatibilite
         $count = 0;
         foreach ($this->progression as $etape) {
             if ($etape['cochee'] ?? false) {
-                $count++;
+                ++$count;
             }
         }
 
@@ -194,6 +264,7 @@ class ChecklistInstance
     }
 
     /**
+     * @deprecated Utiliser ChecklistService::getProgression() a la place
      * Compte le nombre total d'etapes
      */
     public function getNombreTotalEtapes(): int
@@ -207,6 +278,7 @@ class ChecklistInstance
     }
 
     /**
+     * @deprecated Utiliser ChecklistService::getProgression() a la place
      * Calcule le pourcentage de progression
      */
     public function getPourcentageProgression(): float
@@ -220,6 +292,7 @@ class ChecklistInstance
     }
 
     /**
+     * @deprecated Utiliser ChecklistService::getProgression() a la place
      * Verifie si toutes les etapes obligatoires sont cochees
      */
     public function isComplete(): bool
@@ -236,6 +309,7 @@ class ChecklistInstance
     }
 
     /**
+     * @deprecated Utiliser ChecklistService::getProgression() a la place
      * RG-032 : Verifie si une phase est deverrouillee
      * Une phase est deverrouillee si la phase precedente est complete
      */
@@ -259,6 +333,7 @@ class ChecklistInstance
     }
 
     /**
+     * @deprecated Utiliser ChecklistService::getProgression() a la place
      * Verifie si toutes les etapes obligatoires d'une phase sont cochees
      */
     public function isPhaseComplete(string $phaseId): bool

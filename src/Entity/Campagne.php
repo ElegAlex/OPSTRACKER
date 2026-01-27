@@ -111,6 +111,14 @@ class Campagne
     #[ORM\JoinColumn(nullable: true)]
     private ?ChecklistTemplate $checklistTemplate = null;
 
+    /**
+     * Structure de la checklist propre a cette campagne (JSON)
+     * Architecture retroactive : les modifications impactent toutes les operations immediatement
+     * Structure: {phases: [{id, nom, ordre, verrouillable, etapes: [{id, titre, description, ordre, obligatoire, documentId, actif, disabledAt}]}], sourceTemplateId, sourceTemplateVersion}
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $checklistStructure = null;
+
     /** @var Collection<int, Segment> */
     #[ORM\OneToMany(targetEntity: Segment::class, mappedBy: 'campagne', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $segments;
@@ -359,6 +367,88 @@ class Campagne
         $this->checklistTemplate = $checklistTemplate;
 
         return $this;
+    }
+
+    /**
+     * Structure de la checklist propre a cette campagne
+     */
+    public function getChecklistStructure(): ?array
+    {
+        return $this->checklistStructure;
+    }
+
+    public function setChecklistStructure(?array $checklistStructure): static
+    {
+        $this->checklistStructure = $checklistStructure;
+
+        return $this;
+    }
+
+    /**
+     * Verifie si la campagne a une structure de checklist configuree
+     */
+    public function hasChecklistStructure(): bool
+    {
+        return $this->checklistStructure !== null
+            && isset($this->checklistStructure['phases'])
+            && count($this->checklistStructure['phases']) > 0;
+    }
+
+    /**
+     * Retourne les phases avec uniquement les etapes actives
+     * Utilise pour l'affichage et le calcul de progression
+     *
+     * @return array<int, array{id: string, nom: string, ordre: int, verrouillable: bool, etapes: array}>
+     */
+    public function getPhasesActives(): array
+    {
+        if (!$this->checklistStructure) {
+            return [];
+        }
+
+        $phasesActives = [];
+        foreach ($this->checklistStructure['phases'] ?? [] as $phase) {
+            $etapesActives = array_filter(
+                $phase['etapes'] ?? [],
+                fn ($etape) => ($etape['actif'] ?? true) === true
+            );
+
+            $phaseCopie = $phase;
+            $phaseCopie['etapes'] = array_values($etapesActives);
+            $phasesActives[] = $phaseCopie;
+        }
+
+        return $phasesActives;
+    }
+
+    /**
+     * Compte le nombre total d'etapes actives dans la checklist
+     */
+    public function getNombreEtapesActives(): int
+    {
+        $count = 0;
+        foreach ($this->checklistStructure['phases'] ?? [] as $phase) {
+            foreach ($phase['etapes'] ?? [] as $etape) {
+                if ($etape['actif'] ?? true) {
+                    ++$count;
+                }
+            }
+        }
+
+        return $count;
+    }
+
+    /**
+     * Compte le nombre total d'etapes (actives et inactives)
+     */
+    public function getNombreTotalEtapes(): int
+    {
+        $count = 0;
+        foreach ($this->checklistStructure['phases'] ?? [] as $phase) {
+            $count += count($phase['etapes'] ?? []);
+        }
+
+        return $count;
     }
 
     /**

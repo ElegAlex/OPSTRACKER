@@ -1,0 +1,218 @@
+{% extends 'campagne/_layout.html.twig' %}
+
+{% block title %}Gestion Checklist - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block main %}
+{# HEADER #}
+<header class="bg-white px-12 py-10 border-b-4 border-ink">
+    <div class="flex justify-between items-start">
+        <div>
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-3 h-3 bg-{{ campagne.statutCouleur }}"></div>
+                <span class="text-xs font-semibold text-muted uppercase tracking-[0.15em]">Campagne</span>
+            </div>
+            <h1 class="text-4xl font-bold tracking-tight">Gestion Checklist</h1>
+            <p class="text-sm text-muted mt-2">
+                {{ campagne.nom }} - {{ campagne.nombreEtapesActives }} etapes actives sur {{ campagne.nombreTotalEtapes }}
+            </p>
+        </div>
+        <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted hover:text-ink transition-colors">
+            <i data-feather="arrow-left" class="w-4 h-4"></i>
+            Retour
+        </a>
+    </div>
+</header>
+
+{# CONTENT #}
+<div class="flex-1 overflow-auto">
+    <div class="px-12 py-10">
+
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 border-2 border-ink/20 bg-{{ label == 'success' ? 'success' : 'danger' }}/10 flex items-center gap-3">
+                    <i data-feather="{{ label == 'success' ? 'check-circle' : 'alert-circle' }}" class="w-5 h-5 text-{{ label == 'success' ? 'success' : 'danger' }}"></i>
+                    <span class="text-sm font-medium">{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        {# Info retroactivite #}
+        <div class="mb-8 p-4 border-2 border-primary bg-primary/5 flex items-start gap-3 max-w-4xl">
+            <i data-feather="info" class="w-5 h-5 text-primary flex-shrink-0 mt-0.5"></i>
+            <div>
+                <p class="text-sm font-bold text-primary">Modifications retroactives</p>
+                <p class="text-sm text-muted mt-1">
+                    Toutes les modifications (ajout, desactivation, reactivation) s'appliquent immediatement
+                    a <strong>toutes les operations</strong> de cette campagne, existantes et futures.
+                    Les etapes desactivees sont exclues du compteur de progression.
+                </p>
+            </div>
+        </div>
+
+        {# Source template info #}
+        {% if structure.sourceTemplateId is defined %}
+        <div class="mb-6 text-xs text-muted">
+            <i data-feather="git-branch" class="w-3 h-3 inline"></i>
+            Initialise depuis le template #{{ structure.sourceTemplateId }} (version {{ structure.sourceTemplateVersion|default('?') }})
+        </div>
+        {% endif %}
+
+        {# Phases et etapes #}
+        <div class="max-w-4xl space-y-8">
+            {% for phase in structure.phases %}
+            <div class="bg-white border-2 border-ink">
+                {# Header phase #}
+                <div class="px-6 py-4 border-b-2 border-ink flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        {% if phase.verrouillable|default(false) %}
+                        <i data-feather="lock" class="w-4 h-4 text-muted" title="Phase verrouillable"></i>
+                        {% endif %}
+                        <h3 class="font-bold text-lg">{{ phase.nom }}</h3>
+                        <span class="text-xs text-muted bg-paper px-2 py-1">
+                            {{ phase.etapes|length }} etape(s)
+                        </span>
+                    </div>
+
+                    {# Bouton ajouter etape #}
+                    <button type="button"
+                            onclick="toggleAddForm('{{ phase.id }}')"
+                            class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/10 transition-colors">
+                        <i data-feather="plus" class="w-3 h-3"></i>
+                        Ajouter une etape
+                    </button>
+                </div>
+
+                {# Formulaire ajouter etape (cache par defaut) #}
+                <div id="add-form-{{ phase.id }}" class="hidden px-6 py-4 bg-paper border-b border-ink/20">
+                    <form method="post" class="space-y-4">
+                        <input type="hidden" name="action" value="ajouter">
+                        <input type="hidden" name="phase_id" value="{{ phase.id }}">
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-muted uppercase tracking-wider mb-1">
+                                    Titre *
+                                </label>
+                                <input type="text" name="titre" placeholder="Titre de l'etape"
+                                       class="w-full px-3 py-2 bg-white border-2 border-ink/20 focus:border-primary focus:outline-none text-sm"
+                                       required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-muted uppercase tracking-wider mb-1">
+                                    Description
+                                </label>
+                                <input type="text" name="description" placeholder="Description (optionnel)"
+                                       class="w-full px-3 py-2 bg-white border-2 border-ink/20 focus:border-primary focus:outline-none text-sm">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="obligatoire" value="1" checked
+                                       class="w-4 h-4 border-2 border-ink">
+                                <span class="text-sm">Etape obligatoire</span>
+                            </label>
+
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="toggleAddForm('{{ phase.id }}')"
+                                        class="px-4 py-2 text-sm text-muted hover:text-ink transition-colors">
+                                    Annuler
+                                </button>
+                                <button type="submit"
+                                        class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-success hover:bg-success/90 transition-colors">
+                                    <i data-feather="plus" class="w-4 h-4"></i>
+                                    Ajouter
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                {# Liste des etapes #}
+                <div class="divide-y divide-ink/10">
+                    {% for etape in phase.etapes %}
+                    {% set isActif = etape.actif|default(true) %}
+                    <div class="px-6 py-4 flex items-center justify-between {% if not isActif %}bg-muted/5 opacity-60{% endif %}">
+                        <div class="flex items-center gap-4">
+                            {# Indicateur statut #}
+                            {% if isActif %}
+                            <div class="w-3 h-3 bg-success rounded-full" title="Etape active"></div>
+                            {% else %}
+                            <div class="w-3 h-3 bg-muted rounded-full" title="Etape desactivee"></div>
+                            {% endif %}
+
+                            {# Contenu etape #}
+                            <div>
+                                <p class="font-medium {% if not isActif %}line-through text-muted{% endif %}">
+                                    {{ etape.titre }}
+                                    {% if not etape.obligatoire|default(true) %}
+                                    <span class="text-xs text-muted font-normal">(optionnel)</span>
+                                    {% endif %}
+                                </p>
+                                {% if etape.description %}
+                                <p class="text-xs text-muted mt-0.5">{{ etape.description }}</p>
+                                {% endif %}
+                                {% if not isActif and etape.disabledAt is defined and etape.disabledAt %}
+                                <p class="text-xs text-warning mt-1">
+                                    <i data-feather="alert-circle" class="w-3 h-3 inline"></i>
+                                    Desactivee le {{ etape.disabledAt|date('d/m/Y') }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {# Actions #}
+                        <form method="post" class="flex items-center">
+                            <input type="hidden" name="etape_id" value="{{ etape.id }}">
+
+                            {% if isActif %}
+                            <input type="hidden" name="action" value="desactiver">
+                            <button type="submit"
+                                    class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-warning hover:bg-warning/10 transition-colors"
+                                    title="Desactiver cette etape">
+                                <i data-feather="eye-off" class="w-3 h-3"></i>
+                                Desactiver
+                            </button>
+                            {% else %}
+                            <input type="hidden" name="action" value="reactiver">
+                            <button type="submit"
+                                    class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-success hover:bg-success/10 transition-colors"
+                                    title="Reactiver cette etape">
+                                <i data-feather="eye" class="w-3 h-3"></i>
+                                Reactiver
+                            </button>
+                            {% endif %}
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="px-6 py-8 text-center text-muted">
+                        <i data-feather="inbox" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                        <p class="text-sm">Aucune etape dans cette phase</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <div class="bg-white border-2 border-ink p-8 text-center text-muted">
+                <i data-feather="alert-circle" class="w-12 h-12 mx-auto mb-4 opacity-50"></i>
+                <p>Aucune phase configuree</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAddForm(phaseId) {
+    const form = document.getElementById('add-form-' + phaseId);
+    if (form) {
+        form.classList.toggle('hidden');
+        if (!form.classList.contains('hidden')) {
+            const input = form.querySelector('input[name="titre"]');
+            if (input) input.focus();
+        }
+    }
+}
+</script>
+{% endblock %}

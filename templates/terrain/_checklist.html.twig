@@ -5,6 +5,11 @@
     US-502 : Voir la progression de la checklist
     T-605 : Turbo Frame pour update sans reload
     RG-082 : Touch targets 48x48px minimum
+
+    Architecture retroactive :
+    - Les etapes desactivees sont affichees en grise
+    - Les etapes desactivees ne sont pas cliquables
+    - Si une etape etait cochee avant desactivation, la coche reste visible en grise
 #}
 <turbo-frame id="checklist-frame">
     {% set instance = operation.checklistInstance %}
@@ -21,19 +26,22 @@
                 <span class="text-lg font-bold text-ink num">{{ progression.completed }}/{{ progression.total }} etapes</span>
             </div>
 
-            {# Barre de progression segmentee #}
+            {# Barre de progression segmentee (uniquement etapes actives) #}
+            {% if progression.total > 0 %}
             <div class="h-3 bg-paper border border-ink flex overflow-hidden">
                 {% for i in 1..progression.total %}
                     <div class="h-full {% if i <= progression.completed %}bg-success{% else %}bg-paper{% endif %}" style="width: {{ (100 / progression.total)|round(2) }}%"></div>
                 {% endfor %}
             </div>
+            {% else %}
+            <div class="h-3 bg-success border border-ink"></div>
+            {% endif %}
             <p class="text-xs text-muted mt-1">{{ progression.percentage }}% complete</p>
         </div>
 
         {# Liste des phases et etapes #}
         <div class="px-4 py-4">
-            {% for phaseIndex, phase in instance.phases %}
-                {% set phaseStats = progression.phases[phase.id] ?? null %}
+            {% for phaseId, phaseStats in progression.phases %}
                 {% set isAccessible = phaseStats.is_accessible ?? true %}
 
                 <div class="mb-6">
@@ -42,20 +50,55 @@
                         <span class="w-6 h-6 {% if isAccessible %}bg-ink{% else %}bg-muted{% endif %} text-white text-xs font-bold flex items-center justify-center">
                             {{ loop.index }}
                         </span>
-                        {{ phase.nom }}
-                        {% if phase.verrouillable and not isAccessible %}
+                        {{ phaseStats.nom }}
+                        {% if phaseStats.verrouillable|default(false) and not isAccessible %}
                             <i data-feather="lock" class="w-4 h-4 text-muted" title="Phase verrouillee"></i>
                         {% endif %}
-                        {% if phaseStats and phaseStats.is_complete %}
+                        {% if phaseStats.is_complete %}
                             <i data-feather="check-circle" class="w-4 h-4 text-success"></i>
                         {% endif %}
                     </h3>
 
                     {# Etapes de la phase #}
-                    {% for etape in phase.etapes %}
-                        {% set isCochee = instance.isEtapeCochee(etape.id) %}
-                        {% set isNextStep = not isCochee and isAccessible and loop.first %}
+                    {% for etape in phaseStats.etapes|default([]) %}
+                        {% set isActif = etape.actif|default(true) %}
+                        {% set isCochee = etape.cochee|default(false) %}
+                        {% set cocheeMaisDesactivee = etape.cocheeMaisDesactivee|default(false) %}
+                        {% set isNextStep = isActif and not isCochee and isAccessible and loop.first %}
 
+                        {# ETAPE DESACTIVEE #}
+                        {% if not isActif %}
+                        <div class="bg-muted/5 border-2 border-muted/30 mb-2 opacity-50">
+                            <div class="w-full flex items-center gap-4 p-3">
+                                {# Checkbox grisee - pas de formulaire #}
+                                <div class="checkbox-large bg-muted/20 border-muted border-2 flex items-center justify-center flex-shrink-0 cursor-not-allowed"
+                                     aria-label="Etape desactivee">
+                                    {% if cocheeMaisDesactivee %}
+                                        {# Coche visible mais grisee #}
+                                        <svg class="w-7 h-7 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    {% endif %}
+                                </div>
+
+                                {# Texte grise et barre #}
+                                <div class="flex-1 text-left">
+                                    <p class="font-semibold text-muted line-through">
+                                        {{ etape.titre }}
+                                        {% if not etape.obligatoire|default(true) %}
+                                            <span class="text-xs">(optionnel)</span>
+                                        {% endif %}
+                                    </p>
+                                    {% if etape.description %}
+                                        <p class="text-xs text-muted/60">{{ etape.description }}</p>
+                                    {% endif %}
+                                    <span class="text-xs text-muted italic">Etape desactivee</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# ETAPE ACTIVE - comportement normal #}
+                        {% else %}
                         <div class="bg-white border-2 {% if isCochee %}border-ink step-done{% elseif isNextStep %}border-primary border-l-4{% else %}border-ink{% endif %} mb-2 {% if not isAccessible %}opacity-50{% endif %}">
                             <form action="{{ path('terrain_checklist_toggle', {id: operation.id, etapeId: etape.id}) }}"
                                   method="post"
@@ -79,7 +122,7 @@
                                 <div class="flex-1 text-left">
                                     <p class="font-semibold text-ink {% if isCochee %}step-text{% endif %}">
                                         {{ etape.titre }}
-                                        {% if not etape.obligatoire %}
+                                        {% if not etape.obligatoire|default(true) %}
                                             <span class="text-xs text-muted">(optionnel)</span>
                                         {% endif %}
                                     </p>
@@ -118,6 +161,7 @@
                                 {% endif %}
                             </form>
                         </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             {% endfor %}

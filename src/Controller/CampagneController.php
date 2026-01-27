@@ -11,8 +11,11 @@ use App\Form\CampagneStep4Type;
 use App\Form\OperationType;
 use App\Form\TransfertProprietaireType;
 use App\Form\VisibiliteCampagneType;
+use App\Form\WorkflowCampagneType;
 use App\Repository\CampagneRepository;
+use App\Repository\ChecklistTemplateRepository;
 use App\Service\CampagneService;
+use App\Service\ChecklistService;
 use App\Service\ExportCsvService;
 use App\Service\ImportCsvService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -447,6 +450,111 @@ class CampagneController extends AbstractController
         return $this->render('campagne/proprietaire.html.twig', [
             'campagne' => $campagne,
             'form' => $form,
+        ]);
+    }
+
+    /**
+     * T-1104 / US-212 : Configurer le workflow d'une campagne.
+     * Architecture retroactive :
+     * - Si pas de checklist → afficher dropdown pour choisir un template
+     * - Si checklist existe → interface de gestion (desactiver/reactiver/ajouter etapes)
+     * RG-016 : Interdit si campagne archivee
+     */
+    #[Route('/{id}/workflow', name: 'app_campagne_workflow', methods: ['GET', 'POST'])]
+    public function workflow(
+        Campagne $campagne,
+        Request $request,
+        ChecklistService $checklistService,
+        ChecklistTemplateRepository $templateRepository
+    ): Response {
+        // RG-016 : Campagne archivee = lecture seule
+        if ($campagne->isReadOnly()) {
+            $this->addFlash('danger', 'Cette campagne est archivee et ne peut pas etre modifiee.');
+
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
+        }
+
+        // Seul le proprietaire ou un admin peut modifier le workflow
+        $currentUser = $this->getUser();
+        if ($campagne->getProprietaire() !== $currentUser && !$this->isGranted('ROLE_ADMIN')) {
+            $this->addFlash('danger', 'Seul le proprietaire ou un administrateur peut modifier le workflow.');
+
+            return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
+        }
+
+        // CAS 1 : Pas de checklist configuree - afficher selection de template
+        if (!$campagne->hasChecklistStructure()) {
+            $templates = $templateRepository->findActifs();
+
+            if ($request->isMethod('POST')) {
+                $templateId = $request->request->get('template_id');
+
+                if ($templateId) {
+                    $template = $templateRepository->find($templateId);
+                    if ($template) {
+                        $checklistService->copierTemplateVersCampagne($campagne, $template);
+                        $this->addFlash('success', 'Checklist initialisee depuis le template "'.$template->getNom().'".');
+
+                        return $this->redirectToRoute('app_campagne_workflow', ['id' => $campagne->getId()]);
+                    }
+                }
+
+                $this->addFlash('danger', 'Veuillez selectionner un template valide.');
+            }
+
+            return $this->render('campagne/workflow_select_template.html.twig', [
+                'campagne' => $campagne,
+                'templates' => $templates,
+            ]);
+        }
+
+        // CAS 2 : Checklist existe - interface de gestion des etapes
+        if ($request->isMethod('POST')) {
+            $action = $request->request->get('action');
+            $etapeId = $request->request->get('etape_id');
+            $phaseId = $request->request->get('phase_id');
+
+            try {
+                switch ($action) {
+                    case 'desactiver':
+                        $checklistService->desactiverEtape($campagne, $etapeId);
+                        $this->addFlash('success', 'Etape desactivee.');
+                        break;
+
+                    case 'reactiver':
+                        $checklistService->reactiverEtape($campagne, $etapeId);
+                        $this->addFlash('success', 'Etape reactivee.');
+                        break;
+
+                    case 'ajouter':
+                        $titre = trim($request->request->get('titre', ''));
+                        $description = trim($request->request->get('description', '')) ?: null;
+                        $obligatoire = $request->request->getBoolean('obligatoire', true);
+
+                        if ($titre) {
+                            $checklistService->ajouterEtapeCampagne(
+                                $campagne,
+                                $phaseId,
+                                $titre,
+                                $description,
+                                $obligatoire
+                            );
+                            $this->addFlash('success', 'Etape "'.$titre.'" ajoutee.');
+                        } else {
+                            $this->addFlash('danger', 'Le titre de l\'etape est obligatoire.');
+                        }
+                        break;
+                }
+            } catch (\InvalidArgumentException $e) {
+                $this->addFlash('danger', $e->getMessage());
+            }
+
+            return $this->redirectToRoute('app_campagne_workflow', ['id' => $campagne->getId()]);
+        }
+
+        return $this->render('campagne/workflow_manage.html.twig', [
+            'campagne' => $campagne,
+            'structure' => $campagne->getChecklistStructure(),
         ]);
     }
 
