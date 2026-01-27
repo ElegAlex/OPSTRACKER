@@ -428,10 +428,28 @@ class OperationController extends AbstractController
         // Calculer la progression de la checklist si elle existe
         $checklistProgression = null;
         $documentsById = [];
-        if ($operation->getChecklistInstance()) {
-            $checklistProgression = $this->checklistService->getProgression($operation->getChecklistInstance());
+
+        // Nouvelle architecture : vérifier si la campagne a une structure de checklist
+        if ($campagne->hasChecklistStructure()) {
+            // Créer l'instance si elle n'existe pas encore
+            $instance = $operation->getChecklistInstance();
+            if (!$instance) {
+                $instance = $this->checklistService->creerInstancePourOperation($operation);
+            }
+
+            if ($instance) {
+                $checklistProgression = $this->checklistService->getProgression($instance);
+            }
 
             // Charger les documents de la campagne pour la checklist
+            $documents = $this->documentRepository->findByCampagne($campagne->getId());
+            foreach ($documents as $doc) {
+                $documentsById[$doc->getId()] = $doc;
+            }
+        } elseif ($operation->getChecklistInstance()) {
+            // Fallback : ancienne architecture avec snapshot
+            $checklistProgression = $this->checklistService->getProgression($operation->getChecklistInstance());
+
             $documents = $this->documentRepository->findByCampagne($campagne->getId());
             foreach ($documents as $doc) {
                 $documentsById[$doc->getId()] = $doc;

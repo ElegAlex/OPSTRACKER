@@ -15,7 +15,7 @@
     {% set instance = operation.checklistInstance %}
     {% set progression = checklist_progression %}
 
-    {% if instance and progression %}
+    {% if progression and progression.phases|length > 0 %}
         {# Barre de progression globale #}
         <div class="bg-white border-b-2 border-ink px-4 py-3">
             <div class="flex items-center justify-between mb-2">

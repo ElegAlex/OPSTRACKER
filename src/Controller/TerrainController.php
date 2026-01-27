@@ -80,7 +80,19 @@ class TerrainController extends AbstractController
 
         // Calculer la progression de la checklist si elle existe
         $checklistProgression = null;
-        if ($operation->getChecklistInstance()) {
+        $campagne = $operation->getCampagne();
+
+        // Nouvelle architecture : vérifier si la campagne a une structure de checklist
+        if ($campagne->hasChecklistStructure()) {
+            $instance = $operation->getChecklistInstance();
+            if (!$instance) {
+                $instance = $this->checklistService->creerInstancePourOperation($operation);
+            }
+            if ($instance) {
+                $checklistProgression = $this->checklistService->getProgression($instance);
+            }
+        } elseif ($operation->getChecklistInstance()) {
+            // Fallback : ancienne architecture avec snapshot
             $checklistProgression = $this->checklistService->getProgression($operation->getChecklistInstance());
         }
 

@@ -13,7 +13,7 @@
     {% set instance = operation.checklistInstance %}
     {% set progression = checklist_progression %}
 
-    {% if instance and progression %}
+    {% if progression and progression.phases|length > 0 %}
         {# En-tete avec progression #}
         <div class="px-6 py-4 border-b-2 border-ink/10 flex items-center justify-between">
             <h2 class="font-bold text-ink flex items-center gap-2">
