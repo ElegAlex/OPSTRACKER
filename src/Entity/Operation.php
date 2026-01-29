@@ -5,22 +5,23 @@ namespace App\Entity;
 use App\Repository\OperationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Entite Operation pour OpsTracker.
  *
  * Regles metier implementees :
  * - RG-014 : Statut initial = "A planifier"
- * - RG-015 : Donnees personnalisees stockees en PostgreSQL JSONB
+ * - RG-015 : TOUTES les donnees sont stockees en PostgreSQL JSONB (donneesPersonnalisees)
  * - RG-017 : 6 statuts avec transitions definies
  * - RG-018 : 1 operation = 1 technicien assigne maximum
  * - RG-021 : Motif de report optionnel
+ *
+ * IMPORTANT: Les champs matricule et nom ne sont plus des proprietes.
+ * Ils sont stockes dans donneesPersonnalisees et definis par les CampagneChamp.
  */
 #[ORM\Entity(repositoryClass: OperationRepository::class)]
 #[ORM\Table(name: 'operation')]
 #[ORM\Index(name: 'idx_operation_statut', columns: ['statut'])]
-#[ORM\Index(name: 'idx_operation_matricule', columns: ['matricule'])]
 #[ORM\HasLifecycleCallbacks]
 class Operation
 {
@@ -63,29 +64,15 @@ class Operation
     private ?int $id = null;
 
     /**
-     * Matricule unique de l'operation (identifiant metier)
-     * Ex: MAT-001, PC-2024-0001, etc.
-     */
-    #[ORM\Column(length: 50)]
-    #[Assert\NotBlank(message: 'Le matricule est obligatoire.')]
-    private ?string $matricule = null;
-
-    /**
-     * Nom/libelle de l'operation
-     */
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank(message: 'Le nom est obligatoire.')]
-    private ?string $nom = null;
-
-    /**
      * RG-014 : Statut initial = "A planifier"
      */
     #[ORM\Column(length: 20)]
     private string $statut = self::STATUT_A_PLANIFIER;
 
     /**
-     * RG-015 : Donnees personnalisees en JSONB
-     * Structure libre definie par le TypeOperation
+     * RG-015 : TOUTES les donnees personnalisees en JSONB
+     * Contient toutes les valeurs definies par les CampagneChamp
+     * Ex: {"Matricule": "MAT-001", "Nom": "Jean Dupont", "Bureau": "A123"}
      */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['jsonb' => true])]
     private ?array $donneesPersonnalisees = null;
@@ -145,30 +132,6 @@ class Operation
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getMatricule(): ?string
-    {
-        return $this->matricule;
-    }
-
-    public function setMatricule(string $matricule): static
-    {
-        $this->matricule = $matricule;
-
-        return $this;
-    }
-
-    public function getNom(): ?string
-    {
-        return $this->nom;
-    }
-
-    public function setNom(string $nom): static
-    {
-        $this->nom = $nom;
-
-        return $this;
     }
 
     public function getStatut(): string
@@ -390,8 +353,45 @@ class Operation
         $this->updatedAt = new \DateTimeImmutable();
     }
 
+    /**
+     * Retourne une representation textuelle de l'operation.
+     * Utilise les premieres valeurs de donneesPersonnalisees.
+     */
     public function __toString(): string
     {
-        return sprintf('%s - %s', $this->matricule, $this->nom);
+        $data = $this->donneesPersonnalisees ?? [];
+        $values = array_slice(array_values($data), 0, 2);
+
+        if (count($values) >= 2) {
+            return sprintf('%s - %s', $values[0], $values[1]);
+        } elseif (count($values) === 1) {
+            return (string) $values[0];
+        }
+
+        return sprintf('Operation #%d', $this->id ?? 0);
+    }
+
+    /**
+     * Retourne le premier champ (souvent Matricule) pour affichage.
+     * Methode de commodite pour les templates.
+     */
+    public function getDisplayIdentifier(): ?string
+    {
+        $data = $this->donneesPersonnalisees ?? [];
+        $values = array_values($data);
+
+        return $values[0] ?? null;
+    }
+
+    /**
+     * Retourne le deuxieme champ (souvent Nom) pour affichage.
+     * Methode de commodite pour les templates.
+     */
+    public function getDisplayName(): ?string
+    {
+        $data = $this->donneesPersonnalisees ?? [];
+        $values = array_values($data);
+
+        return $values[1] ?? null;
     }
 }

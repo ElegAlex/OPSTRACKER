@@ -10,10 +10,10 @@
     <div class="flex items-start justify-between mb-3">
         <div class="flex-1">
             <div class="flex items-center gap-2 mb-1">
-                <span class="text-lg font-bold text-ink">{{ operation.matricule }}</span>
+                <span class="text-lg font-bold text-ink">{{ operation.displayIdentifier ?? 'Operation' }}</span>
                 {% include 'terrain/_status_badge.html.twig' with {statut: operation.statut} %}
             </div>
-            <p class="text-sm text-ink font-medium">{{ operation.nom }}</p>
+            <p class="text-sm text-ink font-medium">{{ operation.displayName ?? '' }}</p>
             <p class="text-xs text-muted">
                 {{ operation.getDonneePersonnalisee('bureau') ?? '' }}
                 {% if operation.getDonneePersonnalisee('batiment') %}

@@ -17,10 +17,14 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
- * Formulaire ajout operation manuelle.
+ * Formulaire ajout/edition operation.
+ *
  * RG-014 : Statut initial = "A planifier"
- * RG-015 : Donnees personnalisees JSONB
+ * RG-015 : TOUTES les donnees passent par donneesPersonnalisees (JSONB)
  * RG-018 : 1 technicien assigne maximum
+ *
+ * Le formulaire est 100% dynamique : tous les champs sont definis
+ * par les CampagneChamp de la campagne.
  */
 class OperationType extends AbstractType
 {
@@ -34,45 +38,43 @@ class OperationType extends AbstractType
         /** @var Campagne|null $campagne */
         $campagne = $options['campagne'];
 
+        // Recuperer les donnees existantes pour pre-remplir les champs
+        /** @var Operation|null $operation */
+        $operation = $builder->getData();
+        $donneesPersonnalisees = $operation?->getDonneesPersonnalisees() ?? [];
+
+        // Ajouter les champs dynamiques de la campagne (CampagneChamp)
+        // C'est la source principale des donnees de l'operation
+        if ($campagne && $campagne->getChamps()->count() > 0) {
+            foreach ($campagne->getChamps() as $champ) {
+                $champNom = $champ->getNom();
+                $fieldName = CampagneChampService::normalizeFieldName($champNom);
+
+                $builder->add($fieldName, TextType::class, [
+                    'label' => $champNom,
+                    'required' => false,
+                    'mapped' => false,
+                    'data' => $donneesPersonnalisees[$champNom] ?? null,
+                    'attr' => [
+                        'placeholder' => 'Valeur pour ' . $champNom,
+                        'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white',
+                        'data-champ-nom' => $champNom,
+                    ],
+                    'label_attr' => [
+                        'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
+                    ],
+                ]);
+            }
+        }
+
+        // Champs systeme (mappes sur l'entite Operation)
         $builder
-            ->add('matricule', TextType::class, [
-                'label' => 'Matricule',
-                'attr' => [
-                    'placeholder' => 'Ex: MAT-001',
-                    'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white',
-                ],
-                'label_attr' => [
-                    'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
-                ],
-            ])
-            ->add('nom', TextType::class, [
-                'label' => 'Nom / Libelle',
-                'attr' => [
-                    'placeholder' => 'Ex: Poste de Jean Dupont',
-                    'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white',
-                ],
-                'label_attr' => [
-                    'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
-                ],
-            ])
             ->add('datePlanifiee', DateType::class, [
                 'label' => 'Date planifiee',
                 'widget' => 'single_text',
                 'required' => false,
                 'attr' => [
                     'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white',
-                ],
-                'label_attr' => [
-                    'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
-                ],
-            ])
-            ->add('notes', TextareaType::class, [
-                'label' => 'Notes',
-                'required' => false,
-                'attr' => [
-                    'placeholder' => 'Notes ou commentaires...',
-                    'rows' => 3,
-                    'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white resize-none',
                 ],
                 'label_attr' => [
                     'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
@@ -93,6 +95,18 @@ class OperationType extends AbstractType
                     'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
                 ],
                 'choices' => $this->utilisateurRepository->findTechniciensActifs(),
+            ])
+            ->add('notes', TextareaType::class, [
+                'label' => 'Notes',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'Notes ou commentaires...',
+                    'rows' => 3,
+                    'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white resize-none',
+                ],
+                'label_attr' => [
+                    'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
+                ],
             ]);
 
         // Ajouter le champ segment si la campagne a des segments
@@ -111,34 +125,6 @@ class OperationType extends AbstractType
                 ],
                 'choices' => $campagne->getSegments(),
             ]);
-        }
-
-        // Ajouter les champs personnalises de la campagne (CampagneChamp)
-        // Toute colonne = un CampagneChamp, pas de filtrage
-        if ($campagne && $campagne->getChamps()->count() > 0) {
-            /** @var Operation|null $operation */
-            $operation = $builder->getData();
-            $donneesPersonnalisees = $operation?->getDonneesPersonnalisees() ?? [];
-
-            foreach ($campagne->getChamps() as $champ) {
-                $champNom = $champ->getNom();
-                $fieldName = CampagneChampService::normalizeFieldName($champNom);
-
-                $builder->add($fieldName, TextType::class, [
-                    'label' => $champNom,
-                    'required' => false,
-                    'mapped' => false,
-                    'data' => $donneesPersonnalisees[$champNom] ?? null,
-                    'attr' => [
-                        'placeholder' => 'Valeur pour ' . $champNom,
-                        'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white',
-                        'data-champ-nom' => $champNom,
-                    ],
-                    'label_attr' => [
-                        'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
-                    ],
-                ]);
-            }
         }
     }
 

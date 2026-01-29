@@ -178,9 +178,7 @@
             <table class="w-full">
                 <thead class="bg-paper border-b-2 border-ink">
                     <tr>
-                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-28">Matricule</th>
-                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider">Nom</th>
-                        {# Colonnes dynamiques (CampagneChamp) #}
+                        {# Colonnes dynamiques (CampagneChamp) - toutes les donnees viennent de la #}
                         {% for champ in champs %}
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider">{{ champ.nom }}</th>
                         {% endfor %}
@@ -195,15 +193,9 @@
                 <tbody class="divide-y divide-ink/10">
                     {% for operation in operations %}
                     <tr class="table-row-hover" data-operation-id="{{ operation.id }}">
-                        {# Matricule #}
-                        <td class="px-4 py-3 text-sm font-medium text-ink">{{ operation.matricule }}</td>
-
-                        {# Nom #}
-                        <td class="px-4 py-3 text-sm text-ink">{{ operation.nom }}</td>
-
-                        {# Colonnes dynamiques (CampagneChamp) #}
+                        {# Colonnes dynamiques (CampagneChamp) - toutes les donnees viennent de la #}
                         {% for champ in champs %}
-                        <td class="px-4 py-3 text-sm text-ink">
+                        <td class="px-4 py-3 text-sm {% if loop.first %}font-medium{% endif %} text-ink">
                             {{ operation.getDonneePersonnalisee(champ.nom) ?? '-' }}
                         </td>
                         {% endfor %}

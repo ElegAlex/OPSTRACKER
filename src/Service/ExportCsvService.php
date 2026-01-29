@@ -15,10 +15,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ExportCsvService
 {
-    // Colonnes exportees par defaut
+    // Colonnes systeme exportees par defaut
+    // RG-015 : Les donnees metier (matricule, nom) viennent de donneesPersonnalisees
     public const DEFAULT_COLUMNS = [
-        'matricule' => 'Matricule',
-        'nom' => 'Nom',
+        'identifiant' => 'Identifiant',
+        'description' => 'Description',
         'statut' => 'Statut',
         'segment' => 'Segment',
         'technicien' => 'Technicien',
@@ -120,8 +121,8 @@ class ExportCsvService
 
         foreach ($columns as $column) {
             $row[] = match ($column) {
-                'matricule' => $operation->getMatricule(),
-                'nom' => $operation->getNom(),
+                'identifiant' => $operation->getDisplayIdentifier() ?? '',
+                'description' => $operation->getDisplayName() ?? '',
                 'statut' => $operation->getStatutLabel(),
                 'segment' => $operation->getSegment()?->getNom() ?? '',
                 'technicien' => $operation->getTechnicienAssigne()?->getNomComplet() ?? '',

@@ -138,7 +138,7 @@
                 <div class="flex items-center gap-4 p-3 bg-paper">
                     <div class="w-3 h-3 bg-{{ operation.statutCouleur }}"></div>
                     <div class="flex-1">
-                        <div class="font-medium text-ink">{{ operation.matricule }} - {{ operation.nom }}</div>
+                        <div class="font-medium text-ink">{{ operation.displayIdentifier ?? 'Operation' }} - {{ operation.displayName ?? '' }}</div>
                         <div class="text-sm text-muted">{{ operation.campagne.nom }}</div>
                     </div>
                     <div class="text-sm text-muted">{{ operation.statutLabel }}</div>

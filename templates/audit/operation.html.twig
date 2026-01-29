@@ -1,6 +1,6 @@
 {% extends 'admin/_layout.html.twig' %}
 
-{% block title %}Historique - {{ operation.nom }}{% endblock %}
+{% block title %}Historique - {{ operation.displayName ?? 'Operation' }}{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
@@ -16,9 +16,9 @@
 
         <h1 class="text-2xl font-bold text-ink">Historique des modifications</h1>
         <p class="text-muted mt-2">
-            Opération : <span class="font-semibold">{{ operation.nom }}</span>
-            {% if operation.matricule %}
-                <span class="text-sm">({{ operation.matricule }})</span>
+            Opération : <span class="font-semibold">{{ operation.displayName ?? 'Operation' }}</span>
+            {% if operation.displayIdentifier %}
+                <span class="text-sm">({{ operation.displayIdentifier }})</span>
             {% endif %}
         </p>
     </div>

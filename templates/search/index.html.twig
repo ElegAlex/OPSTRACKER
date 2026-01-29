@@ -79,8 +79,8 @@
                             <table class="w-full">
                                 <thead class="bg-paper/50 border-b border-ink/10">
                                     <tr>
-                                        <th class="text-left px-6 py-3 text-xs font-bold text-ink uppercase tracking-wider">Matricule</th>
-                                        <th class="text-left px-6 py-3 text-xs font-bold text-ink uppercase tracking-wider">Nom</th>
+                                        <th class="text-left px-6 py-3 text-xs font-bold text-ink uppercase tracking-wider">Identifiant</th>
+                                        <th class="text-left px-6 py-3 text-xs font-bold text-ink uppercase tracking-wider">Description</th>
                                         <th class="text-left px-6 py-3 text-xs font-bold text-ink uppercase tracking-wider">Statut</th>
                                         <th class="text-left px-6 py-3 text-xs font-bold text-ink uppercase tracking-wider">Segment</th>
                                         <th class="text-left px-6 py-3 text-xs font-bold text-ink uppercase tracking-wider">Technicien</th>
@@ -91,9 +91,9 @@
                                     {% for operation in group.operations %}
                                     <tr class="hover:bg-paper/50 transition-colors">
                                         <td class="px-6 py-4 text-sm font-medium text-ink">
-                                            {{ operation.matricule }}
+                                            {{ operation.displayIdentifier ?? 'Operation' }}
                                         </td>
-                                        <td class="px-6 py-4 text-sm text-ink">{{ operation.nom }}</td>
+                                        <td class="px-6 py-4 text-sm text-ink">{{ operation.displayName ?? '' }}</td>
                                         <td class="px-6 py-4">
                                             <span class="px-2 py-1 bg-{{ operation.statutCouleur }}/10 text-{{ operation.statutCouleur }} text-xs font-bold uppercase tracking-wider">
                                                 {{ operation.statutLabel }}
@@ -117,7 +117,7 @@
                                             {% endif %}
                                         </td>
                                         <td class="px-6 py-4 text-right">
-                                            <a href="{{ path('app_operation_index', {campagne: group.campagne.id, search: operation.matricule}) }}"
+                                            <a href="{{ path('app_operation_index', {campagne: group.campagne.id, search: operation.displayIdentifier}) }}"
                                                class="text-sm font-medium text-primary hover:text-ink transition-colors">
                                                 Voir
                                             </a>

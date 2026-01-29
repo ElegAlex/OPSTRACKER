@@ -269,7 +269,7 @@ class TerrainController extends AbstractController
         $success = $this->operationService->appliquerTransition($operation, $transition, $motif);
 
         if ($success) {
-            $this->addFlash('success', sprintf('Operation %s mise a jour.', $operation->getMatricule()));
+            $this->addFlash('success', sprintf('Operation %s mise a jour.', $operation->getDisplayIdentifier() ?? 'Operation'));
         } else {
             $this->addFlash('error', 'Transition non autorisee.');
         }
@@ -301,7 +301,7 @@ class TerrainController extends AbstractController
         $success = $this->operationService->appliquerTransition($operation, 'demarrer');
 
         if ($success) {
-            $this->addFlash('success', sprintf('Intervention %s demarree.', $operation->getMatricule()));
+            $this->addFlash('success', sprintf('Intervention %s demarree.', $operation->getDisplayIdentifier() ?? 'Operation'));
             // Rediriger vers le detail pour commencer a travailler
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }
@@ -327,7 +327,7 @@ class TerrainController extends AbstractController
         $success = $this->operationService->appliquerTransition($operation, 'realiser');
 
         if ($success) {
-            $this->addFlash('success', sprintf('Intervention %s terminee.', $operation->getMatricule()));
+            $this->addFlash('success', sprintf('Intervention %s terminee.', $operation->getDisplayIdentifier() ?? 'Operation'));
             // US-505 : Retour automatique a la liste
             return $this->redirectToRoute('terrain_index');
         }
@@ -355,7 +355,7 @@ class TerrainController extends AbstractController
         $success = $this->operationService->appliquerTransition($operation, 'reporter', $motif);
 
         if ($success) {
-            $this->addFlash('warning', sprintf('Intervention %s reportee.', $operation->getMatricule()));
+            $this->addFlash('warning', sprintf('Intervention %s reportee.', $operation->getDisplayIdentifier() ?? 'Operation'));
             // US-505 : Retour automatique a la liste
             return $this->redirectToRoute('terrain_index');
         }
@@ -383,7 +383,7 @@ class TerrainController extends AbstractController
         $success = $this->operationService->appliquerTransition($operation, 'remedier', $motif);
 
         if ($success) {
-            $this->addFlash('danger', sprintf('Probleme signale pour %s.', $operation->getMatricule()));
+            $this->addFlash('danger', sprintf('Probleme signale pour %s.', $operation->getDisplayIdentifier() ?? 'Operation'));
             // US-505 : Retour automatique a la liste
             return $this->redirectToRoute('terrain_index');
         }
@@ -413,7 +413,7 @@ class TerrainController extends AbstractController
         $success = $this->operationService->appliquerTransition($operation, 'replanifier');
 
         if ($success) {
-            $this->addFlash('success', sprintf('Intervention %s replanifiee.', $operation->getMatricule()));
+            $this->addFlash('success', sprintf('Intervention %s replanifiee.', $operation->getDisplayIdentifier() ?? 'Operation'));
             return $this->redirectToRoute('terrain_index');
         }
 

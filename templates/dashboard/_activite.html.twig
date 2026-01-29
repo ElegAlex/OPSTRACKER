@@ -56,7 +56,7 @@
                     {% else %}
                         a modifie
                     {% endif %}
-                    <span class="font-medium">{{ item.operation.matricule }}</span>
+                    <span class="font-medium">{{ item.operation.displayIdentifier ?? 'Operation' }}</span>
                 </p>
                 <p class="text-xs text-muted mt-0.5">
                     {% if item.operation.segment %}

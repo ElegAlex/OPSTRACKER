@@ -30,41 +30,46 @@
 
             {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
 
-            <div class="space-y-6">
-                <div class="grid grid-cols-2 gap-6">
-                    {{ form_row(form.matricule) }}
-                    {{ form_row(form.nom) }}
+            {# Champs dynamiques de la campagne (CampagneChamp) #}
+            {% if champs|length > 0 %}
+            <div class="grid grid-cols-2 gap-6">
+                {% for champ in champs %}
+                    {% set fieldName = champ.nom|normalize_field_name %}
+                    {% if form[fieldName] is defined %}
+                        {{ form_row(form[fieldName]) }}
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="bg-warning/10 border border-warning/20 p-4 text-sm text-warning">
+                <div class="flex items-center gap-2">
+                    <i data-feather="alert-triangle" class="w-4 h-4"></i>
+                    <span>Aucun champ defini pour cette campagne. Configurez les colonnes dans les parametres.</span>
                 </div>
+            </div>
+            {% endif %}
 
+            {# Champs systeme #}
+            <div class="pt-6 border-t-2 border-ink/10">
+                <h3 class="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <i data-feather="settings" class="w-4 h-4"></i>
+                    Planification
+                </h3>
                 <div class="grid grid-cols-2 gap-6">
                     {{ form_row(form.datePlanifiee) }}
                     {{ form_row(form.technicienAssigne) }}
                 </div>
 
                 {% if form.segment is defined %}
+                <div class="mt-4">
                     {{ form_row(form.segment) }}
+                </div>
                 {% endif %}
 
-                {{ form_row(form.notes) }}
-            </div>
-
-            {# Champs personnalises de la campagne (CampagneChamp) #}
-            {% if champs|length > 0 %}
-            <div class="pt-6 border-t-2 border-ink/10">
-                <h3 class="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <i data-feather="database" class="w-4 h-4"></i>
-                    Champs de la campagne
-                </h3>
-                <div class="grid grid-cols-2 gap-6">
-                    {% for champ in champs %}
-                        {% set fieldName = champ.nom|normalize_field_name %}
-                        {% if form[fieldName] is defined %}
-                            {{ form_row(form[fieldName]) }}
-                        {% endif %}
-                    {% endfor %}
+                <div class="mt-4">
+                    {{ form_row(form.notes) }}
                 </div>
             </div>
-            {% endif %}
 
             <div class="flex justify-end gap-4 pt-6 border-t-2 border-ink/10">
                 <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="px-6 py-3 text-sm font-semibold text-muted hover:text-ink transition-colors">

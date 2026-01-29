@@ -118,6 +118,17 @@ class AppFixtures extends Fixture
             $utilisateurs['tech' . ($i + 1)] = $tech;
         }
 
+        // Nadia - Coordinatrice (RG-114)
+        $nadia = new Utilisateur();
+        $nadia->setEmail('nadia.lambert@cpam92.fr');
+        $nadia->setNom('LAMBERT');
+        $nadia->setPrenom('Nadia');
+        $nadia->setRoles(['ROLE_COORDINATEUR']);
+        $nadia->setActif(true);
+        $nadia->setPassword($this->passwordHasher->hashPassword($nadia, 'Nadia123!'));
+        $manager->persist($nadia);
+        $utilisateurs['nadia'] = $nadia;
+
         return $utilisateurs;
     }
 
@@ -568,16 +579,18 @@ class AppFixtures extends Fixture
     ): Operation {
         $operation = new Operation();
 
-        // Matricule unique
+        // RG-015 : Toutes les donnees metier passent par donneesPersonnalisees
         $prefixe = match ($campagne->getStatut()) {
             Campagne::STATUT_EN_COURS => 'MIG',
             Campagne::STATUT_A_VENIR => 'OFF',
             default => 'MNT',
         };
-        $operation->setMatricule(sprintf('%s-2026-%04d', $prefixe, $numero));
-
-        // Nom agent fictif
-        $operation->setNom($this->faker->lastName() . ' ' . $this->faker->firstName());
+        $matricule = sprintf('%s-2026-%04d', $prefixe, $numero);
+        $nom = $this->faker->lastName() . ' ' . $this->faker->firstName();
+        $operation->setDonneesPersonnalisees([
+            'Matricule' => $matricule,
+            'Nom' => $nom,
+        ]);
 
         // Determiner le statut
         $statut = $this->determineStatut($mixStatuts, $toutRealise, $numero);

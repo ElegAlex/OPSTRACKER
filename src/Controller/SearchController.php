@@ -75,8 +75,8 @@ class SearchController extends AbstractController
         foreach ($results as $operation) {
             $data[] = [
                 'id' => $operation->getId(),
-                'matricule' => $operation->getMatricule(),
-                'nom' => $operation->getNom(),
+                'matricule' => $operation->getDisplayIdentifier(),
+                'nom' => $operation->getDisplayName(),
                 'statut' => $operation->getStatutLabel(),
                 'statut_couleur' => $operation->getStatutCouleur(),
                 'campagne' => $operation->getCampagne()->getNom(),

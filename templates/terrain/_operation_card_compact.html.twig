@@ -10,8 +10,8 @@
             <i data-feather="check" class="w-5 h-5 text-success"></i>
         </div>
         <div>
-            <p class="font-bold text-ink">{{ operation.matricule }}</p>
-            <p class="text-xs text-muted">{{ operation.nom }}</p>
+            <p class="font-bold text-ink">{{ operation.displayIdentifier ?? 'Operation' }}</p>
+            <p class="text-xs text-muted">{{ operation.displayName ?? '' }}</p>
         </div>
     </div>
     <div class="text-right">

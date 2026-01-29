@@ -99,8 +99,8 @@
             <table class="w-full">
                 <thead class="bg-paper border-b-2 border-ink">
                     <tr>
-                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-28">Matricule</th>
-                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider">Nom</th>
+                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-28">Identifiant</th>
+                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider">Description</th>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-36">Statut</th>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-36">Technicien</th>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-28">Date</th>
@@ -109,8 +109,8 @@
                 <tbody class="divide-y divide-ink/10">
                     {% for operation in operations %}
                     <tr class="hover:bg-paper/50 transition-colors">
-                        <td class="px-4 py-3 text-sm font-medium text-ink">{{ operation.matricule }}</td>
-                        <td class="px-4 py-3 text-sm text-ink">{{ operation.nom }}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-ink">{{ operation.displayIdentifier ?? 'Operation' }}</td>
+                        <td class="px-4 py-3 text-sm text-ink">{{ operation.displayName ?? '' }}</td>
                         <td class="px-4 py-3">
                             <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-{{ operation.statutCouleur }}/10 text-{{ operation.statutCouleur }} text-xs font-bold uppercase">
                                 {{ operation.statutLabel }}

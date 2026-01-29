@@ -27,10 +27,9 @@ class ImportCsvService
     public const ALLOWED_EXTENSIONS = ['csv'];
     public const ALLOWED_MIME_TYPES = ['text/csv', 'text/plain', 'application/csv', 'application/vnd.ms-excel'];
 
-    // Champs mappables vers Operation
+    // Champs systeme mappables vers Operation (les autres vont dans donneesPersonnalisees)
+    // RG-015 : TOUTES les donnees metier passent par donneesPersonnalisees (JSONB)
     public const MAPPABLE_FIELDS = [
-        'matricule' => ['label' => 'Matricule', 'required' => true, 'type' => 'string'],
-        'nom' => ['label' => 'Nom / Libellé', 'required' => true, 'type' => 'string'],
         'segment' => ['label' => 'Segment / Bâtiment', 'required' => false, 'type' => 'segment'],
         'notes' => ['label' => 'Notes', 'required' => false, 'type' => 'string'],
         'date_planifiee' => ['label' => 'Date planifiée', 'required' => false, 'type' => 'date'],
@@ -300,10 +299,9 @@ class ImportCsvService
         $mapping = [];
         $normalizedHeaders = array_map(fn($h) => $this->normalizeHeader($h), $headers);
 
-        // Patterns pour chaque champ
+        // Patterns pour chaque champ systeme
+        // RG-015 : matricule et nom ne sont plus des champs speciaux, ils passent par donneesPersonnalisees
         $patterns = [
-            'matricule' => ['matricule', 'mat', 'id', 'identifiant', 'code', 'ref', 'reference', 'numero'],
-            'nom' => ['nom', 'name', 'libelle', 'label', 'designation', 'intitule', 'agent', 'utilisateur'],
             'segment' => ['segment', 'batiment', 'building', 'etage', 'floor', 'site', 'localisation', 'service', 'departement'],
             'notes' => ['notes', 'note', 'commentaire', 'comment', 'remarque', 'observation', 'description'],
             'date_planifiee' => ['date', 'date_planifiee', 'date_prevue', 'planification', 'echeance'],
@@ -445,6 +443,9 @@ class ImportCsvService
 
     /**
      * Cree une Operation a partir d'un enregistrement CSV.
+     *
+     * RG-015 : TOUTES les donnees metier passent par donneesPersonnalisees (JSONB)
+     * Plus de champs matricule/nom dedies, tout vient des CampagneChamp.
      */
     private function createOperationFromRecord(
         Campagne $campagne,
@@ -458,29 +459,32 @@ class ImportCsvService
     ): ?Operation {
         $values = array_values($record);
 
-        // Extraire les valeurs mappees
-        $matricule = $this->getValueFromMapping($values, $mapping, 'matricule');
-        $nom = $this->getValueFromMapping($values, $mapping, 'nom');
+        // Extraire les valeurs des champs systeme (segment, notes, date_planifiee)
         $segmentName = $this->getValueFromMapping($values, $mapping, 'segment');
         $notes = $this->getValueFromMapping($values, $mapping, 'notes');
         $datePlanifiee = $this->getValueFromMapping($values, $mapping, 'date_planifiee');
 
-        // Validation des champs obligatoires
-        if (empty($matricule)) {
-            $result->addError($lineNumber, 'matricule', 'Matricule obligatoire manquant.');
-            return null;
+        // RG-015 : Toutes les donnees metier vont dans donneesPersonnalisees
+        // Les champs sont definis par les CampagneChamp
+        $donneesPersonnalisees = [];
+        if (!empty($customFieldsMapping)) {
+            foreach ($customFieldsMapping as $fieldCode => $headerIndex) {
+                if ($headerIndex !== null && isset($values[$headerIndex])) {
+                    $donneesPersonnalisees[$fieldCode] = $values[$headerIndex];
+                }
+            }
         }
 
-        if (empty($nom)) {
-            $result->addError($lineNumber, 'nom', 'Nom obligatoire manquant.');
+        // Verification qu'il y a au moins une donnee (ligne non vide)
+        if (empty($donneesPersonnalisees)) {
+            $result->addError($lineNumber, 'data', 'Ligne vide ou aucune donnee mappee.');
             return null;
         }
 
         // RG-014 : Creer l'operation avec statut initial
         $operation = new Operation();
         $operation->setCampagne($campagne);
-        $operation->setMatricule(trim($matricule));
-        $operation->setNom(trim($nom));
+        $operation->setDonneesPersonnalisees($donneesPersonnalisees);
 
         // Notes
         if (!empty($notes)) {
@@ -515,19 +519,6 @@ class ImportCsvService
         // Type d'operation de la campagne
         if ($campagne->getTypeOperation() !== null) {
             $operation->setTypeOperation($campagne->getTypeOperation());
-        }
-
-        // Champs personnalises
-        if (!empty($customFieldsMapping)) {
-            $customData = [];
-            foreach ($customFieldsMapping as $fieldCode => $headerIndex) {
-                if ($headerIndex !== null && isset($values[$headerIndex])) {
-                    $customData[$fieldCode] = $values[$headerIndex];
-                }
-            }
-            if (!empty($customData)) {
-                $operation->setDonneesPersonnalisees($customData);
-            }
         }
 
         return $operation;

@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ operation.matricule }} - {{ campagne.nom }} - OpsTracker{% endblock %}
+{% block title %}{{ operation.displayIdentifier ?? 'Operation' }} - {{ campagne.nom }} - OpsTracker{% endblock %}
 
 {% block body %}
 <div class="min-h-screen bg-paper">
@@ -19,7 +19,7 @@
                 </a>
             </li>
             <li class="text-muted">/</li>
-            <li class="font-medium text-ink">{{ operation.matricule }}</li>
+            <li class="font-medium text-ink">{{ operation.displayIdentifier ?? 'Operation' }}</li>
         </ol>
     </nav>
 
@@ -60,8 +60,8 @@
                     </div>
 
                     {# Titre #}
-                    <h1 class="text-3xl font-bold tracking-tight text-ink">{{ operation.matricule }}</h1>
-                    <p class="text-lg text-muted mt-1">{{ operation.nom }}</p>
+                    <h1 class="text-3xl font-bold tracking-tight text-ink">{{ operation.displayIdentifier ?? 'Operation #' ~ operation.id }}</h1>
+                    <p class="text-lg text-muted mt-1">{{ operation.displayName ?? '' }}</p>
                 </div>
             </div>
 
@@ -106,7 +106,7 @@
                         <div class="grid grid-cols-2 gap-6">
                             <div>
                                 <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Matricule</p>
-                                <p class="font-bold text-ink">{{ operation.matricule }}</p>
+                                <p class="font-bold text-ink">{{ operation.displayIdentifier ?? '-' }}</p>
                             </div>
                             <div>
                                 <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Type</p>
