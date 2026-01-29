@@ -110,11 +110,11 @@
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="text-lg font-bold text-ink">{{ op.matricule }}</span>
+                                <span class="text-lg font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
                                 {# Badge statut RGAA: icone + couleur + texte #}
                                 {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
                             </div>
-                            <p class="text-sm text-ink font-medium">{{ op.nom }}</p>
+                            <p class="text-sm text-ink font-medium">{{ op.displayName }}</p>
                             <p class="text-xs text-muted">
                                 {{ op.getDonneePersonnalisee('bureau') ?? '' }}
                                 {% if op.getDonneePersonnalisee('batiment') %}
@@ -212,10 +212,10 @@
                         <div class="flex items-start justify-between mb-2">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-lg font-bold text-ink">{{ op.matricule }}</span>
+                                    <span class="text-lg font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
                                     {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
                                 </div>
-                                <p class="text-sm text-ink font-medium">{{ op.nom }}</p>
+                                <p class="text-sm text-ink font-medium">{{ op.displayName }}</p>
                                 <p class="text-xs text-muted">
                                     {{ op.getDonneePersonnalisee('bureau') ?? '' }}
                                 </p>
@@ -260,10 +260,10 @@
                         <div class="flex items-start justify-between mb-2">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-lg font-bold text-ink">{{ op.matricule }}</span>
+                                    <span class="text-lg font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
                                     {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
                                 </div>
-                                <p class="text-sm text-ink font-medium">{{ op.nom }}</p>
+                                <p class="text-sm text-ink font-medium">{{ op.displayName }}</p>
                             </div>
                             {# Lien vers detail #}
                             <a href="{{ path('terrain_show', {id: op.id}) }}" class="w-10 h-10 flex items-center justify-center border-2 border-ink hover:bg-ink hover:text-white transition-colors text-ink" aria-label="Voir le detail">
@@ -286,6 +286,41 @@
                                 REPRENDRE L'INTERVENTION
                             </button>
                         </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {# Section: A planifier #}
+        {% if grouped_operations.a_planifier|length > 0 %}
+            <div class="mb-6">
+                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                    <i data-feather="calendar" class="w-4 h-4"></i>
+                    A planifier ({{ grouped_operations.a_planifier|length }})
+                </h2>
+
+                {% for op in grouped_operations.a_planifier %}
+                    <div class="bg-muted/5 border-2 border-muted/50 p-4 mb-2">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-lg font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
+                                    {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
+                                </div>
+                                <p class="text-sm text-ink font-medium">{{ op.displayName }}</p>
+                                <p class="text-xs text-muted">
+                                    {{ op.campagne.nom ?? 'Campagne' }}
+                                </p>
+                            </div>
+                            {# Lien vers detail #}
+                            <a href="{{ path('terrain_show', {id: op.id}) }}" class="w-10 h-10 flex items-center justify-center border-2 border-ink hover:bg-ink hover:text-white transition-colors text-ink" aria-label="Voir le detail">
+                                <i data-feather="chevron-right" class="w-5 h-5"></i>
+                            </a>
+                        </div>
+                        <p class="text-xs text-muted">
+                            <i data-feather="info" class="w-3 h-3 inline"></i>
+                            Cette intervention n'est pas encore planifiee
+                        </p>
                     </div>
                 {% endfor %}
             </div>
