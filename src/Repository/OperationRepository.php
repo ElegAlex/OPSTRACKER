@@ -421,4 +421,79 @@ class OperationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Operations en retard pour un technicien (toutes campagnes non archivees)
+     * Retard = datePlanifiee < aujourd'hui ET statut != realise
+     *
+     * @return Operation[]
+     */
+    public function findRetardForTechnicien(int $technicienId): array
+    {
+        $today = new \DateTimeImmutable('today');
+
+        return $this->createQueryBuilder('o')
+            ->join('o.campagne', 'c')
+            ->where('o.technicienAssigne = :technicien')
+            ->andWhere('o.datePlanifiee < :today')
+            ->andWhere('o.statut NOT IN (:statutsTermines)')
+            ->andWhere('c.statut != :archive')
+            ->setParameter('technicien', $technicienId)
+            ->setParameter('today', $today)
+            ->setParameter('statutsTermines', [Operation::STATUT_REALISE])
+            ->setParameter('archive', \App\Entity\Campagne::STATUT_ARCHIVEE)
+            ->orderBy('o.datePlanifiee', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Operations du jour pour un technicien (toutes campagnes non archivees)
+     *
+     * @return Operation[]
+     */
+    public function findTodayForTechnicien(int $technicienId, \DateTimeImmutable $today): array
+    {
+        $tomorrow = $today->modify('+1 day');
+
+        return $this->createQueryBuilder('o')
+            ->join('o.campagne', 'c')
+            ->where('o.technicienAssigne = :technicien')
+            ->andWhere('o.datePlanifiee >= :today')
+            ->andWhere('o.datePlanifiee < :tomorrow')
+            ->andWhere('o.statut != :realise')
+            ->andWhere('c.statut != :archive')
+            ->setParameter('technicien', $technicienId)
+            ->setParameter('today', $today)
+            ->setParameter('tomorrow', $tomorrow)
+            ->setParameter('realise', Operation::STATUT_REALISE)
+            ->setParameter('archive', \App\Entity\Campagne::STATUT_ARCHIVEE)
+            ->orderBy('o.datePlanifiee', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Operations a venir pour un technicien (date > aujourd'hui, toutes campagnes non archivees)
+     *
+     * @return Operation[]
+     */
+    public function findAVenirForTechnicien(int $technicienId, \DateTimeImmutable $today): array
+    {
+        $tomorrow = $today->modify('+1 day');
+
+        return $this->createQueryBuilder('o')
+            ->join('o.campagne', 'c')
+            ->where('o.technicienAssigne = :technicien')
+            ->andWhere('o.datePlanifiee >= :tomorrow')
+            ->andWhere('o.statut != :realise')
+            ->andWhere('c.statut != :archive')
+            ->setParameter('technicien', $technicienId)
+            ->setParameter('tomorrow', $tomorrow)
+            ->setParameter('realise', Operation::STATUT_REALISE)
+            ->setParameter('archive', \App\Entity\Campagne::STATUT_ARCHIVEE)
+            ->orderBy('o.datePlanifiee', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -1,5 +1,6 @@
 {#
     Vue "Mes interventions" pour Karim (Technicien IT)
+    Vue consolidee multi-campagnes avec KPIs
 
     US-401 : Voir mes interventions du jour
     RG-020 : Vue filtree sur les operations assignees
@@ -13,57 +14,36 @@
 {% block header_title %}Mes interventions{% endblock %}
 
 {% block subheader %}
-    {# Barre de statut journee #}
+    {# KPIs #}
     <div class="bg-white border-b-2 border-ink px-4 py-4">
-        <div class="flex items-center justify-between mb-3">
-            <div>
-                <p class="text-xs text-muted uppercase tracking-wider font-semibold">Aujourd'hui</p>
-                <p class="text-2xl font-bold text-ink">{{ today|format_datetime('full', 'none', locale='fr') }}</p>
-            </div>
-            {% if grouped_operations.next %}
-                <div class="text-right">
-                    <p class="text-xs text-muted">{{ grouped_operations.next.campagne.nom ?? 'Campagne' }}</p>
-                    <p class="text-sm font-semibold text-ink">{{ grouped_operations.next.segment.nom ?? 'Non segmente' }}</p>
-                </div>
-            {% endif %}
+        <div class="mb-3">
+            <p class="text-xs text-muted uppercase tracking-wider font-semibold">Aujourd'hui</p>
+            <p class="text-xl font-bold text-ink">{{ today|format_datetime('full', 'none', locale='fr') }}</p>
         </div>
 
-        {# Compteurs du jour #}
         <div class="grid grid-cols-4 gap-2">
-            {# Realisees #}
-            <div class="bg-success/10 p-3 text-center">
-                <div class="flex items-center justify-center gap-1 mb-1">
-                    <i data-feather="check-circle" class="w-4 h-4 text-success"></i>
-                </div>
-                <p class="text-2xl font-bold text-success num">{{ stats.realise }}</p>
-                <p class="text-[10px] text-success font-medium uppercase">Faites</p>
+            {# Total #}
+            <div class="bg-ink/5 p-3 text-center">
+                <p class="text-2xl font-bold text-ink num">{{ kpis.total }}</p>
+                <p class="text-[10px] text-muted font-medium uppercase">Total</p>
             </div>
 
-            {# Planifiees #}
+            {# A faire #}
             <div class="bg-primary/10 p-3 text-center">
-                <div class="flex items-center justify-center gap-1 mb-1">
-                    <i data-feather="clock" class="w-4 h-4 text-primary"></i>
-                </div>
-                <p class="text-2xl font-bold text-primary num">{{ stats.planifie + stats.en_cours }}</p>
+                <p class="text-2xl font-bold text-primary num">{{ kpis.a_faire }}</p>
                 <p class="text-[10px] text-primary font-medium uppercase">A faire</p>
             </div>
 
-            {# Reportees #}
+            {# En cours #}
             <div class="bg-warning/10 p-3 text-center">
-                <div class="flex items-center justify-center gap-1 mb-1">
-                    <i data-feather="pause-circle" class="w-4 h-4 text-warning"></i>
-                </div>
-                <p class="text-2xl font-bold text-warning num">{{ stats.reporte }}</p>
-                <p class="text-[10px] text-warning font-medium uppercase">Report</p>
+                <p class="text-2xl font-bold text-warning num">{{ kpis.en_cours }}</p>
+                <p class="text-[10px] text-warning font-medium uppercase">En cours</p>
             </div>
 
-            {# Total #}
-            <div class="bg-ink/5 p-3 text-center">
-                <div class="flex items-center justify-center gap-1 mb-1">
-                    <i data-feather="list" class="w-4 h-4 text-ink"></i>
-                </div>
-                <p class="text-2xl font-bold text-ink num">{{ stats.total }}</p>
-                <p class="text-[10px] text-muted font-medium uppercase">Total</p>
+            {# Retard #}
+            <div class="bg-danger/10 p-3 text-center">
+                <p class="text-2xl font-bold text-danger num">{{ kpis.retard }}</p>
+                <p class="text-[10px] text-danger font-medium uppercase">Retard</p>
             </div>
         </div>
     </div>
@@ -81,250 +61,125 @@
         {% endfor %}
     {% endfor %}
 
-    {% if operations is empty %}
-        {# Etat vide #}
-        <div class="text-center py-12">
-            <div class="w-16 h-16 bg-muted/20 mx-auto mb-4 flex items-center justify-center">
-                <i data-feather="inbox" class="w-8 h-8 text-muted"></i>
+    {# Section RETARD #}
+    {% if operationsRetard|length > 0 %}
+    <div class="mb-6">
+        <div class="bg-danger/5 border-2 border-danger overflow-hidden">
+            <div class="bg-danger/10 px-4 py-3 border-b-2 border-danger/30">
+                <h2 class="font-bold text-danger flex items-center gap-2">
+                    <i data-feather="alert-triangle" class="w-5 h-5"></i>
+                    EN RETARD ({{ operationsRetard|length }})
+                </h2>
             </div>
-            <p class="text-lg font-semibold text-ink mb-1">Aucune intervention</p>
-            <p class="text-sm text-muted">Vous n'avez pas d'intervention assignee pour le moment.</p>
+            <div class="divide-y divide-danger/20">
+                {% for op in operationsRetard %}
+                <a href="{{ path('terrain_show', {id: op.id}) }}"
+                   class="flex items-center justify-between px-4 py-3 hover:bg-danger/10 transition-colors">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs font-medium text-danger bg-danger/10 px-2 py-0.5">
+                                {{ op.campagne.nom|slice(0, 15) }}{% if op.campagne.nom|length > 15 %}...{% endif %}
+                            </span>
+                            <span class="font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
+                        </div>
+                        <p class="text-sm text-ink truncate">{{ op.displayName }}</p>
+                    </div>
+                    <div class="flex items-center gap-3 ml-3">
+                        <span class="text-xs text-danger font-medium">{{ op.datePlanifiee|date('d/m') }}</span>
+                        {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
+                        <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
         </div>
-    {% else %}
+    </div>
+    {% endif %}
 
-        {# Section: Prochaine intervention / En cours #}
-        {% if grouped_operations.next %}
-            <div class="mb-6">
-                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
-                    <i data-feather="arrow-right" class="w-4 h-4"></i>
-                    {% if grouped_operations.next.statut == 'en_cours' %}
-                        Intervention en cours
-                    {% else %}
-                        Prochaine intervention
-                    {% endif %}
+    {# Section AUJOURD'HUI #}
+    <div class="mb-6">
+        <div class="bg-white border-2 border-ink/20 overflow-hidden">
+            <div class="bg-paper px-4 py-3 border-b-2 border-ink/10">
+                <h2 class="font-bold text-ink flex items-center gap-2">
+                    <i data-feather="calendar" class="w-5 h-5"></i>
+                    AUJOURD'HUI ({{ operationsAujourdhui|length }})
                 </h2>
-
-                {% set op = grouped_operations.next %}
-                {# Card mise en avant #}
-                <div class="bg-white border-2 border-ink card-next p-4 mb-2">
-                    <div class="flex items-start justify-between mb-3">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="text-lg font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
-                                {# Badge statut RGAA: icone + couleur + texte #}
-                                {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
-                            </div>
-                            <p class="text-sm text-ink font-medium">{{ op.displayName }}</p>
-                            <p class="text-xs text-muted">
-                                {{ op.getDonneePersonnalisee('bureau') ?? '' }}
-                                {% if op.getDonneePersonnalisee('batiment') %}
-                                    &bull; {{ op.getDonneePersonnalisee('batiment') }}
-                                {% endif %}
-                            </p>
+            </div>
+            {% if operationsAujourdhui|length > 0 %}
+            <div class="divide-y divide-ink/10">
+                {% for op in operationsAujourdhui %}
+                <a href="{{ path('terrain_show', {id: op.id}) }}"
+                   class="flex items-center justify-between px-4 py-3 hover:bg-paper transition-colors">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5">
+                                {{ op.campagne.nom|slice(0, 15) }}{% if op.campagne.nom|length > 15 %}...{% endif %}
+                            </span>
+                            <span class="font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
                         </div>
-                        {% if op.checklistInstance %}
-                            <div class="text-right">
-                                <p class="text-xs text-muted">Checklist</p>
-                                <p class="text-sm font-bold text-ink">
-                                    {{ op.checklistInstance.progression.completed|default(0) }}/{{ op.checklistInstance.progression.total|default(0) }}
-                                </p>
-                            </div>
-                        {% endif %}
+                        <p class="text-sm text-ink truncate">{{ op.displayName }}</p>
                     </div>
-
-                    {# Bouton d'action principal 56px #}
-                    {% if op.statut == 'planifie' %}
-                        <form action="{{ path('terrain_demarrer', {id: op.id}) }}" method="post">
-                            <input type="hidden" name="_token" value="{{ csrf_token('demarrer_' ~ op.id) }}">
-                            <button type="submit" class="btn-action w-full bg-primary text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors">
-                                <i data-feather="play" class="w-6 h-6"></i>
-                                COMMENCER
-                            </button>
-                        </form>
-                    {% elseif op.statut == 'en_cours' %}
-                        <a href="{{ path('terrain_show', {id: op.id}) }}" class="btn-action w-full bg-success text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-success/90 transition-colors">
-                            <i data-feather="zap" class="w-6 h-6"></i>
-                            CONTINUER
-                        </a>
-                    {% endif %}
+                    <div class="flex items-center gap-3 ml-3">
+                        {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
+                        <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="px-4 py-8 text-center">
+                <div class="w-12 h-12 bg-muted/10 mx-auto mb-3 flex items-center justify-center">
+                    <i data-feather="check-circle" class="w-6 h-6 text-success"></i>
                 </div>
+                <p class="text-muted">Aucune intervention prevue aujourd'hui</p>
             </div>
-        {% endif %}
+            {% endif %}
+        </div>
+    </div>
 
-        {# Section: A faire aujourd'hui (planifiees restantes) #}
-        {% if grouped_operations.planifie|length > 0 %}
-            <div class="mb-6">
-                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
-                    <i data-feather="clock" class="w-4 h-4"></i>
-                    A faire aujourd'hui
-                    <span class="bg-primary/10 text-primary px-2 py-0.5 text-xs font-bold">{{ grouped_operations.planifie|length }}</span>
+    {# Section A VENIR #}
+    {% if operationsAVenir|length > 0 %}
+    <div class="mb-6">
+        <div class="bg-white border-2 border-ink/10 overflow-hidden">
+            <div class="bg-muted/5 px-4 py-3 border-b-2 border-ink/10">
+                <h2 class="font-bold text-muted flex items-center gap-2">
+                    <i data-feather="clock" class="w-5 h-5"></i>
+                    A VENIR ({{ operationsAVenir|length }})
                 </h2>
-
-                {% for op in grouped_operations.planifie %}
-                    {% include 'terrain/_operation_card.html.twig' with {operation: op} %}
-                {% endfor %}
             </div>
-        {% endif %}
-
-        {# Section: En cours (autres que la principale) #}
-        {% if grouped_operations.en_cours|length > 0 %}
-            <div class="mb-6">
-                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
-                    <i data-feather="zap" class="w-4 h-4 text-success"></i>
-                    En cours
-                    <span class="bg-success/10 text-success px-2 py-0.5 text-xs font-bold">{{ grouped_operations.en_cours|length }}</span>
-                </h2>
-
-                {% for op in grouped_operations.en_cours %}
-                    {% include 'terrain/_operation_card.html.twig' with {operation: op, highlight: 'success'} %}
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        {# Section: Realisees aujourd'hui #}
-        {% if grouped_operations.realise|length > 0 %}
-            <div class="mb-6">
-                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
-                    <i data-feather="check-circle" class="w-4 h-4 text-success"></i>
-                    Realisees aujourd'hui
-                    <span class="bg-success/10 text-success px-2 py-0.5 text-xs font-bold">{{ grouped_operations.realise|length }}</span>
-                </h2>
-
-                <div class="space-y-2">
-                    {% for op in grouped_operations.realise %}
-                        {% include 'terrain/_operation_card_compact.html.twig' with {operation: op} %}
-                    {% endfor %}
-                </div>
-            </div>
-        {% endif %}
-
-        {# Section: Reportees #}
-        {% if grouped_operations.reporte|length > 0 %}
-            <div class="mb-6">
-                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
-                    <i data-feather="pause-circle" class="w-4 h-4 text-warning"></i>
-                    Reportees
-                    <span class="bg-warning/10 text-warning px-2 py-0.5 text-xs font-bold">{{ grouped_operations.reporte|length }}</span>
-                </h2>
-
-                {% for op in grouped_operations.reporte %}
-                    <div class="bg-warning/5 border-2 border-warning/50 p-4 mb-2">
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-lg font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
-                                    {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
-                                </div>
-                                <p class="text-sm text-ink font-medium">{{ op.displayName }}</p>
-                                <p class="text-xs text-muted">
-                                    {{ op.getDonneePersonnalisee('bureau') ?? '' }}
-                                </p>
-                            </div>
-                            {# Lien vers detail #}
-                            <a href="{{ path('terrain_show', {id: op.id}) }}" class="w-10 h-10 flex items-center justify-center border-2 border-ink hover:bg-ink hover:text-white transition-colors text-ink" aria-label="Voir le detail">
-                                <i data-feather="chevron-right" class="w-5 h-5"></i>
-                            </a>
+            <div class="divide-y divide-ink/10">
+                {% for op in operationsAVenir %}
+                <a href="{{ path('terrain_show', {id: op.id}) }}"
+                   class="flex items-center justify-between px-4 py-3 hover:bg-paper transition-colors">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-xs font-medium text-muted bg-muted/10 px-2 py-0.5">
+                                {{ op.campagne.nom|slice(0, 15) }}{% if op.campagne.nom|length > 15 %}...{% endif %}
+                            </span>
+                            <span class="font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
                         </div>
-                        {% if op.motifReport %}
-                            <div class="bg-warning/10 p-2 mt-2 mb-3">
-                                <p class="text-xs text-warning font-medium">
-                                    <i data-feather="info" class="w-3 h-3 inline"></i>
-                                    Motif : {{ op.motifReport }}
-                                </p>
-                            </div>
-                        {% endif %}
-                        {# Bouton Replanifier pour reprendre l'intervention reportee #}
-                        <form action="{{ path('terrain_replanifier', {id: op.id}) }}" method="post" class="mt-3">
-                            <input type="hidden" name="_token" value="{{ csrf_token('replanifier_' ~ op.id) }}">
-                            <button type="submit" class="btn-action w-full bg-primary text-white font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors">
-                                <i data-feather="refresh-cw" class="w-5 h-5"></i>
-                                REPRENDRE L'INTERVENTION
-                            </button>
-                        </form>
+                        <p class="text-sm text-ink truncate">{{ op.displayName }}</p>
                     </div>
+                    <div class="flex items-center gap-3 ml-3">
+                        <span class="text-xs text-muted font-medium">{{ op.datePlanifiee|date('d/m') }}</span>
+                        {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
+                        <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
+                    </div>
+                </a>
                 {% endfor %}
             </div>
-        {% endif %}
+        </div>
+    </div>
+    {% endif %}
 
-        {# Section: A remedier #}
-        {% if grouped_operations.a_remedier|length > 0 %}
-            <div class="mb-6">
-                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
-                    <i data-feather="alert-triangle" class="w-4 h-4 text-danger"></i>
-                    A remedier
-                    <span class="bg-danger/10 text-danger px-2 py-0.5 text-xs font-bold">{{ grouped_operations.a_remedier|length }}</span>
-                </h2>
-
-                {% for op in grouped_operations.a_remedier %}
-                    <div class="bg-danger/5 border-2 border-danger/50 p-4 mb-2">
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-lg font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
-                                    {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
-                                </div>
-                                <p class="text-sm text-ink font-medium">{{ op.displayName }}</p>
-                            </div>
-                            {# Lien vers detail #}
-                            <a href="{{ path('terrain_show', {id: op.id}) }}" class="w-10 h-10 flex items-center justify-center border-2 border-ink hover:bg-ink hover:text-white transition-colors text-ink" aria-label="Voir le detail">
-                                <i data-feather="chevron-right" class="w-5 h-5"></i>
-                            </a>
-                        </div>
-                        {% if op.notes %}
-                            <div class="bg-danger/10 p-2 mt-2 mb-3">
-                                <p class="text-xs text-danger font-medium">
-                                    <i data-feather="alert-circle" class="w-3 h-3 inline"></i>
-                                    {{ op.notes }}
-                                </p>
-                            </div>
-                        {% endif %}
-                        {# Bouton Replanifier pour reprendre l'intervention #}
-                        <form action="{{ path('terrain_replanifier', {id: op.id}) }}" method="post" class="mt-3">
-                            <input type="hidden" name="_token" value="{{ csrf_token('replanifier_' ~ op.id) }}">
-                            <button type="submit" class="btn-action w-full bg-primary text-white font-bold flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors">
-                                <i data-feather="refresh-cw" class="w-5 h-5"></i>
-                                REPRENDRE L'INTERVENTION
-                            </button>
-                        </form>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        {# Section: A planifier #}
-        {% if grouped_operations.a_planifier|length > 0 %}
-            <div class="mb-6">
-                <h2 class="text-xs text-muted uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
-                    <i data-feather="calendar" class="w-4 h-4"></i>
-                    A planifier ({{ grouped_operations.a_planifier|length }})
-                </h2>
-
-                {% for op in grouped_operations.a_planifier %}
-                    <div class="bg-muted/5 border-2 border-muted/50 p-4 mb-2">
-                        <div class="flex items-start justify-between mb-2">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-lg font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
-                                    {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
-                                </div>
-                                <p class="text-sm text-ink font-medium">{{ op.displayName }}</p>
-                                <p class="text-xs text-muted">
-                                    {{ op.campagne.nom ?? 'Campagne' }}
-                                </p>
-                            </div>
-                            {# Lien vers detail #}
-                            <a href="{{ path('terrain_show', {id: op.id}) }}" class="w-10 h-10 flex items-center justify-center border-2 border-ink hover:bg-ink hover:text-white transition-colors text-ink" aria-label="Voir le detail">
-                                <i data-feather="chevron-right" class="w-5 h-5"></i>
-                            </a>
-                        </div>
-                        <p class="text-xs text-muted">
-                            <i data-feather="info" class="w-3 h-3 inline"></i>
-                            Cette intervention n'est pas encore planifiee
-                        </p>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
+    {# Etat vide global #}
+    {% if operationsRetard|length == 0 and operationsAujourdhui|length == 0 and operationsAVenir|length == 0 %}
+    <div class="text-center py-12">
+        <div class="w-16 h-16 bg-success/10 mx-auto mb-4 flex items-center justify-center">
+            <i data-feather="sun" class="w-8 h-8 text-success"></i>
+        </div>
+        <p class="text-lg font-semibold text-ink mb-1">Aucune intervention</p>
+        <p class="text-sm text-muted">Vous n'avez pas d'intervention assignee pour le moment.</p>
+    </div>
     {% endif %}
 {% endblock %}

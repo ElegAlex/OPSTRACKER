@@ -43,28 +43,41 @@ class TerrainController extends AbstractController
     }
 
     /**
-     * Liste "Mes interventions" - Vue filtree pour le technicien connecte.
+     * Liste "Mes interventions" - Vue consolidee multi-campagnes.
      * US-401 : Voir mes interventions du jour
+     * Feature : KPIs + section retards + section aujourd'hui + section a venir
      */
     #[Route('', name: 'terrain_index', methods: ['GET'])]
-    public function index(Request $request): Response
+    public function index(): Response
     {
         $user = $this->getUser();
+        $today = new \DateTimeImmutable('today');
 
-        // Recuperer les operations assignees au technicien
-        $operations = $this->operationRepository->findByTechnicien($user->getId());
+        // Operations en retard (toutes campagnes)
+        $operationsRetard = $this->operationRepository->findRetardForTechnicien($user->getId());
 
-        // Grouper par statut pour l'affichage
-        $groupedOperations = $this->groupOperationsByStatus($operations);
+        // Operations aujourd'hui (toutes campagnes)
+        $operationsAujourdhui = $this->operationRepository->findTodayForTechnicien($user->getId(), $today);
 
-        // Calculer les stats du jour
-        $stats = $this->calculateDayStats($operations);
+        // Operations a venir (toutes campagnes)
+        $operationsAVenir = $this->operationRepository->findAVenirForTechnicien($user->getId(), $today);
+
+        // KPIs (retard + aujourd'hui uniquement pour le compteur actif)
+        $allOperations = array_merge($operationsRetard, $operationsAujourdhui);
+        $kpis = [
+            'total' => count($allOperations),
+            'a_faire' => count(array_filter($allOperations, fn ($o) => in_array($o->getStatut(), ['a_planifier', 'planifie']))),
+            'en_cours' => count(array_filter($allOperations, fn ($o) => $o->getStatut() === 'en_cours')),
+            'retard' => count($operationsRetard),
+            'a_venir' => count($operationsAVenir),
+        ];
 
         return $this->render('terrain/index.html.twig', [
-            'operations' => $operations,
-            'grouped_operations' => $groupedOperations,
-            'stats' => $stats,
-            'today' => new \DateTimeImmutable(),
+            'kpis' => $kpis,
+            'operationsRetard' => $operationsRetard,
+            'operationsAujourdhui' => $operationsAujourdhui,
+            'operationsAVenir' => $operationsAVenir,
+            'today' => $today,
         ]);
     }
 
