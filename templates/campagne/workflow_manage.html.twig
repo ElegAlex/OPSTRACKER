@@ -148,7 +148,9 @@
                                 <div>
                                     <p class="font-medium {% if not isActif %}line-through text-muted{% endif %}">
                                         {{ etape.titre }}
-                                        {% if not etape.obligatoire|default(true) %}
+                                        {% if not isActif %}
+                                        <span class="text-xs text-danger font-normal ml-2">(Desactivee)</span>
+                                        {% elseif not etape.obligatoire|default(true) %}
                                         <span class="text-xs text-muted font-normal">(optionnel)</span>
                                         {% endif %}
                                     </p>

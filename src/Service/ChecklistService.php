@@ -160,11 +160,11 @@ class ChecklistService
         }
 
         $found = false;
-        foreach ($structure['phases'] as &$phase) {
-            foreach ($phase['etapes'] as &$etape) {
+        foreach ($structure['phases'] as $phaseIndex => $phase) {
+            foreach ($phase['etapes'] as $etapeIndex => $etape) {
                 if ($etape['id'] === $etapeId) {
-                    $etape['actif'] = false;
-                    $etape['disabledAt'] = (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
+                    $structure['phases'][$phaseIndex]['etapes'][$etapeIndex]['actif'] = false;
+                    $structure['phases'][$phaseIndex]['etapes'][$etapeIndex]['disabledAt'] = (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM);
                     $found = true;
                     break 2;
                 }
@@ -191,11 +191,11 @@ class ChecklistService
             throw new \InvalidArgumentException('Aucune checklist configuree pour cette campagne.');
         }
 
-        foreach ($structure['phases'] as &$phase) {
-            foreach ($phase['etapes'] as &$etape) {
+        foreach ($structure['phases'] as $phaseIndex => $phase) {
+            foreach ($phase['etapes'] as $etapeIndex => $etape) {
                 if ($etape['id'] === $etapeId) {
-                    $etape['actif'] = true;
-                    $etape['disabledAt'] = null;
+                    $structure['phases'][$phaseIndex]['etapes'][$etapeIndex]['actif'] = true;
+                    $structure['phases'][$phaseIndex]['etapes'][$etapeIndex]['disabledAt'] = null;
                     $campagne->setChecklistStructure($structure);
                     $this->entityManager->flush();
 
