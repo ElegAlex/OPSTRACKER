@@ -75,6 +75,8 @@ class CampagneStep3Type extends AbstractType
             'required' => false,
         ]);
 
+        // Note: Toutes les colonnes du CSV sont automatiquement importees comme CampagneChamp
+
         // Champs caches pour les metadonnees
         $builder->add('csv_encoding', HiddenType::class, [
             'data' => $options['csv_encoding'],

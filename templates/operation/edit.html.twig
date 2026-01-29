@@ -124,6 +124,32 @@
                     </div>
                 </div>
 
+                {# Champs personnalises de la campagne (CampagneChamp) #}
+                {% if champs|length > 0 %}
+                <div class="bg-white border-2 border-ink">
+                    <div class="px-6 py-4 border-b-2 border-ink/10">
+                        <h2 class="font-bold text-ink flex items-center gap-2">
+                            <i data-feather="database" class="w-4 h-4"></i>
+                            Champs de la campagne
+                        </h2>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            {% for champ in champs %}
+                                {% set fieldName = champ.nom|normalize_field_name %}
+                                {% if form[fieldName] is defined %}
+                                <div>
+                                    {{ form_label(form[fieldName]) }}
+                                    {{ form_widget(form[fieldName]) }}
+                                    {{ form_errors(form[fieldName]) }}
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
                 {# Info statut #}
                 <div class="bg-paper border-2 border-ink/10 p-4">
                     <div class="flex items-start gap-3">

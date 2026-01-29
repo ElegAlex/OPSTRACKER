@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Campagne;
+use App\Entity\CampagneChamp;
 use App\Entity\Operation;
 use App\Form\CampagneStep1Type;
 use App\Form\CampagneStep2Type;
@@ -14,6 +15,7 @@ use App\Form\VisibiliteCampagneType;
 use App\Form\WorkflowCampagneType;
 use App\Repository\CampagneRepository;
 use App\Repository\ChecklistTemplateRepository;
+use App\Service\CampagneChampService;
 use App\Service\CampagneService;
 use App\Service\ChecklistService;
 use App\Service\ExportCsvService;
@@ -114,9 +116,10 @@ class CampagneController extends AbstractController
     }
 
     /**
-     * T-901 / US-203 : Creer campagne - Etape 2/4 (Upload CSV).
+     * T-901 / US-203 : Creer campagne - Etape 2/4 (Upload CSV ou colonnes manuelles).
      * RG-012 : Max 100 000 lignes, encodage auto-detecte
      * RG-013 : Fichier .csv uniquement accepte
+     * Creation manuelle : definir les colonnes sans import CSV
      */
     #[Route('/{id}/import', name: 'app_campagne_step2', methods: ['GET', 'POST'])]
     public function step2(Campagne $campagne, Request $request): Response
@@ -127,6 +130,7 @@ class CampagneController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             /** @var UploadedFile|null $csvFile */
             $csvFile = $form->get('csvFile')->getData();
+            $colonnesManuelles = $form->get('colonnes_manuelles')->getData();
 
             if ($csvFile) {
                 // RG-013 : Valider le fichier
@@ -150,7 +154,42 @@ class CampagneController extends AbstractController
                 return $this->redirectToRoute('app_campagne_step3', ['id' => $campagne->getId()]);
             }
 
-            // Pas de fichier = passer directement a l'etape 4
+            // Si pas de CSV mais colonnes manuelles definies
+            if ($colonnesManuelles) {
+                $lignes = array_filter(array_map('trim', explode("\n", $colonnesManuelles)));
+
+                // Recuperer les CampagneChamp existants
+                $existingChamps = [];
+                foreach ($campagne->getChamps() as $champ) {
+                    $existingChamps[mb_strtolower($champ->getNom())] = $champ;
+                }
+
+                $ordre = count($existingChamps);
+                foreach ($lignes as $nomColonne) {
+                    if (!empty($nomColonne)) {
+                        $nomLower = mb_strtolower($nomColonne);
+
+                        // Creer le CampagneChamp s'il n'existe pas
+                        if (!isset($existingChamps[$nomLower])) {
+                            $champ = new CampagneChamp();
+                            $champ->setNom($nomColonne);
+                            $champ->setOrdre($ordre++);
+                            $campagne->addChamp($champ);
+                            $this->entityManager->persist($champ);
+                            $existingChamps[$nomLower] = $champ;
+                        }
+                    }
+                }
+
+                $this->entityManager->flush();
+
+                $this->addFlash('success', sprintf('%d colonne(s) creee(s) avec succes.', count($lignes)));
+
+                // Rediriger vers Step 4 (skip Step 3 car pas d'import)
+                return $this->redirectToRoute('app_campagne_step4', ['id' => $campagne->getId()]);
+            }
+
+            // Pas de fichier ni colonnes = passer directement a l'etape 4
             return $this->redirectToRoute('app_campagne_step4', ['id' => $campagne->getId()]);
         }
 
@@ -213,12 +252,46 @@ class CampagneController extends AbstractController
                 ]);
             }
 
+            // Creer un CampagneChamp pour CHAQUE colonne du CSV
+            // Toute colonne = un CampagneChamp, pas d'exception
+            $headers = $analysis['headers'];
+            $customFieldsMapping = [];
+
+            // Recuperer les CampagneChamp existants
+            $existingChamps = [];
+            foreach ($campagne->getChamps() as $champ) {
+                $existingChamps[mb_strtolower($champ->getNom())] = $champ;
+            }
+
+            $ordre = count($existingChamps);
+            foreach ($headers as $index => $header) {
+                $headerLower = mb_strtolower($header);
+
+                // Creer le CampagneChamp s'il n'existe pas
+                if (!isset($existingChamps[$headerLower])) {
+                    $champ = new CampagneChamp();
+                    $champ->setNom($header);
+                    $champ->setOrdre($ordre++);
+                    $campagne->addChamp($champ);
+                    $this->entityManager->persist($champ);
+                    $existingChamps[$headerLower] = $champ;
+                }
+
+                // Ajouter au mapping : nom du champ => index de la colonne CSV
+                $customFieldsMapping[$header] = $index;
+            }
+
+            // Persister les nouveaux champs avant l'import
+            if (!empty($customFieldsMapping)) {
+                $this->entityManager->flush();
+            }
+
             // Executer l'import
             $result = $this->importCsvService->import(
                 $campagne,
                 $csvFilePath,
                 $mapping,
-                [],
+                $customFieldsMapping,
                 $data['csv_encoding'],
                 $data['csv_separator']
             );
@@ -331,6 +404,24 @@ class CampagneController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Traiter les champs personnalises (CampagneChamp)
+            // Toute colonne = un CampagneChamp, pas de filtrage
+            $donneesPersonnalisees = [];
+            foreach ($campagne->getChamps() as $champ) {
+                $champNom = $champ->getNom();
+                $fieldName = CampagneChampService::normalizeFieldName($champNom);
+
+                if ($form->has($fieldName)) {
+                    $valeur = $form->get($fieldName)->getData();
+                    if ($valeur !== null && $valeur !== '') {
+                        $donneesPersonnalisees[$champNom] = $valeur;
+                    }
+                }
+            }
+            if (!empty($donneesPersonnalisees)) {
+                $operation->setDonneesPersonnalisees($donneesPersonnalisees);
+            }
+
             $this->entityManager->persist($operation);
             $this->entityManager->flush();
 
@@ -343,6 +434,7 @@ class CampagneController extends AbstractController
             'campagne' => $campagne,
             'operation' => $operation,
             'form' => $form,
+            'champs' => $campagne->getChamps(),
         ]);
     }
 

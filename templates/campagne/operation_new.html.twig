@@ -48,6 +48,24 @@
                 {{ form_row(form.notes) }}
             </div>
 
+            {# Champs personnalises de la campagne (CampagneChamp) #}
+            {% if champs|length > 0 %}
+            <div class="pt-6 border-t-2 border-ink/10">
+                <h3 class="text-sm font-bold text-ink uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <i data-feather="database" class="w-4 h-4"></i>
+                    Champs de la campagne
+                </h3>
+                <div class="grid grid-cols-2 gap-6">
+                    {% for champ in champs %}
+                        {% set fieldName = champ.nom|normalize_field_name %}
+                        {% if form[fieldName] is defined %}
+                            {{ form_row(form[fieldName]) }}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             <div class="flex justify-end gap-4 pt-6 border-t-2 border-ink/10">
                 <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="px-6 py-3 text-sm font-semibold text-muted hover:text-ink transition-colors">
                     Annuler

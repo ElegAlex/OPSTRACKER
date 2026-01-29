@@ -136,8 +136,28 @@
                     </div>
                 </div>
 
-                {# Donnees personnalisees (JSONB) #}
-                {% if operation.donneesPersonnalisees|length > 0 %}
+                {# Champs personnalises de la campagne (CampagneChamp) #}
+                {% if champs|length > 0 %}
+                <div class="bg-white border-2 border-ink">
+                    <div class="px-6 py-4 border-b-2 border-ink/10">
+                        <h2 class="font-bold text-ink flex items-center gap-2">
+                            <i data-feather="database" class="w-4 h-4"></i>
+                            Champs de la campagne
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            {% for champ in champs %}
+                            <div class="bg-paper p-3">
+                                <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">{{ champ.nom }}</p>
+                                <p class="font-medium text-ink">{{ operation.getDonneePersonnalisee(champ.nom) ?? '-' }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% elseif operation.donneesPersonnalisees|length > 0 %}
+                {# Fallback: afficher les donnees brutes si pas de champs definis #}
                 <div class="bg-white border-2 border-ink">
                     <div class="px-6 py-4 border-b-2 border-ink/10">
                         <h2 class="font-bold text-ink flex items-center gap-2">

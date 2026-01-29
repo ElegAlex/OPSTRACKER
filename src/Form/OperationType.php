@@ -7,6 +7,7 @@ use App\Entity\Operation;
 use App\Entity\Segment;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
+use App\Service\CampagneChampService;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
@@ -110,6 +111,34 @@ class OperationType extends AbstractType
                 ],
                 'choices' => $campagne->getSegments(),
             ]);
+        }
+
+        // Ajouter les champs personnalises de la campagne (CampagneChamp)
+        // Toute colonne = un CampagneChamp, pas de filtrage
+        if ($campagne && $campagne->getChamps()->count() > 0) {
+            /** @var Operation|null $operation */
+            $operation = $builder->getData();
+            $donneesPersonnalisees = $operation?->getDonneesPersonnalisees() ?? [];
+
+            foreach ($campagne->getChamps() as $champ) {
+                $champNom = $champ->getNom();
+                $fieldName = CampagneChampService::normalizeFieldName($champNom);
+
+                $builder->add($fieldName, TextType::class, [
+                    'label' => $champNom,
+                    'required' => false,
+                    'mapped' => false,
+                    'data' => $donneesPersonnalisees[$champNom] ?? null,
+                    'attr' => [
+                        'placeholder' => 'Valeur pour ' . $champNom,
+                        'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white',
+                        'data-champ-nom' => $champNom,
+                    ],
+                    'label_attr' => [
+                        'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
+                    ],
+                ]);
+            }
         }
     }
 

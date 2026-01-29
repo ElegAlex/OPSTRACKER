@@ -331,7 +331,7 @@ class ImportCsvService
      * RG-093 : Segments auto-crees si colonne mappee
      *
      * @param array<string, int|null> $mapping Mapping field => header_index
-     * @param array<string, string> $customFieldsMapping Mapping pour champs personnalises
+     * @param array<string, int> $customFieldsMapping Mapping nom champ => header_index
      * @return ImportResult
      */
     public function import(

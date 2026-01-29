@@ -98,6 +98,21 @@
                     {{ form_row(form.mapping_notes) }}
                     {{ form_row(form.mapping_date_planifiee) }}
 
+                    <div class="border-t-2 border-ink/10 pt-4 mt-4">
+                        <div class="bg-success/5 border border-success/20 p-4">
+                            <div class="flex items-start gap-3">
+                                <i data-feather="check-circle" class="w-5 h-5 text-success mt-0.5"></i>
+                                <div>
+                                    <span class="font-medium text-ink">Import automatique des colonnes</span>
+                                    <p class="text-xs text-muted mt-1">
+                                        Toutes les colonnes du CSV seront automatiquement importees
+                                        comme champs de la campagne et visibles dans les operations.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {{ form_widget(form.csv_encoding) }}
                     {{ form_widget(form.csv_separator) }}
                 </div>

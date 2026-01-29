@@ -180,6 +180,10 @@
                     <tr>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-28">Matricule</th>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider">Nom</th>
+                        {# Colonnes dynamiques (CampagneChamp) #}
+                        {% for champ in champs %}
+                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider">{{ champ.nom }}</th>
+                        {% endfor %}
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-36">Segment</th>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-44">Statut</th>
                         <th class="text-center px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-24">Checklist</th>
@@ -196,6 +200,13 @@
 
                         {# Nom #}
                         <td class="px-4 py-3 text-sm text-ink">{{ operation.nom }}</td>
+
+                        {# Colonnes dynamiques (CampagneChamp) #}
+                        {% for champ in champs %}
+                        <td class="px-4 py-3 text-sm text-ink">
+                            {{ operation.getDonneePersonnalisee(champ.nom) ?? '-' }}
+                        </td>
+                        {% endfor %}
 
                         {# Segment #}
                         <td class="px-4 py-3">

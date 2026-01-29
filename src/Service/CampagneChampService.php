@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Service;
+
+/**
+ * Service utilitaire pour la gestion des champs dynamiques de campagne.
+ *
+ * Fournit une normalisation coherente des noms de champs entre PHP et Twig.
+ */
+class CampagneChampService
+{
+    /**
+     * Normalise un nom de champ pour creer un identifiant de formulaire valide.
+     *
+     * Transforme les caracteres accentues et speciaux en equivalents ASCII,
+     * puis remplace tout caractere non-alphanumerique par un underscore.
+     *
+     * Exemples:
+     * - "Telephone" -> "champ_Telephone"
+     * - "N Bureau" -> "champ_N__Bureau"
+     * - "Code-Postal" -> "champ_Code_Postal"
+     *
+     * @param string $champNom Le nom du champ a normaliser
+     * @return string L'identifiant normalise avec prefixe "champ_"
+     */
+    public static function normalizeFieldName(string $champNom): string
+    {
+        // Translitteration des accents (ex: e -> e, c -> c)
+        if (function_exists('transliterator_transliterate')) {
+            $normalized = transliterator_transliterate('Any-Latin; Latin-ASCII', $champNom);
+        } else {
+            // Fallback si intl n'est pas disponible
+            $normalized = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $champNom);
+        }
+
+        // Remplacer tous les caracteres non-alphanumeriques par underscore
+        $normalized = preg_replace('/[^a-zA-Z0-9_]/', '_', $normalized);
+
+        return 'champ_' . $normalized;
+    }
+}
