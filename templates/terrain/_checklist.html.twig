@@ -59,46 +59,10 @@
                         {% endif %}
                     </h3>
 
-                    {# Etapes de la phase #}
-                    {% for etape in phaseStats.etapes|default([]) %}
-                        {% set isActif = etape.actif|default(true) %}
+                    {# Etapes de la phase - uniquement les etapes actives #}
+                    {% for etape in phaseStats.etapes|default([])|filter(e => e.actif is not defined or e.actif) %}
                         {% set isCochee = etape.cochee|default(false) %}
-                        {% set cocheeMaisDesactivee = etape.cocheeMaisDesactivee|default(false) %}
-                        {% set isNextStep = isActif and not isCochee and isAccessible and loop.first %}
-
-                        {# ETAPE DESACTIVEE #}
-                        {% if not isActif %}
-                        <div class="bg-muted/5 border-2 border-muted/30 mb-2 opacity-50">
-                            <div class="w-full flex items-center gap-4 p-3">
-                                {# Checkbox grisee - pas de formulaire #}
-                                <div class="checkbox-large bg-muted/20 border-muted border-2 flex items-center justify-center flex-shrink-0 cursor-not-allowed"
-                                     aria-label="Etape desactivee">
-                                    {% if cocheeMaisDesactivee %}
-                                        {# Coche visible mais grisee #}
-                                        <svg class="w-7 h-7 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                    {% endif %}
-                                </div>
-
-                                {# Texte grise et barre #}
-                                <div class="flex-1 text-left">
-                                    <p class="font-semibold text-muted line-through">
-                                        {{ etape.titre }}
-                                        {% if not etape.obligatoire|default(true) %}
-                                            <span class="text-xs">(optionnel)</span>
-                                        {% endif %}
-                                    </p>
-                                    {% if etape.description %}
-                                        <p class="text-xs text-muted/60">{{ etape.description }}</p>
-                                    {% endif %}
-                                    <span class="text-xs text-muted italic">Etape desactivee</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {# ETAPE ACTIVE - comportement normal #}
-                        {% else %}
+                        {% set isNextStep = not isCochee and isAccessible and loop.first %}
                         {% set hasChampSaisie = etape.champCible is defined and etape.champCible is not null and etape.champCible != '' %}
                         <div class="bg-white border-2 {% if isCochee %}border-ink step-done{% elseif isNextStep %}border-primary border-l-4{% else %}border-ink{% endif %} mb-2 {% if not isAccessible %}opacity-50{% endif %}">
                             <div class="w-full flex items-start gap-4 p-3">
@@ -191,7 +155,6 @@
                                 {% endif %}
                             </div>
                         </div>
-                        {% endif %}
                     {% endfor %}
                 </div>
             {% endfor %}
