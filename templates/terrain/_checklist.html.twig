@@ -101,23 +101,26 @@
                         {% else %}
                         {% set hasChampSaisie = etape.champCible is defined and etape.champCible is not null and etape.champCible != '' %}
                         <div class="bg-white border-2 {% if isCochee %}border-ink step-done{% elseif isNextStep %}border-primary border-l-4{% else %}border-ink{% endif %} mb-2 {% if not isAccessible %}opacity-50{% endif %}">
-                            <form action="{{ path('terrain_checklist_toggle', {id: operation.id, etapeId: etape.id}) }}"
-                                  method="post"
-                                  data-turbo-frame="checklist-frame"
-                                  class="w-full flex items-start gap-4 p-3">
-                                <input type="hidden" name="_token" value="{{ csrf_token('checklist_' ~ operation.id) }}">
+                            <div class="w-full flex items-start gap-4 p-3">
+                                {# Formulaire toggle checkbox #}
+                                <form action="{{ path('terrain_checklist_toggle', {id: operation.id, etapeId: etape.id}) }}"
+                                      method="post"
+                                      data-turbo-frame="checklist-frame"
+                                      class="flex-shrink-0">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('checklist_' ~ operation.id) }}">
 
-                                {# Checkbox 48x48px (RG-082) #}
-                                <button type="submit"
-                                        class="checkbox-large {% if isCochee %}bg-success border-success{% else %}bg-white border-ink hover:border-primary{% endif %} border-2 flex items-center justify-center flex-shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-primary mt-1"
-                                        {% if not isAccessible %}disabled{% endif %}
-                                        aria-label="{{ isCochee ? 'Decocher' : 'Cocher' }} l'etape {{ etape.titre }}">
-                                    {% if isCochee %}
-                                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                    {% endif %}
-                                </button>
+                                    {# Checkbox 48x48px (RG-082) #}
+                                    <button type="submit"
+                                            class="checkbox-large {% if isCochee %}bg-success border-success{% else %}bg-white border-ink hover:border-primary{% endif %} border-2 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary mt-1"
+                                            {% if not isAccessible %}disabled{% endif %}
+                                            aria-label="{{ isCochee ? 'Decocher' : 'Cocher' }} l'etape {{ etape.titre }}">
+                                        {% if isCochee %}
+                                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        {% endif %}
+                                    </button>
+                                </form>
 
                                 {# Texte de l'etape #}
                                 <div class="flex-1 text-left">
@@ -131,19 +134,30 @@
                                         <p class="text-xs text-muted">{{ etape.description }}</p>
                                     {% endif %}
 
-                                    {# Champ de saisie si champCible defini #}
+                                    {# Champ de saisie si champCible defini - formulaire separe #}
                                     {% if hasChampSaisie %}
                                         {% set champNom = etape.champCible %}
                                         {% set valeurActuelle = operation.getDonneePersonnalisee(champNom) %}
-                                        <div class="mt-2">
-                                            <input type="text"
-                                                   name="valeur_champ"
-                                                   data-champ-cible="{{ champNom }}"
-                                                   value="{{ valeurActuelle ?? '' }}"
-                                                   placeholder="Saisir {{ champNom }}"
-                                                   class="w-full px-3 py-2 border-2 border-ink/30 text-base focus:border-primary focus:outline-none"
-                                                   {% if not isAccessible %}disabled{% endif %}>
-                                        </div>
+                                        <form action="{{ path('terrain_checklist_save_field', {id: operation.id, etapeId: etape.id}) }}"
+                                              method="post"
+                                              data-turbo-frame="checklist-frame"
+                                              class="mt-2">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('checklist_' ~ operation.id) }}">
+                                            <div class="flex items-center gap-2">
+                                                <input type="text"
+                                                       name="valeur_champ"
+                                                       data-champ-cible="{{ champNom }}"
+                                                       value="{{ valeurActuelle ?? '' }}"
+                                                       placeholder="Saisir {{ champNom }}"
+                                                       class="flex-1 px-3 py-2 border-2 border-ink/30 text-base focus:border-primary focus:outline-none"
+                                                       {% if not isAccessible %}disabled{% endif %}>
+                                                <button type="submit"
+                                                        class="px-3 py-2 bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors flex-shrink-0"
+                                                        {% if not isAccessible %}disabled{% endif %}>
+                                                    Enregistrer
+                                                </button>
+                                            </div>
+                                        </form>
                                     {% endif %}
                                 </div>
 
@@ -175,7 +189,7 @@
                                         </span>
                                     {% endif %}
                                 {% endif %}
-                            </form>
+                            </div>
                         </div>
                         {% endif %}
                     {% endfor %}

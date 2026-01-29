@@ -9,6 +9,7 @@ use App\Repository\OperationRepository;
 use App\Service\ChecklistService;
 use App\Service\DocumentService;
 use App\Service\OperationService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -37,6 +38,7 @@ class TerrainController extends AbstractController
         private readonly ChecklistService $checklistService,
         private readonly DocumentRepository $documentRepository,
         private readonly DocumentService $documentService,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -109,6 +111,51 @@ class TerrainController extends AbstractController
             'checklist_progression' => $checklistProgression,
             'documents' => $documentsById,
         ]);
+    }
+
+    /**
+     * Sauvegarde la valeur d'un champ de saisie checklist sans toggle.
+     */
+    #[Route('/{id}/checklist/save/{etapeId}', name: 'terrain_checklist_save_field', methods: ['POST'])]
+    public function saveChecklistField(
+        Request $request,
+        Operation $operation,
+        string $etapeId
+    ): Response {
+        $this->denyAccessUnlessGranted('edit', $operation);
+
+        if (!$this->isCsrfTokenValid('checklist_' . $operation->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token de securite invalide.');
+            return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
+        }
+
+        $champCible = $this->getChampCibleForEtape($operation, $etapeId);
+        if ($champCible) {
+            $valeur = trim($request->request->get('valeur_champ', ''));
+            $operation->setDonneePersonnalisee($champCible, $valeur);
+            $this->entityManager->flush();
+            $this->addFlash('success', 'Valeur enregistree.');
+        }
+
+        // Turbo Frame : retourner le fragment mis a jour
+        if ($request->headers->has('Turbo-Frame')) {
+            $instance = $operation->getChecklistInstance();
+            $progression = $instance ? $this->checklistService->getProgression($instance) : null;
+
+            $documents = $this->documentRepository->findByCampagne($operation->getCampagne()->getId());
+            $documentsById = [];
+            foreach ($documents as $doc) {
+                $documentsById[$doc->getId()] = $doc;
+            }
+
+            return $this->render('terrain/_checklist.html.twig', [
+                'operation' => $operation,
+                'checklist_progression' => $progression,
+                'documents' => $documentsById,
+            ]);
+        }
+
+        return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
     }
 
     /**
