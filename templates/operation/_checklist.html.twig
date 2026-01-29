@@ -96,16 +96,17 @@
 
                             {# ETAPE ACTIVE #}
                             {% else %}
+                            {% set hasChampSaisie = etape.champCible is defined and etape.champCible is not null and etape.champCible != '' %}
                             <div class="border {% if isCochee %}border-success/30 bg-success/5{% else %}border-ink/10{% endif %} {% if not isAccessible %}opacity-50{% endif %}">
                                 <form action="{{ path('app_operation_checklist_toggle', {campagne: campagne.id, id: operation.id, etapeId: etape.id}) }}"
                                       method="post"
                                       data-turbo-frame="checklist-frame"
-                                      class="flex items-center gap-3 p-3">
+                                      class="flex items-start gap-3 p-3">
                                     <input type="hidden" name="_token" value="{{ csrf_token('checklist_' ~ operation.id) }}">
 
                                     {# Checkbox #}
                                     <button type="submit"
-                                            class="w-6 h-6 border-2 {% if isCochee %}bg-success border-success{% else %}border-ink/30 hover:border-ink{% endif %} flex items-center justify-center flex-shrink-0 transition-colors"
+                                            class="w-6 h-6 border-2 {% if isCochee %}bg-success border-success{% else %}border-ink/30 hover:border-ink{% endif %} flex items-center justify-center flex-shrink-0 transition-colors mt-0.5"
                                             {% if not isAccessible %}disabled{% endif %}
                                             title="{{ isCochee ? 'Decocher' : 'Cocher' }}">
                                         {% if isCochee %}
@@ -125,6 +126,21 @@
                                         </p>
                                         {% if etape.description %}
                                             <p class="text-xs text-muted">{{ etape.description }}</p>
+                                        {% endif %}
+
+                                        {# Champ de saisie si champCible defini #}
+                                        {% if hasChampSaisie %}
+                                            {% set champNom = etape.champCible %}
+                                            {% set valeurActuelle = operation.getDonneePersonnalisee(champNom) %}
+                                            <div class="mt-2">
+                                                <input type="text"
+                                                       name="valeur_champ"
+                                                       data-champ-cible="{{ champNom }}"
+                                                       value="{{ valeurActuelle ?? '' }}"
+                                                       placeholder="Saisir {{ champNom }}"
+                                                       class="w-full px-2 py-1 text-sm border border-ink/20 focus:border-primary focus:outline-none"
+                                                       {% if not isAccessible %}disabled{% endif %}>
+                                            </div>
                                         {% endif %}
                                     </div>
 

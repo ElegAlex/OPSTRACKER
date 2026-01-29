@@ -133,57 +133,93 @@
                 <div class="divide-y divide-ink/10">
                     {% for etape in phase.etapes %}
                     {% set isActif = etape.actif|default(true) %}
-                    <div class="px-6 py-4 flex items-center justify-between {% if not isActif %}bg-muted/5 opacity-60{% endif %}">
-                        <div class="flex items-center gap-4">
-                            {# Indicateur statut #}
-                            {% if isActif %}
-                            <div class="w-3 h-3 bg-success rounded-full" title="Etape active"></div>
-                            {% else %}
-                            <div class="w-3 h-3 bg-muted rounded-full" title="Etape desactivee"></div>
-                            {% endif %}
+                    {% set currentMapping = mapping[etape.id]|default(null) %}
+                    <div class="px-6 py-4 {% if not isActif %}bg-muted/5 opacity-60{% endif %}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                {# Indicateur statut #}
+                                {% if isActif %}
+                                <div class="w-3 h-3 bg-success rounded-full" title="Etape active"></div>
+                                {% else %}
+                                <div class="w-3 h-3 bg-muted rounded-full" title="Etape desactivee"></div>
+                                {% endif %}
 
-                            {# Contenu etape #}
-                            <div>
-                                <p class="font-medium {% if not isActif %}line-through text-muted{% endif %}">
-                                    {{ etape.titre }}
-                                    {% if not etape.obligatoire|default(true) %}
-                                    <span class="text-xs text-muted font-normal">(optionnel)</span>
+                                {# Contenu etape #}
+                                <div>
+                                    <p class="font-medium {% if not isActif %}line-through text-muted{% endif %}">
+                                        {{ etape.titre }}
+                                        {% if not etape.obligatoire|default(true) %}
+                                        <span class="text-xs text-muted font-normal">(optionnel)</span>
+                                        {% endif %}
+                                    </p>
+                                    {% if etape.description %}
+                                    <p class="text-xs text-muted mt-0.5">{{ etape.description }}</p>
                                     {% endif %}
-                                </p>
-                                {% if etape.description %}
-                                <p class="text-xs text-muted mt-0.5">{{ etape.description }}</p>
-                                {% endif %}
-                                {% if not isActif and etape.disabledAt is defined and etape.disabledAt %}
-                                <p class="text-xs text-warning mt-1">
-                                    <i data-feather="alert-circle" class="w-3 h-3 inline"></i>
-                                    Desactivee le {{ etape.disabledAt|date('d/m/Y') }}
-                                </p>
-                                {% endif %}
+                                    {% if not isActif and etape.disabledAt is defined and etape.disabledAt %}
+                                    <p class="text-xs text-warning mt-1">
+                                        <i data-feather="alert-circle" class="w-3 h-3 inline"></i>
+                                        Desactivee le {{ etape.disabledAt|date('d/m/Y') }}
+                                    </p>
+                                    {% endif %}
+                                </div>
                             </div>
+
+                            {# Actions #}
+                            <form method="post" class="flex items-center">
+                                <input type="hidden" name="etape_id" value="{{ etape.id }}">
+
+                                {% if isActif %}
+                                <input type="hidden" name="action" value="desactiver">
+                                <button type="submit"
+                                        class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-warning hover:bg-warning/10 transition-colors"
+                                        title="Desactiver cette etape">
+                                    <i data-feather="eye-off" class="w-3 h-3"></i>
+                                    Desactiver
+                                </button>
+                                {% else %}
+                                <input type="hidden" name="action" value="reactiver">
+                                <button type="submit"
+                                        class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-success hover:bg-success/10 transition-colors"
+                                        title="Reactiver cette etape">
+                                    <i data-feather="eye" class="w-3 h-3"></i>
+                                    Reactiver
+                                </button>
+                                {% endif %}
+                            </form>
                         </div>
 
-                        {# Actions #}
-                        <form method="post" class="flex items-center">
-                            <input type="hidden" name="etape_id" value="{{ etape.id }}">
+                        {# Mapping champ de saisie #}
+                        {% if isActif and champs|length > 0 %}
+                        <div class="mt-3 ml-7 pl-4 border-l-2 border-ink/10">
+                            <form method="post" class="flex items-center gap-3">
+                                <input type="hidden" name="action" value="mapping">
+                                <input type="hidden" name="etape_id" value="{{ etape.id }}">
 
-                            {% if isActif %}
-                            <input type="hidden" name="action" value="desactiver">
-                            <button type="submit"
-                                    class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-warning hover:bg-warning/10 transition-colors"
-                                    title="Desactiver cette etape">
-                                <i data-feather="eye-off" class="w-3 h-3"></i>
-                                Desactiver
-                            </button>
-                            {% else %}
-                            <input type="hidden" name="action" value="reactiver">
-                            <button type="submit"
-                                    class="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-success hover:bg-success/10 transition-colors"
-                                    title="Reactiver cette etape">
-                                <i data-feather="eye" class="w-3 h-3"></i>
-                                Reactiver
-                            </button>
-                            {% endif %}
-                        </form>
+                                <label class="text-xs text-muted flex items-center gap-2">
+                                    <i data-feather="edit-3" class="w-3 h-3"></i>
+                                    Champ de saisie :
+                                </label>
+
+                                <select name="champ_cible"
+                                        onchange="this.form.submit()"
+                                        class="text-xs px-2 py-1 border border-ink/20 bg-white focus:border-primary focus:outline-none {% if currentMapping %}border-primary bg-primary/5{% endif %}">
+                                    <option value="">— Aucun —</option>
+                                    {% for champ in champs %}
+                                    <option value="{{ champ.nom }}" {% if currentMapping == champ.nom %}selected{% endif %}>
+                                        {{ champ.nom }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+
+                                {% if currentMapping %}
+                                <span class="text-xs text-primary font-medium">
+                                    <i data-feather="check" class="w-3 h-3 inline"></i>
+                                    Saisie activee
+                                </span>
+                                {% endif %}
+                            </form>
+                        </div>
+                        {% endif %}
                     </div>
                     {% else %}
                     <div class="px-6 py-8 text-center text-muted">

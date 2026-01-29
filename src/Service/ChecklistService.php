@@ -221,7 +221,8 @@ class ChecklistService
         string $titre,
         ?string $description = null,
         bool $obligatoire = true,
-        ?int $documentId = null
+        ?int $documentId = null,
+        ?string $champCible = null
     ): string {
         $structure = $campagne->getChecklistStructure();
         if (!$structure) {
@@ -253,6 +254,7 @@ class ChecklistService
                     'ordre' => $maxOrdre + 1,
                     'obligatoire' => $obligatoire,
                     'documentId' => $documentId,
+                    'champCible' => $champCible,
                     'actif' => true,
                     'createdAt' => (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM),
                     'disabledAt' => null,
@@ -454,6 +456,9 @@ class ChecklistService
                 $isActif = $etape['actif'] ?? true;
                 $isCochee = in_array($etape['id'], $etapesCocheesIds, true);
 
+                // Recuperer le champCible depuis le mapping de la campagne (pas du template)
+                $champCibleFromMapping = $campagne->getChampCibleForEtape($etape['id']);
+
                 // Info pour l'affichage (toutes les etapes)
                 $phaseEtapes[] = [
                     'id' => $etape['id'],
@@ -461,6 +466,7 @@ class ChecklistService
                     'description' => $etape['description'] ?? null,
                     'obligatoire' => $etape['obligatoire'] ?? true,
                     'documentId' => $etape['documentId'] ?? null,
+                    'champCible' => $champCibleFromMapping,
                     'actif' => $isActif,
                     'cochee' => $isCochee,
                     'cocheeMaisDesactivee' => !$isActif && $isCochee,
@@ -539,6 +545,7 @@ class ChecklistService
                     'description' => $etape['description'] ?? null,
                     'obligatoire' => $etape['obligatoire'] ?? true,
                     'documentId' => $etape['documentId'] ?? null,
+                    'champCible' => $etape['champCible'] ?? null,
                     'actif' => true,
                     'cochee' => $isCochee,
                     'cocheeMaisDesactivee' => false,

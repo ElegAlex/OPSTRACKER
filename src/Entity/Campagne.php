@@ -119,6 +119,13 @@ class Campagne
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $checklistStructure = null;
 
+    /**
+     * Mapping etapes checklist -> CampagneChamp pour saisie terrain
+     * Format: { "etape-uuid-1": "NumeroInventaire", "etape-uuid-2": "Bureau" }
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $checklistMapping = null;
+
     /** @var Collection<int, Segment> */
     #[ORM\OneToMany(targetEntity: Segment::class, mappedBy: 'campagne', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $segments;
@@ -137,6 +144,14 @@ class Campagne
      */
     #[ORM\OneToMany(targetEntity: HabilitationCampagne::class, mappedBy: 'campagne', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $habilitations;
+
+    /**
+     * Champs/colonnes dynamiques de la campagne
+     * @var Collection<int, CampagneChamp>
+     */
+    #[ORM\OneToMany(targetEntity: CampagneChamp::class, mappedBy: 'campagne', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['ordre' => 'ASC', 'id' => 'ASC'])]
+    private Collection $champs;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
@@ -182,6 +197,7 @@ class Campagne
         $this->documents = new ArrayCollection();
         $this->utilisateursHabilites = new ArrayCollection();
         $this->habilitations = new ArrayCollection();
+        $this->champs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -392,6 +408,47 @@ class Campagne
         return $this->checklistStructure !== null
             && isset($this->checklistStructure['phases'])
             && count($this->checklistStructure['phases']) > 0;
+    }
+
+    /**
+     * Mapping etapes -> CampagneChamp pour saisie terrain
+     */
+    public function getChecklistMapping(): ?array
+    {
+        return $this->checklistMapping;
+    }
+
+    public function setChecklistMapping(?array $checklistMapping): static
+    {
+        $this->checklistMapping = $checklistMapping;
+
+        return $this;
+    }
+
+    /**
+     * Retourne le nom du CampagneChamp cible pour une etape donnee
+     */
+    public function getChampCibleForEtape(string $etapeId): ?string
+    {
+        return $this->checklistMapping[$etapeId] ?? null;
+    }
+
+    /**
+     * Definit le mapping pour une etape
+     */
+    public function setChampCibleForEtape(string $etapeId, ?string $champCible): static
+    {
+        if ($this->checklistMapping === null) {
+            $this->checklistMapping = [];
+        }
+
+        if ($champCible === null || $champCible === '') {
+            unset($this->checklistMapping[$etapeId]);
+        } else {
+            $this->checklistMapping[$etapeId] = $champCible;
+        }
+
+        return $this;
     }
 
     /**
@@ -649,6 +706,36 @@ class Campagne
         }
 
         return null;
+    }
+
+    /**
+     * Champs/colonnes dynamiques de la campagne
+     * @return Collection<int, CampagneChamp>
+     */
+    public function getChamps(): Collection
+    {
+        return $this->champs;
+    }
+
+    public function addChamp(CampagneChamp $champ): static
+    {
+        if (!$this->champs->contains($champ)) {
+            $this->champs->add($champ);
+            $champ->setCampagne($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChamp(CampagneChamp $champ): static
+    {
+        if ($this->champs->removeElement($champ)) {
+            if ($champ->getCampagne() === $this) {
+                $champ->setCampagne(null);
+            }
+        }
+
+        return $this;
     }
 
     /**

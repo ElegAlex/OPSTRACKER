@@ -7,6 +7,7 @@ use App\Entity\Operation;
 use App\Repository\DocumentRepository;
 use App\Repository\SegmentRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\CampagneChampService;
 use App\Service\ChecklistService;
 use App\Service\OperationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -36,6 +37,7 @@ class OperationController extends AbstractController
         private readonly UtilisateurRepository $utilisateurRepository,
         private readonly ChecklistService $checklistService,
         private readonly DocumentRepository $documentRepository,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -74,6 +76,7 @@ class OperationController extends AbstractController
             'techniciens' => $techniciens,
             'transitions' => $transitions,
             'filtres' => $filtres,
+            'champs' => $campagne->getChamps(),
         ]);
     }
 
@@ -274,6 +277,29 @@ class OperationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Traiter les champs personnalises (CampagneChamp)
+            $donneesPersonnalisees = $operation->getDonneesPersonnalisees() ?? [];
+            foreach ($campagne->getChamps() as $champ) {
+                $champNom = $champ->getNom();
+
+                // Ignorer les champs natifs
+                if (CampagneChampService::isNativeField($champNom)) {
+                    continue;
+                }
+
+                $fieldName = CampagneChampService::normalizeFieldName($champNom);
+
+                if ($form->has($fieldName)) {
+                    $valeur = $form->get($fieldName)->getData();
+                    if ($valeur !== null && $valeur !== '') {
+                        $donneesPersonnalisees[$champNom] = $valeur;
+                    } else {
+                        unset($donneesPersonnalisees[$champNom]);
+                    }
+                }
+            }
+            $operation->setDonneesPersonnalisees(!empty($donneesPersonnalisees) ? $donneesPersonnalisees : null);
+
             $entityManager->flush();
 
             $this->addFlash('success', 'Operation modifiee avec succes.');
@@ -288,6 +314,7 @@ class OperationController extends AbstractController
             'operation' => $operation,
             'campagne' => $campagne,
             'form' => $form,
+            'champs' => $campagne->getChamps(),
         ]);
     }
 
@@ -465,6 +492,7 @@ class OperationController extends AbstractController
             'transitions' => $transitions,
             'techniciens' => $techniciens,
             'segments' => $segments,
+            'champs' => $campagne->getChamps(),
         ]);
     }
 
@@ -504,6 +532,19 @@ class OperationController extends AbstractController
 
         try {
             $this->checklistService->toggleEtape($instance, $etapeId, $this->getUser());
+
+            // Traitement champ de saisie si present
+            $valeurChamp = $request->request->get('valeur_champ');
+            if ($valeurChamp !== null) {
+                $champCible = $this->getChampCibleForEtape($operation, $etapeId);
+                if ($champCible) {
+                    $valeur = trim($valeurChamp);
+                    if ($valeur !== '') {
+                        $operation->setDonneePersonnalisee($champCible, $valeur);
+                        $this->entityManager->flush();
+                    }
+                }
+            }
         } catch (\InvalidArgumentException $e) {
             $this->addFlash('danger', $e->getMessage());
         }
@@ -532,5 +573,18 @@ class OperationController extends AbstractController
             'campagne' => $campagne->getId(),
             'id' => $operation->getId(),
         ]);
+    }
+
+    /**
+     * Recupere le champCible d'une etape depuis le mapping de la campagne.
+     */
+    private function getChampCibleForEtape(Operation $operation, string $etapeId): ?string
+    {
+        $campagne = $operation->getCampagne();
+        if (!$campagne) {
+            return null;
+        }
+
+        return $campagne->getChampCibleForEtape($etapeId);
     }
 }

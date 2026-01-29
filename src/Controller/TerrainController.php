@@ -139,6 +139,18 @@ class TerrainController extends AbstractController
 
         try {
             $this->checklistService->toggleEtape($instance, $etapeId, $this->getUser());
+
+            // Traitement champ de saisie si present
+            $valeurChamp = $request->request->get('valeur_champ');
+            if ($valeurChamp !== null) {
+                $champCible = $this->getChampCibleForEtape($operation, $etapeId);
+                if ($champCible) {
+                    $valeur = trim($valeurChamp);
+                    if ($valeur !== '') {
+                        $operation->setDonneePersonnalisee($champCible, $valeur);
+                    }
+                }
+            }
         } catch (\InvalidArgumentException $e) {
             $this->addFlash('error', $e->getMessage());
         }
@@ -500,5 +512,18 @@ class TerrainController extends AbstractController
         }
 
         return $stats;
+    }
+
+    /**
+     * Recupere le champCible d'une etape depuis le mapping de la campagne.
+     */
+    private function getChampCibleForEtape(Operation $operation, string $etapeId): ?string
+    {
+        $campagne = $operation->getCampagne();
+        if (!$campagne) {
+            return null;
+        }
+
+        return $campagne->getChampCibleForEtape($etapeId);
     }
 }

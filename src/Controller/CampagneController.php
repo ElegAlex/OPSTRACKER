@@ -613,6 +613,13 @@ class CampagneController extends AbstractController
                             $this->addFlash('danger', 'Le titre de l\'etape est obligatoire.');
                         }
                         break;
+
+                    case 'mapping':
+                        $champCible = trim($request->request->get('champ_cible', ''));
+                        $campagne->setChampCibleForEtape($etapeId, $champCible ?: null);
+                        $this->entityManager->flush();
+                        $this->addFlash('success', $champCible ? 'Champ de saisie "'.$champCible.'" configure.' : 'Champ de saisie supprime.');
+                        break;
                 }
             } catch (\InvalidArgumentException $e) {
                 $this->addFlash('danger', $e->getMessage());
@@ -621,9 +628,14 @@ class CampagneController extends AbstractController
             return $this->redirectToRoute('app_campagne_workflow', ['id' => $campagne->getId()]);
         }
 
+        // Recuperer les champs de la campagne pour le mapping
+        $champs = $campagne->getChamps();
+
         return $this->render('campagne/workflow_manage.html.twig', [
             'campagne' => $campagne,
             'structure' => $campagne->getChecklistStructure(),
+            'champs' => $champs,
+            'mapping' => $campagne->getChecklistMapping() ?? [],
         ]);
     }
 
