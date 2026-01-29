@@ -1,6 +1,6 @@
 {% extends 'campagne/_layout.html.twig' %}
 
-{% block title %}Mapping - {{ campagne.nom }} - OpsTracker{% endblock %}
+{% block title %}Import - {{ campagne.nom }} - OpsTracker{% endblock %}
 
 {% block main %}
 {# HEADER #}
@@ -12,7 +12,7 @@
                 <span class="text-xs font-semibold text-muted uppercase tracking-[0.15em]">Etape {{ step }}/4</span>
             </div>
             <h1 class="text-4xl font-bold tracking-tight">{{ campagne.nom }}</h1>
-            <p class="text-muted mt-2">Mapping des colonnes</p>
+            <p class="text-muted mt-2">Confirmation de l'import</p>
         </div>
         <a href="{{ path('app_campagne_index') }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted hover:text-ink transition-colors">
             <i data-feather="arrow-left" class="w-4 h-4"></i>
@@ -43,7 +43,7 @@
             <div class="flex-1 h-0.5 bg-success"></div>
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-primary text-white flex items-center justify-center font-bold">3</div>
-                <span class="text-sm font-medium text-ink">Mapping</span>
+                <span class="text-sm font-medium text-ink">Confirmer</span>
             </div>
             <div class="flex-1 h-0.5 bg-ink/10"></div>
             <div class="flex items-center gap-3 opacity-50">
@@ -69,65 +69,52 @@
                     </div>
                 </div>
                 <span class="px-3 py-1 text-xs font-semibold bg-success/10 text-success">
-                    {{ analysis.headers|length }} colonnes
+                    {{ headers|length }} colonnes
                 </span>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-8">
-            {# Mapping form #}
+            {# Colonnes a creer #}
             <div class="bg-white border-2 border-ink p-8">
-                <h2 class="text-lg font-bold text-ink mb-2">Correspondance des champs</h2>
-                <p class="text-sm text-muted mb-6">Associez les colonnes de votre fichier aux champs de l'application.</p>
+                <h2 class="text-lg font-bold text-ink mb-2">Colonnes a creer</h2>
+                <p class="text-sm text-muted mb-6">Ces colonnes seront ajoutees a votre campagne.</p>
 
-                {{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
+                <div class="flex flex-wrap gap-2 mb-6">
+                    {% for header in headers %}
+                        <span class="px-3 py-1.5 bg-primary/10 text-primary text-sm font-medium border border-primary/20">
+                            {{ header }}
+                        </span>
+                    {% endfor %}
+                </div>
 
-                <div class="space-y-4">
-                    <div class="bg-danger/5 border-l-4 border-danger p-3 mb-4">
-                        <p class="text-sm font-semibold text-danger">Champs obligatoires</p>
-                    </div>
-
-                    {{ form_row(form.mapping_matricule) }}
-                    {{ form_row(form.mapping_nom) }}
-
-                    <div class="border-t-2 border-ink/10 pt-4 mt-4">
-                        <p class="text-sm font-semibold text-ink mb-4">Champs optionnels</p>
-                    </div>
-
-                    {{ form_row(form.mapping_segment) }}
-                    {{ form_row(form.mapping_notes) }}
-                    {{ form_row(form.mapping_date_planifiee) }}
-
-                    <div class="border-t-2 border-ink/10 pt-4 mt-4">
-                        <div class="bg-success/5 border border-success/20 p-4">
-                            <div class="flex items-start gap-3">
-                                <i data-feather="check-circle" class="w-5 h-5 text-success mt-0.5"></i>
-                                <div>
-                                    <span class="font-medium text-ink">Import automatique des colonnes</span>
-                                    <p class="text-xs text-muted mt-1">
-                                        Toutes les colonnes du CSV seront automatiquement importees
-                                        comme champs de la campagne et visibles dans les operations.
-                                    </p>
-                                </div>
-                            </div>
+                <div class="bg-success/5 border border-success/20 p-4 mb-6">
+                    <div class="flex items-start gap-3">
+                        <i data-feather="check-circle" class="w-5 h-5 text-success mt-0.5"></i>
+                        <div>
+                            <span class="font-medium text-ink">Import automatique</span>
+                            <p class="text-sm text-muted mt-1">
+                                <strong>{{ headers|length }}</strong> colonnes seront creees et
+                                <strong>{{ analysis.total_lines }}</strong> operations importees.
+                            </p>
                         </div>
                     </div>
+                </div>
 
+                {{ form_start(form, {'attr': {'class': ''}}) }}
                     {{ form_widget(form.csv_encoding) }}
                     {{ form_widget(form.csv_separator) }}
-                </div>
 
-                <div class="flex justify-between items-center gap-4 pt-6 border-t-2 border-ink/10">
-                    <a href="{{ path('app_campagne_step2', {id: campagne.id}) }}" class="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-muted hover:text-ink transition-colors">
-                        <i data-feather="arrow-left" class="w-4 h-4"></i>
-                        Retour
-                    </a>
-                    <button type="submit" class="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
-                        Importer
-                        <i data-feather="download" class="w-4 h-4"></i>
-                    </button>
-                </div>
-
+                    <div class="flex justify-between items-center gap-4 pt-6 border-t-2 border-ink/10">
+                        <a href="{{ path('app_campagne_step2', {id: campagne.id}) }}" class="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-muted hover:text-ink transition-colors">
+                            <i data-feather="arrow-left" class="w-4 h-4"></i>
+                            Retour
+                        </a>
+                        <button type="submit" class="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                            Confirmer l'import
+                            <i data-feather="check" class="w-4 h-4"></i>
+                        </button>
+                    </div>
                 {{ form_end(form) }}
             </div>
 
@@ -140,7 +127,7 @@
                     <table class="w-full text-xs">
                         <thead>
                             <tr class="bg-paper">
-                                {% for header in analysis.headers %}
+                                {% for header in headers %}
                                 <th class="px-3 py-2 text-left font-semibold text-ink border-b-2 border-ink/10 whitespace-nowrap">
                                     {{ header }}
                                 </th>

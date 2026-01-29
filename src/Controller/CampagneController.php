@@ -201,10 +201,12 @@ class CampagneController extends AbstractController
     }
 
     /**
-     * T-902 / US-204 : Creer campagne - Etape 3/4 (Mapping colonnes).
-     * RG-012 : Mapping colonnes CSV vers champs Operation
+     * T-902 / US-204 : Creer campagne - Etape 3/4 (Confirmation import).
+     *
+     * RG-015 : TOUTES les colonnes CSV deviennent des CampagneChamp
      * RG-092 : Lignes en erreur ignorees, log genere
-     * RG-093 : Segments auto-crees si colonne mappee
+     *
+     * Plus de mapping manuel - import automatique de toutes les colonnes.
      */
     #[Route('/{id}/mapping', name: 'app_campagne_step3', methods: ['GET', 'POST'])]
     public function step3(Campagne $campagne, Request $request): Response
@@ -219,11 +221,9 @@ class CampagneController extends AbstractController
 
         // Analyser le fichier CSV
         $analysis = $this->importCsvService->analyzeFile($csvFilePath);
-        $suggestedMapping = $this->importCsvService->suggestMapping($analysis['headers']);
+        $headers = $analysis['headers'];
 
         $form = $this->createForm(CampagneStep3Type::class, null, [
-            'csv_headers' => $analysis['headers'],
-            'suggested_mapping' => $suggestedMapping,
             'csv_encoding' => $analysis['encoding'],
             'csv_separator' => $analysis['separator'],
         ]);
@@ -232,29 +232,7 @@ class CampagneController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
 
-            // Construire le mapping
-            $mapping = [
-                'matricule' => $data['mapping_matricule'],
-                'nom' => $data['mapping_nom'],
-                'segment' => $data['mapping_segment'],
-                'notes' => $data['mapping_notes'],
-                'date_planifiee' => $data['mapping_date_planifiee'],
-            ];
-
-            // Validation : matricule et nom obligatoires
-            if ($mapping['matricule'] === null || $mapping['nom'] === null) {
-                $this->addFlash('danger', 'Les colonnes Matricule et Nom sont obligatoires.');
-                return $this->render('campagne/step3.html.twig', [
-                    'campagne' => $campagne,
-                    'form' => $form,
-                    'step' => 3,
-                    'analysis' => $analysis,
-                ]);
-            }
-
-            // Creer un CampagneChamp pour CHAQUE colonne du CSV
-            // Toute colonne = un CampagneChamp, pas d'exception
-            $headers = $analysis['headers'];
+            // RG-015 : Creer un CampagneChamp pour CHAQUE colonne du CSV
             $customFieldsMapping = [];
 
             // Recuperer les CampagneChamp existants
@@ -277,20 +255,18 @@ class CampagneController extends AbstractController
                     $existingChamps[$headerLower] = $champ;
                 }
 
-                // Ajouter au mapping : nom du champ => index de la colonne CSV
+                // Mapping : nom du champ => index de la colonne CSV
                 $customFieldsMapping[$header] = $index;
             }
 
             // Persister les nouveaux champs avant l'import
-            if (!empty($customFieldsMapping)) {
-                $this->entityManager->flush();
-            }
+            $this->entityManager->flush();
 
-            // Executer l'import
+            // Executer l'import (pas de mapping systeme, tout va dans donneesPersonnalisees)
             $result = $this->importCsvService->import(
                 $campagne,
                 $csvFilePath,
-                $mapping,
+                [], // Pas de mapping systeme
                 $customFieldsMapping,
                 $data['csv_encoding'],
                 $data['csv_separator']
@@ -325,6 +301,7 @@ class CampagneController extends AbstractController
             'form' => $form,
             'step' => 3,
             'analysis' => $analysis,
+            'headers' => $headers,
         ]);
     }
 
