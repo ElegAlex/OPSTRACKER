@@ -355,68 +355,43 @@ class Operation
 
     /**
      * Retourne une representation textuelle de l'operation.
-     * Utilise les champs de la campagne dans l'ordre defini.
+     * Utilise les premieres valeurs de donneesPersonnalisees.
      */
     public function __toString(): string
     {
-        $identifier = $this->getDisplayIdentifier();
-        $name = $this->getDisplayName();
+        $data = $this->donneesPersonnalisees ?? [];
+        $values = array_slice(array_values($data), 0, 2);
 
-        if ($identifier && $name) {
-            return sprintf('%s - %s', $identifier, $name);
-        } elseif ($identifier) {
-            return $identifier;
+        if (count($values) >= 2) {
+            return sprintf('%s - %s', $values[0], $values[1]);
+        } elseif (count($values) === 1) {
+            return (string) $values[0];
         }
 
         return sprintf('Operation #%d', $this->id ?? 0);
     }
 
     /**
-     * Retourne la valeur du premier champ de la campagne pour affichage.
-     * Utilise l'ordre defini par CampagneChamp (ordre ASC).
+     * Retourne le premier champ (souvent Matricule) pour affichage.
+     * Methode de commodite pour les templates.
      */
     public function getDisplayIdentifier(): ?string
     {
-        if ($this->campagne === null) {
-            return null;
-        }
+        $data = $this->donneesPersonnalisees ?? [];
+        $values = array_values($data);
 
-        $champs = $this->campagne->getChamps();
-        if ($champs->isEmpty()) {
-            // Fallback: premier element du JSONB
-            $data = $this->donneesPersonnalisees ?? [];
-            $values = array_values($data);
-
-            return $values[0] ?? null;
-        }
-
-        $premierChamp = $champs->first();
-
-        return $this->getDonneePersonnalisee($premierChamp->getNom());
+        return $values[0] ?? null;
     }
 
     /**
-     * Retourne la valeur du deuxieme champ de la campagne pour affichage.
-     * Utilise l'ordre defini par CampagneChamp (ordre ASC).
+     * Retourne le deuxieme champ (souvent Nom) pour affichage.
+     * Methode de commodite pour les templates.
      */
     public function getDisplayName(): ?string
     {
-        if ($this->campagne === null) {
-            return null;
-        }
+        $data = $this->donneesPersonnalisees ?? [];
+        $values = array_values($data);
 
-        $champs = $this->campagne->getChamps();
-        if ($champs->count() < 2) {
-            // Fallback: deuxieme element du JSONB
-            $data = $this->donneesPersonnalisees ?? [];
-            $values = array_values($data);
-
-            return $values[1] ?? null;
-        }
-
-        $champsArray = $champs->toArray();
-        $deuxiemeChamp = $champsArray[1] ?? null;
-
-        return $deuxiemeChamp ? $this->getDonneePersonnalisee($deuxiemeChamp->getNom()) : null;
+        return $values[1] ?? null;
     }
 }
