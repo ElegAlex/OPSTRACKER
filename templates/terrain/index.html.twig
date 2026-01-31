@@ -49,6 +49,69 @@
     </div>
 {% endblock %}
 
+{# ==========================================
+   MACRO : Ligne operation horizontale
+   ========================================== #}
+{% macro operation_row(op, section_color) %}
+    <a href="{{ path('terrain_show', {id: op.id}) }}"
+       class="flex items-center bg-white border-l-4 border-{{ section_color }} min-h-[56px] hover:bg-paper/50 active:bg-{{ section_color }}/5 transition-colors">
+
+        {# DATE - largeur fixe #}
+        <div class="w-14 shrink-0 px-2 py-3 text-center border-r border-ink/5">
+            {% if op.datePlanifiee %}
+            <p class="text-sm font-bold text-{{ section_color }} num leading-tight">{{ op.datePlanifiee|date('d') }}</p>
+            <p class="text-[10px] text-muted uppercase">{{ op.datePlanifiee|date('M', locale='fr')|slice(0,3) }}</p>
+            {% else %}
+            <p class="text-xs text-muted">--</p>
+            {% endif %}
+        </div>
+
+        {# STATUT - largeur fixe #}
+        <div class="w-24 shrink-0 px-2 py-3">
+            {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
+        </div>
+
+        {# INFOS OPERATION - flex grow #}
+        <div class="flex-1 min-w-0 px-3 py-3">
+            {# Mobile: stack / Desktop: inline #}
+            <div class="flex flex-col sm:flex-row sm:items-baseline sm:gap-2">
+                {# Campagne #}
+                <span class="text-[10px] font-semibold text-{{ section_color }} uppercase tracking-wider shrink-0">
+                    {{ op.campagne.nom|slice(0, 12) }}{% if op.campagne.nom|length > 12 %}..{% endif %}
+                </span>
+                {# Identifiant + Nom #}
+                <div class="flex items-baseline gap-2 min-w-0">
+                    <span class="font-bold text-ink truncate">{{ op.displayIdentifier|default('Op #' ~ op.id) }}</span>
+                    {% if op.displayName %}
+                    <span class="text-sm text-muted truncate hidden sm:inline">{{ op.displayName }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {# Nom sur mobile (ligne separee) #}
+            {% if op.displayName %}
+            <p class="text-sm text-muted truncate sm:hidden">{{ op.displayName }}</p>
+            {% endif %}
+        </div>
+
+        {# CHECKLIST PROGRESS (si presente) #}
+        {% if op.checklistInstance %}
+        {% set completed = op.checklistInstance.progression.completed|default(0) %}
+        {% set total = op.checklistInstance.progression.total|default(0) %}
+        <div class="w-12 shrink-0 px-2 py-3 text-center hidden sm:block">
+            <p class="text-xs font-bold text-{{ section_color }} num">{{ completed }}/{{ total }}</p>
+            <div class="w-full h-1 bg-ink/10 mt-1">
+                <div class="h-full bg-{{ section_color }}" style="width: {{ total > 0 ? ((completed / total) * 100)|round : 0 }}%"></div>
+            </div>
+        </div>
+        {% endif %}
+
+        {# CHEVRON #}
+        <div class="shrink-0 px-3 py-3">
+            <i data-feather="chevron-right" class="w-5 h-5 text-muted/40"></i>
+        </div>
+    </a>
+{% endmacro %}
+
 {% block content %}
     {# Messages flash #}
     {% for label, messages in app.flashes %}
@@ -67,66 +130,19 @@
     {% if operationsRetard|length > 0 %}
     <div class="mb-6">
         {# Header section #}
-        <div class="flex items-center gap-2 mb-3 px-1">
-            <div class="w-8 h-8 bg-danger/10 flex items-center justify-center">
-                <i data-feather="alert-triangle" class="w-5 h-5 text-danger"></i>
+        <div class="flex items-center gap-2 mb-2 px-1">
+            <div class="w-6 h-6 bg-danger flex items-center justify-center">
+                <i data-feather="alert-triangle" class="w-4 h-4 text-white"></i>
             </div>
-            <h2 class="font-bold text-danger uppercase tracking-wide text-sm">
-                En retard <span class="text-danger/60">({{ operationsRetard|length }})</span>
+            <h2 class="font-bold text-danger uppercase tracking-wide text-xs">
+                En retard ({{ operationsRetard|length }})
             </h2>
         </div>
 
-        {# Cards #}
-        <div class="space-y-3">
+        {# Liste operations #}
+        <div class="bg-white border-2 border-danger/30 divide-y divide-ink/5">
             {% for op in operationsRetard %}
-            <a href="{{ path('terrain_show', {id: op.id}) }}"
-               class="block bg-white border-l-4 border-danger shadow-sm min-h-[56px] hover:shadow-md hover:translate-x-1 transition-all active:bg-danger/5">
-                <div class="flex justify-between items-start gap-4 p-4">
-                    {# Contenu principal #}
-                    <div class="flex-1 min-w-0">
-                        {# Campagne #}
-                        <p class="text-[10px] font-semibold text-danger uppercase tracking-wider mb-1">
-                            {{ op.campagne.nom }}
-                        </p>
-                        {# Identifiant principal #}
-                        <h3 class="font-bold text-ink text-lg leading-tight mb-0.5">
-                            {{ op.displayIdentifier|default('Op #' ~ op.id) }}
-                        </h3>
-                        {# Nom secondaire #}
-                        {% if op.displayName %}
-                        <p class="text-sm text-muted truncate">{{ op.displayName }}</p>
-                        {% endif %}
-                    </div>
-
-                    {# Infos droite #}
-                    <div class="flex flex-col items-end gap-2 shrink-0">
-                        {# Date planifiee #}
-                        {% if op.datePlanifiee %}
-                        <div class="flex items-center gap-1 text-danger">
-                            <i data-feather="calendar" class="w-3 h-3"></i>
-                            <span class="text-xs font-bold">{{ op.datePlanifiee|date('d/m') }}</span>
-                        </div>
-                        {% endif %}
-                        {# Badge statut #}
-                        {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
-                    </div>
-                </div>
-
-                {# Barre de progression checklist si presente #}
-                {% if op.checklistInstance %}
-                {% set completed = op.checklistInstance.progression.completed|default(0) %}
-                {% set total = op.checklistInstance.progression.total|default(0) %}
-                {% set pct = total > 0 ? ((completed / total) * 100)|round : 0 %}
-                <div class="px-4 pb-3">
-                    <div class="flex items-center gap-2">
-                        <div class="flex-1 h-1.5 bg-ink/10">
-                            <div class="h-full bg-danger transition-all" style="width: {{ pct }}%"></div>
-                        </div>
-                        <span class="text-[10px] font-bold text-muted num">{{ completed }}/{{ total }}</span>
-                    </div>
-                </div>
-                {% endif %}
-            </a>
+                {{ _self.operation_row(op, 'danger') }}
             {% endfor %}
         </div>
     </div>
@@ -137,71 +153,29 @@
        ========================================== #}
     <div class="mb-6">
         {# Header section #}
-        <div class="flex items-center gap-2 mb-3 px-1">
-            <div class="w-8 h-8 bg-primary/10 flex items-center justify-center">
-                <i data-feather="calendar" class="w-5 h-5 text-primary"></i>
+        <div class="flex items-center gap-2 mb-2 px-1">
+            <div class="w-6 h-6 bg-primary flex items-center justify-center">
+                <i data-feather="calendar" class="w-4 h-4 text-white"></i>
             </div>
-            <h2 class="font-bold text-ink uppercase tracking-wide text-sm">
-                Aujourd'hui <span class="text-muted">({{ operationsAujourdhui|length }})</span>
+            <h2 class="font-bold text-ink uppercase tracking-wide text-xs">
+                Aujourd'hui ({{ operationsAujourdhui|length }})
             </h2>
         </div>
 
         {% if operationsAujourdhui|length > 0 %}
-        {# Cards #}
-        <div class="space-y-3">
+        {# Liste operations #}
+        <div class="bg-white border-2 border-ink/10 divide-y divide-ink/5">
             {% for op in operationsAujourdhui %}
-            <a href="{{ path('terrain_show', {id: op.id}) }}"
-               class="block bg-white border-l-4 border-{{ op.statutCouleur }} shadow-sm min-h-[56px] hover:shadow-md hover:translate-x-1 transition-all active:bg-paper">
-                <div class="flex justify-between items-start gap-4 p-4">
-                    {# Contenu principal #}
-                    <div class="flex-1 min-w-0">
-                        {# Campagne #}
-                        <p class="text-[10px] font-semibold text-{{ op.statutCouleur }} uppercase tracking-wider mb-1">
-                            {{ op.campagne.nom }}
-                        </p>
-                        {# Identifiant principal #}
-                        <h3 class="font-bold text-ink text-lg leading-tight mb-0.5">
-                            {{ op.displayIdentifier|default('Op #' ~ op.id) }}
-                        </h3>
-                        {# Nom secondaire #}
-                        {% if op.displayName %}
-                        <p class="text-sm text-muted truncate">{{ op.displayName }}</p>
-                        {% endif %}
-                    </div>
-
-                    {# Infos droite #}
-                    <div class="flex flex-col items-end gap-2 shrink-0">
-                        {# Badge statut #}
-                        {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
-                        {# Icone fleche #}
-                        <i data-feather="chevron-right" class="w-5 h-5 text-muted/50"></i>
-                    </div>
-                </div>
-
-                {# Barre de progression checklist si presente #}
-                {% if op.checklistInstance %}
-                {% set completed = op.checklistInstance.progression.completed|default(0) %}
-                {% set total = op.checklistInstance.progression.total|default(0) %}
-                {% set pct = total > 0 ? ((completed / total) * 100)|round : 0 %}
-                <div class="px-4 pb-3">
-                    <div class="flex items-center gap-2">
-                        <div class="flex-1 h-1.5 bg-ink/10">
-                            <div class="h-full bg-{{ op.statutCouleur }} transition-all" style="width: {{ pct }}%"></div>
-                        </div>
-                        <span class="text-[10px] font-bold text-muted num">{{ completed }}/{{ total }}</span>
-                    </div>
-                </div>
-                {% endif %}
-            </a>
+                {{ _self.operation_row(op, op.statutCouleur) }}
             {% endfor %}
         </div>
         {% else %}
         {# Etat vide #}
-        <div class="bg-white border-2 border-ink/10 p-8 text-center">
-            <div class="w-12 h-12 bg-success/10 mx-auto mb-3 flex items-center justify-center">
-                <i data-feather="check-circle" class="w-6 h-6 text-success"></i>
+        <div class="bg-white border-2 border-ink/10 p-6 text-center">
+            <div class="w-10 h-10 bg-success/10 mx-auto mb-2 flex items-center justify-center">
+                <i data-feather="check-circle" class="w-5 h-5 text-success"></i>
             </div>
-            <p class="text-muted font-medium">Aucune intervention prevue aujourd'hui</p>
+            <p class="text-sm text-muted">Aucune intervention aujourd'hui</p>
         </div>
         {% endif %}
     </div>
@@ -212,66 +186,19 @@
     {% if operationsAVenir|length > 0 %}
     <div class="mb-6">
         {# Header section #}
-        <div class="flex items-center gap-2 mb-3 px-1">
-            <div class="w-8 h-8 bg-muted/10 flex items-center justify-center">
-                <i data-feather="clock" class="w-5 h-5 text-muted"></i>
+        <div class="flex items-center gap-2 mb-2 px-1">
+            <div class="w-6 h-6 bg-muted flex items-center justify-center">
+                <i data-feather="clock" class="w-4 h-4 text-white"></i>
             </div>
-            <h2 class="font-bold text-muted uppercase tracking-wide text-sm">
-                A venir <span class="text-muted/60">({{ operationsAVenir|length }})</span>
+            <h2 class="font-bold text-muted uppercase tracking-wide text-xs">
+                A venir ({{ operationsAVenir|length }})
             </h2>
         </div>
 
-        {# Cards #}
-        <div class="space-y-3">
+        {# Liste operations #}
+        <div class="bg-white border-2 border-ink/10 divide-y divide-ink/5">
             {% for op in operationsAVenir %}
-            <a href="{{ path('terrain_show', {id: op.id}) }}"
-               class="block bg-white border-l-4 border-muted/30 shadow-sm min-h-[56px] hover:shadow-md hover:translate-x-1 hover:border-primary/50 transition-all active:bg-paper">
-                <div class="flex justify-between items-start gap-4 p-4">
-                    {# Contenu principal #}
-                    <div class="flex-1 min-w-0">
-                        {# Campagne #}
-                        <p class="text-[10px] font-semibold text-muted uppercase tracking-wider mb-1">
-                            {{ op.campagne.nom }}
-                        </p>
-                        {# Identifiant principal #}
-                        <h3 class="font-bold text-ink text-lg leading-tight mb-0.5">
-                            {{ op.displayIdentifier|default('Op #' ~ op.id) }}
-                        </h3>
-                        {# Nom secondaire #}
-                        {% if op.displayName %}
-                        <p class="text-sm text-muted truncate">{{ op.displayName }}</p>
-                        {% endif %}
-                    </div>
-
-                    {# Infos droite #}
-                    <div class="flex flex-col items-end gap-2 shrink-0">
-                        {# Date planifiee #}
-                        {% if op.datePlanifiee %}
-                        <div class="flex items-center gap-1 text-muted">
-                            <i data-feather="calendar" class="w-3 h-3"></i>
-                            <span class="text-xs font-medium">{{ op.datePlanifiee|date('d/m') }}</span>
-                        </div>
-                        {% endif %}
-                        {# Badge statut #}
-                        {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
-                    </div>
-                </div>
-
-                {# Barre de progression checklist si presente #}
-                {% if op.checklistInstance %}
-                {% set completed = op.checklistInstance.progression.completed|default(0) %}
-                {% set total = op.checklistInstance.progression.total|default(0) %}
-                {% set pct = total > 0 ? ((completed / total) * 100)|round : 0 %}
-                <div class="px-4 pb-3">
-                    <div class="flex items-center gap-2">
-                        <div class="flex-1 h-1.5 bg-ink/10">
-                            <div class="h-full bg-muted transition-all" style="width: {{ pct }}%"></div>
-                        </div>
-                        <span class="text-[10px] font-bold text-muted num">{{ completed }}/{{ total }}</span>
-                    </div>
-                </div>
-                {% endif %}
-            </a>
+                {{ _self.operation_row(op, 'muted') }}
             {% endfor %}
         </div>
     </div>
@@ -282,11 +209,11 @@
        ========================================== #}
     {% if operationsRetard|length == 0 and operationsAujourdhui|length == 0 and operationsAVenir|length == 0 %}
     <div class="text-center py-12">
-        <div class="w-16 h-16 bg-success/10 mx-auto mb-4 flex items-center justify-center">
-            <i data-feather="sun" class="w-8 h-8 text-success"></i>
+        <div class="w-14 h-14 bg-success/10 mx-auto mb-4 flex items-center justify-center">
+            <i data-feather="sun" class="w-7 h-7 text-success"></i>
         </div>
         <p class="text-lg font-bold text-ink mb-1">Aucune intervention</p>
-        <p class="text-sm text-muted">Vous n'avez pas d'intervention assignee pour le moment.</p>
+        <p class="text-sm text-muted">Vous n'avez pas d'intervention assignee.</p>
     </div>
     {% endif %}
 {% endblock %}
