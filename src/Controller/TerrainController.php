@@ -72,12 +72,23 @@ class TerrainController extends AbstractController
             'a_venir' => count($operationsAVenir),
         ];
 
+        // Mapping campagne -> index de couleur pour différenciation visuelle
+        $toutesOperations = array_merge($operationsRetard, $operationsAujourdhui, $operationsAVenir);
+        $campagneColors = [];
+        foreach ($toutesOperations as $op) {
+            $campagneId = $op->getCampagne()->getId();
+            if (!isset($campagneColors[$campagneId])) {
+                $campagneColors[$campagneId] = count($campagneColors);
+            }
+        }
+
         return $this->render('terrain/index.html.twig', [
             'kpis' => $kpis,
             'operationsRetard' => $operationsRetard,
             'operationsAujourdhui' => $operationsAujourdhui,
             'operationsAVenir' => $operationsAVenir,
             'today' => $today,
+            'campagneColors' => $campagneColors,
         ]);
     }
 
