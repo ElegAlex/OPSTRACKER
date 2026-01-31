@@ -71,25 +71,17 @@
             {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
         </div>
 
-        {# INFOS OPERATION - flex grow #}
-        <div class="flex-1 min-w-0 px-3 py-3">
-            {# Mobile: stack / Desktop: inline #}
-            <div class="flex flex-col sm:flex-row sm:items-baseline sm:gap-2">
-                {# Campagne #}
-                <span class="text-[10px] font-semibold text-{{ section_color }} uppercase tracking-wider shrink-0">
-                    {{ op.campagne.nom|slice(0, 12) }}{% if op.campagne.nom|length > 12 %}..{% endif %}
-                </span>
-                {# Identifiant + Nom #}
-                <div class="flex items-baseline gap-2 min-w-0">
-                    <span class="font-bold text-ink truncate">{{ op.displayIdentifier|default('Op #' ~ op.id) }}</span>
-                    {% if op.displayName %}
-                    <span class="text-sm text-muted truncate hidden sm:inline">{{ op.displayName }}</span>
-                    {% endif %}
-                </div>
-            </div>
-            {# Nom sur mobile (ligne separee) #}
+        {# INFOS OPERATION - une seule ligne #}
+        <div class="flex-1 min-w-0 px-3 py-3 flex items-center gap-3">
+            {# Campagne #}
+            <span class="text-[10px] font-semibold text-{{ section_color }} uppercase tracking-wider shrink-0">
+                {{ op.campagne.nom|slice(0, 12) }}{% if op.campagne.nom|length > 12 %}..{% endif %}
+            </span>
+            {# Identifiant #}
+            <span class="font-bold text-ink shrink-0">{{ op.displayIdentifier|default('—') }}</span>
+            {# Nom #}
             {% if op.displayName %}
-            <p class="text-sm text-muted truncate sm:hidden">{{ op.displayName }}</p>
+            <span class="text-sm text-muted truncate">{{ op.displayName }}</span>
             {% endif %}
         </div>
 
