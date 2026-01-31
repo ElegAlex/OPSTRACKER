@@ -80,7 +80,7 @@
                             <span class="text-xs font-medium text-danger bg-danger/10 px-2 py-0.5">
                                 {{ op.campagne.nom|slice(0, 15) }}{% if op.campagne.nom|length > 15 %}...{% endif %}
                             </span>
-                            <span class="font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
+                            <span class="font-bold text-ink">{{ op.displayIdentifier|default('Op #' ~ op.id) }}</span>
                         </div>
                         <p class="text-sm text-ink truncate">{{ op.displayName }}</p>
                     </div>
@@ -115,7 +115,7 @@
                             <span class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5">
                                 {{ op.campagne.nom|slice(0, 15) }}{% if op.campagne.nom|length > 15 %}...{% endif %}
                             </span>
-                            <span class="font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
+                            <span class="font-bold text-ink">{{ op.displayIdentifier|default('Op #' ~ op.id) }}</span>
                         </div>
                         <p class="text-sm text-ink truncate">{{ op.displayName }}</p>
                     </div>
@@ -156,7 +156,7 @@
                             <span class="text-xs font-medium text-muted bg-muted/10 px-2 py-0.5">
                                 {{ op.campagne.nom|slice(0, 15) }}{% if op.campagne.nom|length > 15 %}...{% endif %}
                             </span>
-                            <span class="font-bold text-ink">{{ op.displayIdentifier ?? 'Op #' ~ op.id }}</span>
+                            <span class="font-bold text-ink">{{ op.displayIdentifier|default('Op #' ~ op.id) }}</span>
                         </div>
                         <p class="text-sm text-ink truncate">{{ op.displayName }}</p>
                     </div>
