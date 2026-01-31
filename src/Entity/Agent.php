@@ -58,6 +58,12 @@ class Agent
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $site = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $role = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $typeContrat = null;
+
     /**
      * Manager de l'agent (self-reference)
      * RG-124 : Manager ne voit que les agents de son service
@@ -188,6 +194,30 @@ class Agent
     public function setSite(?string $site): static
     {
         $this->site = $site;
+
+        return $this;
+    }
+
+    public function getRole(): ?string
+    {
+        return $this->role;
+    }
+
+    public function setRole(?string $role): static
+    {
+        $this->role = $role;
+
+        return $this;
+    }
+
+    public function getTypeContrat(): ?string
+    {
+        return $this->typeContrat;
+    }
+
+    public function setTypeContrat(?string $typeContrat): static
+    {
+        $this->typeContrat = $typeContrat;
 
         return $this;
     }

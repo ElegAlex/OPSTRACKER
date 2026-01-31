@@ -186,7 +186,8 @@
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-44">Statut</th>
                         <th class="text-center px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-24">Checklist</th>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-44">Technicien</th>
-                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-28">Date</th>
+                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-40">Date/Heure</th>
+                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-36">Reserve par</th>
                         <th class="px-4 py-3 w-16"></th>
                     </tr>
                 </thead>
@@ -260,17 +261,26 @@
                             </form>
                         </td>
 
-                        {# Date avec input inline #}
+                        {# Date et heure avec input inline #}
                         <td class="px-4 py-3">
                             <form action="{{ path('app_operation_update_date', {campagne: campagne.id, id: operation.id}) }}" method="post" class="inline-block">
                                 <input type="hidden" name="_token" value="{{ csrf_token('operation_date_' ~ operation.id) }}">
-                                <input type="date"
+                                <input type="datetime-local"
                                        name="date_planifiee"
-                                       value="{{ operation.datePlanifiee ? operation.datePlanifiee|date('Y-m-d') : '' }}"
+                                       value="{{ operation.datePlanifiee ? operation.datePlanifiee|date('Y-m-d\\TH:i') : '' }}"
                                        onchange="this.form.submit()"
-                                       class="text-xs px-2 py-1 border border-ink/10 focus:border-ink bg-white cursor-pointer min-w-[110px]"
-                                       title="Cliquer pour modifier la date">
+                                       class="text-xs px-2 py-1 border border-ink/10 focus:border-ink bg-white cursor-pointer min-w-[150px]"
+                                       title="Cliquer pour modifier la date et l'heure">
                             </form>
+                        </td>
+
+                        {# Reserve par #}
+                        <td class="px-4 py-3">
+                            {% if operation.reservePar %}
+                                <span class="text-primary font-medium">{{ operation.reserveParNomComplet }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
                         </td>
 
                         {# Actions #}

@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ block('page_title') is defined ? block('page_title') : 'Reservation' }} - {{ campagne.nom }} - OpsTracker{% endblock %}
+
+{% block body %}
+<div class="min-h-screen flex flex-col bg-paper">
+    {# HEADER PUBLIC #}
+    <header class="bg-ink text-white px-6 py-4">
+        <div class="max-w-2xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-white/60">OpsTracker</span>
+                    <h1 class="text-lg font-bold">{{ campagne.nom }}</h1>
+                </div>
+                {% if agent is defined and agent %}
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <span class="text-xs text-white/60">Connecte :</span>
+                        <p class="text-sm font-medium">{{ agent.nomComplet }}</p>
+                    </div>
+                    <form action="{{ path('app_public_booking_logout', {token: token}) }}" method="post" class="inline">
+                        <input type="hidden" name="_token" value="{{ csrf_token('public_booking_logout') }}">
+                        <button type="submit" class="text-xs text-white/60 hover:text-white underline">
+                            Changer
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    {# MAIN CONTENT #}
+    <main class="flex-1 px-6 py-8">
+        <div class="max-w-2xl mx-auto">
+            {# Flash messages #}
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="mb-6 p-4 border-2 border-ink/20 bg-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'info' ? 'primary' : 'danger')) }}/10 flex items-center gap-3">
+                        <i data-feather="{{ label == 'success' ? 'check-circle' : (label == 'warning' ? 'alert-triangle' : (label == 'info' ? 'info' : 'alert-circle')) }}" class="w-5 h-5 text-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'info' ? 'primary' : 'danger')) }}"></i>
+                        <span class="text-sm font-medium">{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            {% block main %}{% endblock %}
+        </div>
+    </main>
+
+    {# FOOTER #}
+    <footer class="bg-white border-t-2 border-ink/10 px-6 py-4">
+        <div class="max-w-2xl mx-auto text-center text-xs text-muted">
+            <p>OpsTracker - Gestion des interventions</p>
+        </div>
+    </footer>
+</div>
+{% endblock %}

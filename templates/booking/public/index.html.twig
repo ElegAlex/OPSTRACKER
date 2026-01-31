@@ -1,0 +1,93 @@
+{% extends 'booking/public/_layout.html.twig' %}
+
+{% block page_title %}Choisir un creneau{% endblock %}
+
+{% block main %}
+{# Header #}
+<div class="mb-8">
+    <h2 class="text-2xl font-bold text-ink mb-2">Choisissez votre creneau</h2>
+    <p class="text-muted">Selectionnez un creneau disponible pour votre intervention</p>
+</div>
+
+{# Liste des creneaux par date #}
+{% if operations_par_date|length > 0 or operations_sans_date|length > 0 %}
+    {# Creneaux avec date #}
+    {% for dateKey, dateGroup in operations_par_date %}
+    <div class="mb-8">
+        <h3 class="flex items-center gap-3 text-sm font-bold uppercase tracking-wider text-muted mb-4">
+            <i data-feather="calendar" class="w-4 h-4 text-primary"></i>
+            {{ dateGroup.date|format_date('full', locale='fr') }}
+        </h3>
+
+        <div class="space-y-3">
+            {% for operation in dateGroup.operations %}
+            <div class="bg-white border-2 border-ink/20 hover:border-primary p-4 transition-colors">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <span class="text-lg font-bold text-ink">{{ operation.datePlanifiee|date('H:i') }}</span>
+                        <span class="px-2 py-0.5 bg-success/10 text-success text-xs font-bold uppercase">
+                            Disponible
+                        </span>
+                    </div>
+
+                    <form action="{{ path('app_public_booking_select', {token: token, operation: operation.id}) }}" method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('public_booking_select_' ~ operation.id) }}">
+                        <button type="submit"
+                                class="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-ink hover:bg-primary transition-colors">
+                            <i data-feather="check" class="w-4 h-4"></i>
+                            Choisir
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {# Creneaux sans date #}
+    {% if operations_sans_date|length > 0 %}
+    <div class="mb-8">
+        <h3 class="flex items-center gap-3 text-sm font-bold uppercase tracking-wider text-muted mb-4">
+            <i data-feather="clock" class="w-4 h-4 text-primary"></i>
+            Date a definir
+        </h3>
+
+        <div class="space-y-3">
+            {% for operation in operations_sans_date %}
+            <div class="bg-white border-2 border-ink/20 hover:border-primary p-4 transition-colors">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <span class="text-lg font-bold text-ink">Creneau</span>
+                        <span class="px-2 py-0.5 bg-success/10 text-success text-xs font-bold uppercase">
+                            Disponible
+                        </span>
+                    </div>
+
+                    <form action="{{ path('app_public_booking_select', {token: token, operation: operation.id}) }}" method="post">
+                        <input type="hidden" name="_token" value="{{ csrf_token('public_booking_select_' ~ operation.id) }}">
+                        <button type="submit"
+                                class="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-ink hover:bg-primary transition-colors">
+                            <i data-feather="check" class="w-4 h-4"></i>
+                            Choisir
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+{% else %}
+<div class="bg-white border-2 border-ink/20 border-dashed p-12 text-center">
+    <div class="w-16 h-16 mx-auto bg-warning/10 flex items-center justify-center mb-4">
+        <i data-feather="calendar" class="w-8 h-8 text-warning"></i>
+    </div>
+    <h3 class="text-lg font-bold text-ink mb-2">Aucun creneau disponible</h3>
+    <p class="text-sm text-muted">
+        Il n'y a plus de creneaux disponibles pour cette campagne.<br>
+        Contactez votre gestionnaire pour plus d'informations.
+    </p>
+</div>
+{% endif %}
+{% endblock %}

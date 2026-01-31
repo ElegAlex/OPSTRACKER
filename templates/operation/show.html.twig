@@ -113,10 +113,10 @@
                                 <p class="font-medium text-ink">{{ operation.typeOperation.nom ?? 'Standard' }}</p>
                             </div>
                             <div>
-                                <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Date planifiee</p>
+                                <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Date et heure planifiees</p>
                                 <p class="font-medium text-ink">
                                     {% if operation.datePlanifiee %}
-                                        {{ operation.datePlanifiee|format_datetime('long', 'none', locale='fr') }}
+                                        {{ operation.datePlanifiee|format_datetime('long', 'short', locale='fr') }}
                                     {% else %}
                                         <span class="text-muted">Non planifiee</span>
                                     {% endif %}
@@ -261,6 +261,49 @@
                     </div>
                 </div>
 
+                {# Reserve par (reservation publique) #}
+                {% if operation.reservePar %}
+                <div class="bg-white border-2 border-success">
+                    <div class="px-6 py-4 border-b-2 border-success/20 bg-success/5">
+                        <h2 class="font-bold text-success flex items-center gap-2">
+                            <i data-feather="user-check" class="w-4 h-4"></i>
+                            Reserve par
+                        </h2>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        <div>
+                            <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Nom</p>
+                            <p class="font-semibold text-ink">{{ operation.reserveParNomComplet }}</p>
+                        </div>
+                        {% if operation.reserveParService %}
+                        <div>
+                            <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Service</p>
+                            <p class="font-medium text-ink">{{ operation.reserveParService }}</p>
+                        </div>
+                        {% endif %}
+                        {% if operation.reserveParEmail %}
+                        <div>
+                            <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Email</p>
+                            <p class="font-medium text-ink">
+                                <a href="mailto:{{ operation.reserveParEmail }}" class="text-primary hover:underline">{{ operation.reserveParEmail }}</a>
+                            </p>
+                        </div>
+                        {% endif %}
+                        {% if operation.reserveLe %}
+                        <div>
+                            <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Date de reservation</p>
+                            <p class="text-sm text-muted">{{ operation.reserveLe|format_datetime('long', 'short', locale='fr') }}</p>
+                        </div>
+                        {% endif %}
+                        {% if operation.reserveParInfos.identifiant is defined and operation.reserveParInfos.identifiant != operation.reserveParNomComplet %}
+                        <div class="pt-2 border-t border-ink/10">
+                            <p class="text-xs text-muted">Identifiant : {{ operation.reserveParInfos.identifiant }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
                 {# Actions rapides #}
                 <div class="bg-white border-2 border-ink">
                     <div class="px-6 py-4 border-b-2 border-ink/10">
@@ -334,7 +377,7 @@
                                     <i data-feather="calendar" class="w-4 h-4 text-primary mt-0.5"></i>
                                     <div>
                                         <p class="text-ink font-medium">Planifie</p>
-                                        <p class="text-xs text-muted">{{ operation.datePlanifiee|format_datetime('medium', 'none', locale='fr') }}</p>
+                                        <p class="text-xs text-muted">{{ operation.datePlanifiee|format_datetime('medium', 'short', locale='fr') }}</p>
                                     </div>
                                 </div>
                             {% endif %}

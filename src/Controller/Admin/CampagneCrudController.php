@@ -9,9 +9,12 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\CollectionField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\FormField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
@@ -117,9 +120,43 @@ class CampagneCrudController extends AbstractCrudController
             ->hideOnIndex()
             ->setColumns(6);
 
+        yield CollectionField::new('champs', 'Colonnes / Champs')
+            ->useEntryCrudForm(CampagneChampCrudController::class)
+            ->setEntryIsComplex(true)
+            ->allowAdd()
+            ->allowDelete()
+            ->setFormTypeOption('by_reference', false)
+            ->onlyOnForms()
+            ->setColumns(12)
+            ->setHelp('Definissez les colonnes/champs de la campagne');
+
         yield IntegerField::new('nombreOperations', 'Operations')
             ->hideOnForm()
             ->formatValue(fn ($value) => $value . ' ops');
+
+        // Reservation publique (type Doodle)
+        yield FormField::addPanel('Reservation en ligne')
+            ->setIcon('fa fa-calendar-check')
+            ->collapsible();
+
+        yield BooleanField::new('reservationOuverte', 'Activer reservation publique')
+            ->setHelp('Permet aux agents de reserver via un lien public (type Doodle)')
+            ->renderAsSwitch(true)
+            ->onlyOnForms();
+
+        yield ChoiceField::new('reservationMode', 'Mode d\'identification')
+            ->setChoices([
+                'Saisie libre (ouvert a tous)' => Campagne::RESERVATION_MODE_LIBRE,
+                'Liste importee (CSV specifique)' => Campagne::RESERVATION_MODE_IMPORT,
+                'Annuaire agents (avec filtres)' => Campagne::RESERVATION_MODE_ANNUAIRE,
+            ])
+            ->onlyOnForms()
+            ->setHelp('Libre = saisie texte. Import = CSV specifique. Annuaire = filtrage agents.');
+
+        yield TextField::new('shareToken', 'Token de partage')
+            ->onlyOnForms()
+            ->setFormTypeOption('disabled', true)
+            ->setHelp('Genere automatiquement via la fonction Partage');
 
         yield DateTimeField::new('createdAt', 'Cree le')
             ->hideOnForm()

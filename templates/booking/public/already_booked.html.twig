@@ -1,0 +1,64 @@
+{% extends 'booking/public/_layout.html.twig' %}
+
+{% block page_title %}Deja reserve{% endblock %}
+
+{% block main %}
+<div class="max-w-md mx-auto">
+    <div class="bg-white border-2 border-primary overflow-hidden">
+        {# Info header #}
+        <div class="bg-primary/10 px-6 py-8 text-center">
+            <div class="w-16 h-16 bg-primary flex items-center justify-center mx-auto mb-4">
+                <i data-feather="calendar" class="w-8 h-8 text-white"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-ink mb-2">Vous avez deja reserve</h2>
+            <p class="text-muted">Votre creneau est confirme</p>
+        </div>
+
+        {# Details #}
+        <div class="p-6 space-y-4">
+            <div class="bg-paper p-4">
+                <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Votre creneau</p>
+                {% if operation.datePlanifiee %}
+                <p class="text-lg font-bold text-ink">
+                    {{ operation.datePlanifiee|format_date('full', locale='fr') }}
+                </p>
+                <p class="text-ink font-medium">
+                    a {{ operation.datePlanifiee|date('H:i') }}
+                </p>
+                {% else %}
+                <p class="text-lg font-bold text-ink">Date a confirmer</p>
+                {% endif %}
+            </div>
+
+            <div class="bg-paper p-4">
+                <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Reserve par</p>
+                <p class="font-medium text-ink">{{ operation.reserveParNomComplet }}</p>
+                {% if operation.reserveParService %}
+                <p class="text-sm text-muted">{{ operation.reserveParService }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Actions #}
+        <div class="px-6 pb-6 space-y-3">
+            <form action="{{ path('app_public_booking_cancel', {token: token}) }}" method="post"
+                  onsubmit="return confirm('Etes-vous sur de vouloir annuler votre reservation ?');">
+                <input type="hidden" name="_token" value="{{ csrf_token('public_booking_cancel') }}">
+                <button type="submit"
+                        class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-danger border-2 border-danger hover:bg-danger hover:text-white transition-colors">
+                    <i data-feather="x" class="w-4 h-4"></i>
+                    Annuler ma reservation
+                </button>
+            </form>
+
+            <form action="{{ path('app_public_booking_logout', {token: token}) }}" method="post">
+                <button type="submit"
+                        class="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-muted hover:text-ink transition-colors">
+                    <i data-feather="log-out" class="w-4 h-4"></i>
+                    Changer d'identite
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

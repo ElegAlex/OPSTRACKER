@@ -188,6 +188,32 @@ class AgentRepository extends ServiceEntityRepository
     }
 
     /**
+     * Retourne les valeurs distinctes d'un champ pour les filtres annuaire.
+     *
+     * @return string[]
+     */
+    public function getDistinctValues(string $field): array
+    {
+        // Valider le champ pour eviter injection
+        $allowedFields = ['service', 'site', 'role', 'typeContrat'];
+        if (!in_array($field, $allowedFields, true)) {
+            return [];
+        }
+
+        $results = $this->createQueryBuilder('a')
+            ->select("DISTINCT a.{$field}")
+            ->andWhere("a.{$field} IS NOT NULL")
+            ->andWhere("a.{$field} != ''")
+            ->andWhere('a.actif = :actif')
+            ->setParameter('actif', true)
+            ->orderBy("a.{$field}", 'ASC')
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        return array_filter($results);
+    }
+
+    /**
      * T-2004 / US-1011 : Trouve un agent par email ou matricule
      * RG-128 : Auth carte agent preferee, fallback AD/email
      */

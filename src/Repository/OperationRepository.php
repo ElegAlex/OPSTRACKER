@@ -32,6 +32,62 @@ class OperationRepository extends ServiceEntityRepository
     }
 
     /**
+     * Trouve les operations disponibles (non reservees) pour une campagne
+     *
+     * @return Operation[]
+     */
+    public function findDisponiblesByCampagne(int $campagneId): array
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.campagne = :campagne')
+            ->andWhere('o.reservePar IS NULL')
+            ->setParameter('campagne', $campagneId)
+            ->orderBy('o.datePlanifiee', 'ASC')
+            ->addOrderBy('o.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Trouve les operations reservees pour une campagne
+     *
+     * @return Operation[]
+     */
+    public function findReserveesByCampagne(int $campagneId): array
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.campagne = :campagne')
+            ->andWhere('o.reservePar IS NOT NULL')
+            ->setParameter('campagne', $campagneId)
+            ->orderBy('o.reserveLe', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Compte les operations disponibles et reservees pour une campagne
+     *
+     * @return array{disponibles: int, reservees: int, total: int}
+     */
+    public function countReservationStatsByCampagne(int $campagneId): array
+    {
+        $result = $this->createQueryBuilder('o')
+            ->select('COUNT(o.id) as total')
+            ->addSelect('SUM(CASE WHEN o.reservePar IS NULL THEN 1 ELSE 0 END) as disponibles')
+            ->addSelect('SUM(CASE WHEN o.reservePar IS NOT NULL THEN 1 ELSE 0 END) as reservees')
+            ->andWhere('o.campagne = :campagne')
+            ->setParameter('campagne', $campagneId)
+            ->getQuery()
+            ->getSingleResult();
+
+        return [
+            'disponibles' => (int) ($result['disponibles'] ?? 0),
+            'reservees' => (int) ($result['reservees'] ?? 0),
+            'total' => (int) ($result['total'] ?? 0),
+        ];
+    }
+
+    /**
      * Trouve les operations assignees a un technicien
      *
      * @return Operation[]
@@ -434,6 +490,9 @@ class OperationRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('o')
             ->join('o.campagne', 'c')
+            ->addSelect('c')
+            ->leftJoin('o.checklistInstance', 'ci')
+            ->addSelect('ci')
             ->where('o.technicienAssigne = :technicien')
             ->andWhere('o.datePlanifiee < :today')
             ->andWhere('o.statut NOT IN (:statutsTermines)')
@@ -458,6 +517,9 @@ class OperationRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('o')
             ->join('o.campagne', 'c')
+            ->addSelect('c')
+            ->leftJoin('o.checklistInstance', 'ci')
+            ->addSelect('ci')
             ->where('o.technicienAssigne = :technicien')
             ->andWhere('o.datePlanifiee >= :today')
             ->andWhere('o.datePlanifiee < :tomorrow')
@@ -484,6 +546,9 @@ class OperationRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('o')
             ->join('o.campagne', 'c')
+            ->addSelect('c')
+            ->leftJoin('o.checklistInstance', 'ci')
+            ->addSelect('ci')
             ->where('o.technicienAssigne = :technicien')
             ->andWhere('o.datePlanifiee >= :tomorrow')
             ->andWhere('o.statut != :realise')

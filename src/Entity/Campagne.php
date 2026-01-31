@@ -190,6 +190,50 @@ class Campagne
     #[ORM\Column]
     private int $joursVerrouillage = 2;
 
+    // Constantes pour modes de reservation
+    public const RESERVATION_MODE_LIBRE = 'libre';
+    public const RESERVATION_MODE_IMPORT = 'import';
+    public const RESERVATION_MODE_ANNUAIRE = 'annuaire';
+
+    public const RESERVATION_MODES = [
+        self::RESERVATION_MODE_LIBRE => 'Saisie libre (ouvert a tous)',
+        self::RESERVATION_MODE_IMPORT => 'Liste importee (CSV specifique)',
+        self::RESERVATION_MODE_ANNUAIRE => 'Annuaire agents (avec filtres)',
+    ];
+
+    /**
+     * Active/desactive la vue client publique pour reservation
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $reservationOuverte = false;
+
+    /**
+     * Mode de reservation : 'liste' (dropdown agents) ou 'libre' (saisie libre type Doodle)
+     */
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $reservationMode = null;
+
+    /**
+     * Champ d'identification pour mode libre (ex: "Matricule", "Email", "Nom")
+     */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $reservationChampIdentification = null;
+
+    /**
+     * Filtres pour le mode annuaire (JSON).
+     * Format: { "services": ["RH", "Compta"], "sites": ["Siege"], "roles": ["manager"], "typesContrat": ["CDI"] }
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $reservationFiltresAnnuaire = null;
+
+    /**
+     * Liste des personnes autorisees pour le mode import (CSV specifique campagne).
+     * @var Collection<int, CampagneAgentAutorise>
+     */
+    #[ORM\OneToMany(targetEntity: CampagneAgentAutorise::class, mappedBy: 'campagne', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['nomPrenom' => 'ASC'])]
+    private Collection $agentsAutorises;
+
     public function __construct()
     {
         $this->segments = new ArrayCollection();
@@ -198,6 +242,7 @@ class Campagne
         $this->utilisateursHabilites = new ArrayCollection();
         $this->habilitations = new ArrayCollection();
         $this->champs = new ArrayCollection();
+        $this->agentsAutorises = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -834,5 +879,124 @@ class Campagne
     public function __toString(): string
     {
         return $this->nom ?? '';
+    }
+
+    /**
+     * Verifie si la reservation publique est ouverte
+     */
+    public function isReservationOuverte(): bool
+    {
+        return $this->reservationOuverte;
+    }
+
+    public function setReservationOuverte(bool $reservationOuverte): static
+    {
+        $this->reservationOuverte = $reservationOuverte;
+
+        return $this;
+    }
+
+    /**
+     * Mode de reservation (liste ou libre)
+     */
+    public function getReservationMode(): ?string
+    {
+        return $this->reservationMode;
+    }
+
+    public function setReservationMode(?string $reservationMode): static
+    {
+        if ($reservationMode !== null && !array_key_exists($reservationMode, self::RESERVATION_MODES)) {
+            throw new \InvalidArgumentException(sprintf('Mode de reservation invalide : %s', $reservationMode));
+        }
+        $this->reservationMode = $reservationMode;
+
+        return $this;
+    }
+
+    public function getReservationModeLabel(): string
+    {
+        return self::RESERVATION_MODES[$this->reservationMode] ?? '';
+    }
+
+    /**
+     * Champ d'identification pour le mode libre
+     */
+    public function getReservationChampIdentification(): ?string
+    {
+        return $this->reservationChampIdentification;
+    }
+
+    public function setReservationChampIdentification(?string $champ): static
+    {
+        $this->reservationChampIdentification = $champ;
+
+        return $this;
+    }
+
+    /**
+     * Filtres pour le mode annuaire
+     */
+    public function getReservationFiltresAnnuaire(): ?array
+    {
+        return $this->reservationFiltresAnnuaire;
+    }
+
+    public function setReservationFiltresAnnuaire(?array $filtres): static
+    {
+        $this->reservationFiltresAnnuaire = $filtres;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CampagneAgentAutorise>
+     */
+    public function getAgentsAutorises(): Collection
+    {
+        return $this->agentsAutorises;
+    }
+
+    public function addAgentAutorise(CampagneAgentAutorise $agent): static
+    {
+        if (!$this->agentsAutorises->contains($agent)) {
+            $this->agentsAutorises->add($agent);
+            $agent->setCampagne($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAgentAutorise(CampagneAgentAutorise $agent): static
+    {
+        if ($this->agentsAutorises->removeElement($agent)) {
+            if ($agent->getCampagne() === $this) {
+                $agent->setCampagne(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Vide la liste des agents autorises
+     */
+    public function clearAgentsAutorises(): static
+    {
+        $this->agentsAutorises->clear();
+
+        return $this;
+    }
+
+    /**
+     * Genere l'URL de reservation publique
+     */
+    public function getReservationUrl(): ?string
+    {
+        if (!$this->shareToken || !$this->reservationOuverte) {
+            return null;
+        }
+
+        return '/reservation/c/' . $this->shareToken;
     }
 }

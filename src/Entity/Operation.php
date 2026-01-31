@@ -90,9 +90,9 @@ class Operation
     private ?string $notes = null;
 
     /**
-     * Date planifiee pour l'intervention
+     * Date et heure planifiees pour l'intervention
      */
-    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $datePlanifiee = null;
 
     /**
@@ -128,6 +128,25 @@ class Operation
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    /**
+     * Identifiant de la personne ayant reserve cette operation (mode reservation publique)
+     */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $reservePar = null;
+
+    /**
+     * Date et heure de la reservation
+     */
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $reserveLe = null;
+
+    /**
+     * Informations completes sur la personne ayant reserve (JSON)
+     * Structure : { "identifiant": "A018", "nomPrenom": "Louise Fournier", "service": "Prestations", "email": "..." }
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $reserveParInfos = null;
 
     public function getId(): ?int
     {
@@ -393,5 +412,114 @@ class Operation
         $values = array_values($data);
 
         return $values[1] ?? null;
+    }
+
+    /**
+     * Identifiant de la personne ayant reserve cette operation
+     */
+    public function getReservePar(): ?string
+    {
+        return $this->reservePar;
+    }
+
+    public function setReservePar(?string $reservePar): static
+    {
+        $this->reservePar = $reservePar;
+
+        return $this;
+    }
+
+    /**
+     * Date et heure de la reservation
+     */
+    public function getReserveLe(): ?\DateTimeImmutable
+    {
+        return $this->reserveLe;
+    }
+
+    public function setReserveLe(?\DateTimeImmutable $reserveLe): static
+    {
+        $this->reserveLe = $reserveLe;
+
+        return $this;
+    }
+
+    /**
+     * Verifie si l'operation est disponible a la reservation
+     */
+    public function isDisponible(): bool
+    {
+        return $this->reservePar === null;
+    }
+
+    /**
+     * Reserve l'operation pour une personne
+     *
+     * @param string $identifiant Identifiant de la personne
+     * @param array|null $infos Informations completes (nomPrenom, service, email, etc.)
+     */
+    public function reserver(string $identifiant, ?array $infos = null): static
+    {
+        $this->reservePar = $identifiant;
+        $this->reserveLe = new \DateTimeImmutable();
+
+        if ($infos !== null) {
+            $this->reserveParInfos = array_merge(['identifiant' => $identifiant], $infos);
+        } else {
+            $this->reserveParInfos = ['identifiant' => $identifiant];
+        }
+
+        return $this;
+    }
+
+    /**
+     * Annule la reservation de l'operation
+     */
+    public function annulerReservation(): static
+    {
+        $this->reservePar = null;
+        $this->reserveLe = null;
+        $this->reserveParInfos = null;
+
+        return $this;
+    }
+
+    /**
+     * Informations completes sur la personne ayant reserve
+     */
+    public function getReserveParInfos(): ?array
+    {
+        return $this->reserveParInfos;
+    }
+
+    public function setReserveParInfos(?array $reserveParInfos): static
+    {
+        $this->reserveParInfos = $reserveParInfos;
+
+        return $this;
+    }
+
+    /**
+     * Retourne le nom complet de la personne ayant reserve (ou l'identifiant si non disponible)
+     */
+    public function getReserveParNomComplet(): ?string
+    {
+        return $this->reserveParInfos['nomPrenom'] ?? $this->reservePar;
+    }
+
+    /**
+     * Retourne le service de la personne ayant reserve
+     */
+    public function getReserveParService(): ?string
+    {
+        return $this->reserveParInfos['service'] ?? null;
+    }
+
+    /**
+     * Retourne l'email de la personne ayant reserve
+     */
+    public function getReserveParEmail(): ?string
+    {
+        return $this->reserveParInfos['email'] ?? null;
     }
 }
