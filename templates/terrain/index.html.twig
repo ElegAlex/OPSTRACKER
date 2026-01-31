@@ -60,7 +60,7 @@
         <div class="w-14 shrink-0 px-2 py-3 text-center border-r border-ink/5">
             {% if op.datePlanifiee %}
             <p class="text-sm font-bold text-{{ section_color }} num leading-tight">{{ op.datePlanifiee|date('d') }}</p>
-            <p class="text-[10px] text-muted uppercase">{{ op.datePlanifiee|format_date('MMM', locale='fr') }}</p>
+            <p class="text-[10px] text-muted">{{ op.datePlanifiee|date('M') }}</p>
             {% else %}
             <p class="text-xs text-muted">--</p>
             {% endif %}
