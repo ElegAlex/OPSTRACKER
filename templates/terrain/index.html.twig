@@ -61,124 +61,231 @@
         {% endfor %}
     {% endfor %}
 
-    {# Section RETARD #}
+    {# ==========================================
+       SECTION RETARD
+       ========================================== #}
     {% if operationsRetard|length > 0 %}
     <div class="mb-6">
-        <div class="bg-danger/5 border-2 border-danger overflow-hidden">
-            <div class="bg-danger/10 px-4 py-3 border-b-2 border-danger/30">
-                <h2 class="font-bold text-danger flex items-center gap-2">
-                    <i data-feather="alert-triangle" class="w-5 h-5"></i>
-                    EN RETARD ({{ operationsRetard|length }})
-                </h2>
+        {# Header section #}
+        <div class="flex items-center gap-2 mb-3 px-1">
+            <div class="w-8 h-8 bg-danger/10 flex items-center justify-center">
+                <i data-feather="alert-triangle" class="w-5 h-5 text-danger"></i>
             </div>
-            <div class="divide-y divide-danger/20">
-                {% for op in operationsRetard %}
-                <a href="{{ path('terrain_show', {id: op.id}) }}"
-                   class="flex items-center justify-between px-4 py-3 hover:bg-danger/10 transition-colors">
+            <h2 class="font-bold text-danger uppercase tracking-wide text-sm">
+                En retard <span class="text-danger/60">({{ operationsRetard|length }})</span>
+            </h2>
+        </div>
+
+        {# Cards #}
+        <div class="space-y-3">
+            {% for op in operationsRetard %}
+            <a href="{{ path('terrain_show', {id: op.id}) }}"
+               class="block bg-white border-l-4 border-danger shadow-sm min-h-[56px] hover:shadow-md hover:translate-x-1 transition-all active:bg-danger/5">
+                <div class="flex justify-between items-start gap-4 p-4">
+                    {# Contenu principal #}
                     <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-xs font-medium text-danger bg-danger/10 px-2 py-0.5">
-                                {{ op.campagne.nom|slice(0, 15) }}{% if op.campagne.nom|length > 15 %}...{% endif %}
-                            </span>
-                            <span class="font-bold text-ink">{{ op.displayIdentifier|default('Op #' ~ op.id) }}</span>
+                        {# Campagne #}
+                        <p class="text-[10px] font-semibold text-danger uppercase tracking-wider mb-1">
+                            {{ op.campagne.nom }}
+                        </p>
+                        {# Identifiant principal #}
+                        <h3 class="font-bold text-ink text-lg leading-tight mb-0.5">
+                            {{ op.displayIdentifier|default('Op #' ~ op.id) }}
+                        </h3>
+                        {# Nom secondaire #}
+                        {% if op.displayName %}
+                        <p class="text-sm text-muted truncate">{{ op.displayName }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# Infos droite #}
+                    <div class="flex flex-col items-end gap-2 shrink-0">
+                        {# Date planifiee #}
+                        {% if op.datePlanifiee %}
+                        <div class="flex items-center gap-1 text-danger">
+                            <i data-feather="calendar" class="w-3 h-3"></i>
+                            <span class="text-xs font-bold">{{ op.datePlanifiee|date('d/m') }}</span>
                         </div>
-                        <p class="text-sm text-ink truncate">{{ op.displayName }}</p>
-                    </div>
-                    <div class="flex items-center gap-3 ml-3">
-                        <span class="text-xs text-danger font-medium">{{ op.datePlanifiee|date('d/m') }}</span>
+                        {% endif %}
+                        {# Badge statut #}
                         {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
-                        <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
                     </div>
-                </a>
-                {% endfor %}
-            </div>
+                </div>
+
+                {# Barre de progression checklist si presente #}
+                {% if op.checklistInstance %}
+                {% set completed = op.checklistInstance.progression.completed|default(0) %}
+                {% set total = op.checklistInstance.progression.total|default(0) %}
+                {% set pct = total > 0 ? ((completed / total) * 100)|round : 0 %}
+                <div class="px-4 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 h-1.5 bg-ink/10">
+                            <div class="h-full bg-danger transition-all" style="width: {{ pct }}%"></div>
+                        </div>
+                        <span class="text-[10px] font-bold text-muted num">{{ completed }}/{{ total }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </a>
+            {% endfor %}
         </div>
     </div>
     {% endif %}
 
-    {# Section AUJOURD'HUI #}
+    {# ==========================================
+       SECTION AUJOURD'HUI
+       ========================================== #}
     <div class="mb-6">
-        <div class="bg-white border-2 border-ink/20 overflow-hidden">
-            <div class="bg-paper px-4 py-3 border-b-2 border-ink/10">
-                <h2 class="font-bold text-ink flex items-center gap-2">
-                    <i data-feather="calendar" class="w-5 h-5"></i>
-                    AUJOURD'HUI ({{ operationsAujourdhui|length }})
-                </h2>
+        {# Header section #}
+        <div class="flex items-center gap-2 mb-3 px-1">
+            <div class="w-8 h-8 bg-primary/10 flex items-center justify-center">
+                <i data-feather="calendar" class="w-5 h-5 text-primary"></i>
             </div>
-            {% if operationsAujourdhui|length > 0 %}
-            <div class="divide-y divide-ink/10">
-                {% for op in operationsAujourdhui %}
-                <a href="{{ path('terrain_show', {id: op.id}) }}"
-                   class="flex items-center justify-between px-4 py-3 hover:bg-paper transition-colors">
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5">
-                                {{ op.campagne.nom|slice(0, 15) }}{% if op.campagne.nom|length > 15 %}...{% endif %}
-                            </span>
-                            <span class="font-bold text-ink">{{ op.displayIdentifier|default('Op #' ~ op.id) }}</span>
-                        </div>
-                        <p class="text-sm text-ink truncate">{{ op.displayName }}</p>
-                    </div>
-                    <div class="flex items-center gap-3 ml-3">
-                        {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
-                        <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="px-4 py-8 text-center">
-                <div class="w-12 h-12 bg-muted/10 mx-auto mb-3 flex items-center justify-center">
-                    <i data-feather="check-circle" class="w-6 h-6 text-success"></i>
-                </div>
-                <p class="text-muted">Aucune intervention prevue aujourd'hui</p>
-            </div>
-            {% endif %}
+            <h2 class="font-bold text-ink uppercase tracking-wide text-sm">
+                Aujourd'hui <span class="text-muted">({{ operationsAujourdhui|length }})</span>
+            </h2>
         </div>
+
+        {% if operationsAujourdhui|length > 0 %}
+        {# Cards #}
+        <div class="space-y-3">
+            {% for op in operationsAujourdhui %}
+            <a href="{{ path('terrain_show', {id: op.id}) }}"
+               class="block bg-white border-l-4 border-{{ op.statutCouleur }} shadow-sm min-h-[56px] hover:shadow-md hover:translate-x-1 transition-all active:bg-paper">
+                <div class="flex justify-between items-start gap-4 p-4">
+                    {# Contenu principal #}
+                    <div class="flex-1 min-w-0">
+                        {# Campagne #}
+                        <p class="text-[10px] font-semibold text-{{ op.statutCouleur }} uppercase tracking-wider mb-1">
+                            {{ op.campagne.nom }}
+                        </p>
+                        {# Identifiant principal #}
+                        <h3 class="font-bold text-ink text-lg leading-tight mb-0.5">
+                            {{ op.displayIdentifier|default('Op #' ~ op.id) }}
+                        </h3>
+                        {# Nom secondaire #}
+                        {% if op.displayName %}
+                        <p class="text-sm text-muted truncate">{{ op.displayName }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# Infos droite #}
+                    <div class="flex flex-col items-end gap-2 shrink-0">
+                        {# Badge statut #}
+                        {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
+                        {# Icone fleche #}
+                        <i data-feather="chevron-right" class="w-5 h-5 text-muted/50"></i>
+                    </div>
+                </div>
+
+                {# Barre de progression checklist si presente #}
+                {% if op.checklistInstance %}
+                {% set completed = op.checklistInstance.progression.completed|default(0) %}
+                {% set total = op.checklistInstance.progression.total|default(0) %}
+                {% set pct = total > 0 ? ((completed / total) * 100)|round : 0 %}
+                <div class="px-4 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 h-1.5 bg-ink/10">
+                            <div class="h-full bg-{{ op.statutCouleur }} transition-all" style="width: {{ pct }}%"></div>
+                        </div>
+                        <span class="text-[10px] font-bold text-muted num">{{ completed }}/{{ total }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        {# Etat vide #}
+        <div class="bg-white border-2 border-ink/10 p-8 text-center">
+            <div class="w-12 h-12 bg-success/10 mx-auto mb-3 flex items-center justify-center">
+                <i data-feather="check-circle" class="w-6 h-6 text-success"></i>
+            </div>
+            <p class="text-muted font-medium">Aucune intervention prevue aujourd'hui</p>
+        </div>
+        {% endif %}
     </div>
 
-    {# Section A VENIR #}
+    {# ==========================================
+       SECTION A VENIR
+       ========================================== #}
     {% if operationsAVenir|length > 0 %}
     <div class="mb-6">
-        <div class="bg-white border-2 border-ink/10 overflow-hidden">
-            <div class="bg-muted/5 px-4 py-3 border-b-2 border-ink/10">
-                <h2 class="font-bold text-muted flex items-center gap-2">
-                    <i data-feather="clock" class="w-5 h-5"></i>
-                    A VENIR ({{ operationsAVenir|length }})
-                </h2>
+        {# Header section #}
+        <div class="flex items-center gap-2 mb-3 px-1">
+            <div class="w-8 h-8 bg-muted/10 flex items-center justify-center">
+                <i data-feather="clock" class="w-5 h-5 text-muted"></i>
             </div>
-            <div class="divide-y divide-ink/10">
-                {% for op in operationsAVenir %}
-                <a href="{{ path('terrain_show', {id: op.id}) }}"
-                   class="flex items-center justify-between px-4 py-3 hover:bg-paper transition-colors">
+            <h2 class="font-bold text-muted uppercase tracking-wide text-sm">
+                A venir <span class="text-muted/60">({{ operationsAVenir|length }})</span>
+            </h2>
+        </div>
+
+        {# Cards #}
+        <div class="space-y-3">
+            {% for op in operationsAVenir %}
+            <a href="{{ path('terrain_show', {id: op.id}) }}"
+               class="block bg-white border-l-4 border-muted/30 shadow-sm min-h-[56px] hover:shadow-md hover:translate-x-1 hover:border-primary/50 transition-all active:bg-paper">
+                <div class="flex justify-between items-start gap-4 p-4">
+                    {# Contenu principal #}
                     <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-xs font-medium text-muted bg-muted/10 px-2 py-0.5">
-                                {{ op.campagne.nom|slice(0, 15) }}{% if op.campagne.nom|length > 15 %}...{% endif %}
-                            </span>
-                            <span class="font-bold text-ink">{{ op.displayIdentifier|default('Op #' ~ op.id) }}</span>
+                        {# Campagne #}
+                        <p class="text-[10px] font-semibold text-muted uppercase tracking-wider mb-1">
+                            {{ op.campagne.nom }}
+                        </p>
+                        {# Identifiant principal #}
+                        <h3 class="font-bold text-ink text-lg leading-tight mb-0.5">
+                            {{ op.displayIdentifier|default('Op #' ~ op.id) }}
+                        </h3>
+                        {# Nom secondaire #}
+                        {% if op.displayName %}
+                        <p class="text-sm text-muted truncate">{{ op.displayName }}</p>
+                        {% endif %}
+                    </div>
+
+                    {# Infos droite #}
+                    <div class="flex flex-col items-end gap-2 shrink-0">
+                        {# Date planifiee #}
+                        {% if op.datePlanifiee %}
+                        <div class="flex items-center gap-1 text-muted">
+                            <i data-feather="calendar" class="w-3 h-3"></i>
+                            <span class="text-xs font-medium">{{ op.datePlanifiee|date('d/m') }}</span>
                         </div>
-                        <p class="text-sm text-ink truncate">{{ op.displayName }}</p>
-                    </div>
-                    <div class="flex items-center gap-3 ml-3">
-                        <span class="text-xs text-muted font-medium">{{ op.datePlanifiee|date('d/m') }}</span>
+                        {% endif %}
+                        {# Badge statut #}
                         {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
-                        <i data-feather="chevron-right" class="w-5 h-5 text-muted"></i>
                     </div>
-                </a>
-                {% endfor %}
-            </div>
+                </div>
+
+                {# Barre de progression checklist si presente #}
+                {% if op.checklistInstance %}
+                {% set completed = op.checklistInstance.progression.completed|default(0) %}
+                {% set total = op.checklistInstance.progression.total|default(0) %}
+                {% set pct = total > 0 ? ((completed / total) * 100)|round : 0 %}
+                <div class="px-4 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 h-1.5 bg-ink/10">
+                            <div class="h-full bg-muted transition-all" style="width: {{ pct }}%"></div>
+                        </div>
+                        <span class="text-[10px] font-bold text-muted num">{{ completed }}/{{ total }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </a>
+            {% endfor %}
         </div>
     </div>
     {% endif %}
 
-    {# Etat vide global #}
+    {# ==========================================
+       ETAT VIDE GLOBAL
+       ========================================== #}
     {% if operationsRetard|length == 0 and operationsAujourdhui|length == 0 and operationsAVenir|length == 0 %}
     <div class="text-center py-12">
         <div class="w-16 h-16 bg-success/10 mx-auto mb-4 flex items-center justify-center">
             <i data-feather="sun" class="w-8 h-8 text-success"></i>
         </div>
-        <p class="text-lg font-semibold text-ink mb-1">Aucune intervention</p>
+        <p class="text-lg font-bold text-ink mb-1">Aucune intervention</p>
         <p class="text-sm text-muted">Vous n'avez pas d'intervention assignee pour le moment.</p>
     </div>
     {% endif %}
