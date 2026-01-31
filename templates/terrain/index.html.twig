@@ -71,15 +71,16 @@
             {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
         </div>
 
-        {# INFOS OPERATION - une seule ligne #}
-        <div class="flex-1 min-w-0 px-3 py-3 flex items-center gap-3">
-            {# Campagne #}
-            <span class="text-[10px] font-semibold text-{{ section_color }} uppercase tracking-wider shrink-0">
-                {{ op.campagne.nom|slice(0, 12) }}{% if op.campagne.nom|length > 12 %}..{% endif %}
+        {# CAMPAGNE - largeur fixe #}
+        <div class="w-28 shrink-0 px-2 py-3 border-r border-ink/5">
+            <span class="text-[10px] font-semibold text-{{ section_color }} uppercase tracking-wider truncate block">
+                {{ op.campagne.nom }}
             </span>
-            {# Identifiant #}
+        </div>
+
+        {# IDENTIFIANT + NOM - flexible #}
+        <div class="flex-1 min-w-0 px-3 py-3 flex items-center gap-2">
             <span class="font-bold text-ink shrink-0">{{ op.displayIdentifier|default('—') }}</span>
-            {# Nom #}
             {% if op.displayName %}
             <span class="text-sm text-muted truncate">{{ op.displayName }}</span>
             {% endif %}
