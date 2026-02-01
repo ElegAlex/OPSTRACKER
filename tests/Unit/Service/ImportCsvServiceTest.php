@@ -160,22 +160,6 @@ class ImportCsvServiceTest extends TestCase
         $this->assertCount(5, $analysis['preview']); // Limite a 5
     }
 
-    public function testSuggestMappingMatricule(): void
-    {
-        $headers = ['Code', 'Matricule', 'Nom Agent', 'Batiment'];
-        $mapping = $this->service->suggestMapping($headers);
-
-        $this->assertSame(1, $mapping['matricule']); // Index de 'Matricule'
-    }
-
-    public function testSuggestMappingNom(): void
-    {
-        $headers = ['ID', 'Libelle', 'Etage'];
-        $mapping = $this->service->suggestMapping($headers);
-
-        $this->assertSame(1, $mapping['nom']); // 'Libelle' contient 'libelle'
-    }
-
     public function testSuggestMappingSegment(): void
     {
         $headers = ['Matricule', 'Nom', 'Batiment', 'Notes'];
@@ -189,9 +173,8 @@ class ImportCsvServiceTest extends TestCase
         $headers = ['Col1', 'Col2', 'Col3'];
         $mapping = $this->service->suggestMapping($headers);
 
-        $this->assertNull($mapping['matricule']);
-        $this->assertNull($mapping['nom']);
         $this->assertNull($mapping['segment']);
+        $this->assertNull($mapping['notes']);
     }
 
     public function testImportSuccess(): void
@@ -203,12 +186,17 @@ class ImportCsvServiceTest extends TestCase
 
         $campagne = $this->createCampagne();
 
+        // Mapping systeme (segment, notes, date_planifiee)
         $mapping = [
-            'matricule' => 0,
-            'nom' => 1,
             'segment' => 2,
             'notes' => 3,
             'date_planifiee' => null,
+        ];
+
+        // Mapping champs personnalises (matricule, nom vont dans donneesPersonnalisees)
+        $customFieldsMapping = [
+            'matricule' => 0,
+            'nom' => 1,
         ];
 
         // On s'attend a 2 operations + 2 segments persistes
@@ -220,65 +208,73 @@ class ImportCsvServiceTest extends TestCase
             ->expects($this->once())
             ->method('flush');
 
-        $result = $this->service->import($campagne, $filePath, $mapping, [], 'UTF-8', ';');
+        $result = $this->service->import($campagne, $filePath, $mapping, $customFieldsMapping, 'UTF-8', ';');
 
         $this->assertInstanceOf(ImportResult::class, $result);
         $this->assertSame(2, $result->getImportedCount());
         $this->assertFalse($result->hasErrors());
     }
 
-    public function testImportWithMissingMatricule(): void
+    public function testImportWithNoCustomFields(): void
     {
+        // Test d'import sans customFieldsMapping = ligne consideree comme vide
         $content = "Matricule;Nom\n";
-        $content .= ";Jean Dupont\n"; // Matricule vide
+        $content .= "PC-001;Jean Dupont\n";
         $content .= "PC-002;Marie Martin\n";
         $filePath = $this->createTempFile($content);
 
         $campagne = $this->createCampagne();
 
         $mapping = [
-            'matricule' => 0,
-            'nom' => 1,
             'segment' => null,
             'notes' => null,
             'date_planifiee' => null,
         ];
 
+        // Pas de customFieldsMapping = les donnees ne sont pas mappees
+        $customFieldsMapping = [];
+
         $this->entityManager->method('persist');
         $this->entityManager->method('flush');
 
-        $result = $this->service->import($campagne, $filePath, $mapping, [], 'UTF-8', ';');
+        $result = $this->service->import($campagne, $filePath, $mapping, $customFieldsMapping, 'UTF-8', ';');
 
-        $this->assertSame(1, $result->getImportedCount()); // Seule la 2e ligne
+        // Sans customFieldsMapping, les lignes sont considerees comme vides
+        $this->assertSame(0, $result->getImportedCount());
         $this->assertTrue($result->hasErrors());
-        $this->assertSame(1, $result->getErrorCount());
+        $this->assertSame(2, $result->getErrorCount());
     }
 
-    public function testImportWithMissingNom(): void
+    public function testImportWithPartialData(): void
     {
+        // RG-015 : Les champs personnalises ne sont plus obligatoires
+        // Une ligne avec au moins une donnee non-vide est importee
         $content = "Matricule;Nom\n";
-        $content .= "PC-001;\n"; // Nom vide
+        $content .= "PC-001;\n"; // Nom vide mais matricule present
         $content .= "PC-002;Marie Martin\n";
         $filePath = $this->createTempFile($content);
 
         $campagne = $this->createCampagne();
 
         $mapping = [
-            'matricule' => 0,
-            'nom' => 1,
             'segment' => null,
             'notes' => null,
             'date_planifiee' => null,
         ];
 
+        $customFieldsMapping = [
+            'matricule' => 0,
+            'nom' => 1,
+        ];
+
         $this->entityManager->method('persist');
         $this->entityManager->method('flush');
 
-        $result = $this->service->import($campagne, $filePath, $mapping, [], 'UTF-8', ';');
+        $result = $this->service->import($campagne, $filePath, $mapping, $customFieldsMapping, 'UTF-8', ';');
 
-        $this->assertSame(1, $result->getImportedCount());
-        $this->assertTrue($result->hasErrors());
-        $this->assertStringContainsString('Nom obligatoire', $result->getErrors()[0]['message']);
+        // Les 2 lignes sont importees (une donnee non-vide suffit)
+        $this->assertSame(2, $result->getImportedCount());
+        $this->assertFalse($result->hasErrors());
     }
 
     public function testImportCreatesSegmentsAutomatically(): void
@@ -292,11 +288,14 @@ class ImportCsvServiceTest extends TestCase
         $campagne = $this->createCampagne();
 
         $mapping = [
-            'matricule' => 0,
-            'nom' => 1,
             'segment' => 2,
             'notes' => null,
             'date_planifiee' => null,
+        ];
+
+        $customFieldsMapping = [
+            'matricule' => 0,
+            'nom' => 1,
         ];
 
         $persistedEntities = [];
@@ -308,7 +307,7 @@ class ImportCsvServiceTest extends TestCase
 
         $this->entityManager->method('flush');
 
-        $result = $this->service->import($campagne, $filePath, $mapping, [], 'UTF-8', ';');
+        $result = $this->service->import($campagne, $filePath, $mapping, $customFieldsMapping, 'UTF-8', ';');
 
         $this->assertSame(3, $result->getImportedCount());
 
@@ -327,11 +326,14 @@ class ImportCsvServiceTest extends TestCase
         $campagne = $this->createCampagne();
 
         $mapping = [
-            'matricule' => 0,
-            'nom' => 1,
             'segment' => null,
             'notes' => null,
             'date_planifiee' => 2,
+        ];
+
+        $customFieldsMapping = [
+            'matricule' => 0,
+            'nom' => 1,
         ];
 
         $persistedOperations = [];
@@ -345,7 +347,7 @@ class ImportCsvServiceTest extends TestCase
 
         $this->entityManager->method('flush');
 
-        $result = $this->service->import($campagne, $filePath, $mapping, [], 'UTF-8', ';');
+        $result = $this->service->import($campagne, $filePath, $mapping, $customFieldsMapping, 'UTF-8', ';');
 
         $this->assertSame(2, $result->getImportedCount());
         $this->assertNotNull($persistedOperations[0]->getDatePlanifiee());
@@ -393,15 +395,18 @@ class ImportCsvServiceTest extends TestCase
         $this->assertSame(['csv'], ImportCsvService::ALLOWED_EXTENSIONS);
     }
 
-    public function testMappableFieldsContainsRequired(): void
+    public function testMappableFieldsContainsSystemFields(): void
     {
+        // RG-015 : Seuls les champs systeme sont dans MAPPABLE_FIELDS
+        // matricule et nom passent par customFieldsMapping (donneesPersonnalisees)
         $fields = ImportCsvService::MAPPABLE_FIELDS;
 
-        $this->assertArrayHasKey('matricule', $fields);
-        $this->assertArrayHasKey('nom', $fields);
-        $this->assertTrue($fields['matricule']['required']);
-        $this->assertTrue($fields['nom']['required']);
+        $this->assertArrayHasKey('segment', $fields);
+        $this->assertArrayHasKey('notes', $fields);
+        $this->assertArrayHasKey('date_planifiee', $fields);
         $this->assertFalse($fields['segment']['required']);
+        $this->assertFalse($fields['notes']['required']);
+        $this->assertFalse($fields['date_planifiee']['required']);
     }
 
     private function createUploadedFile(string $name, string $mimeType, int $size): UploadedFile&MockObject

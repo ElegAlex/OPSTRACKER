@@ -38,14 +38,19 @@ class OperationVoterTest extends TestCase
         $this->admin = $this->createUtilisateur(['ROLE_ADMIN'], 'admin@test.local');
 
         // Creer les operations
+        // RG-015 : matricule et nom sont dans donneesPersonnalisees
         $this->operationAssignee = new Operation();
-        $this->operationAssignee->setMatricule('TEST-001');
-        $this->operationAssignee->setNom('Operation Assignee');
+        $this->operationAssignee->setDonneesPersonnalisees([
+            'matricule' => 'TEST-001',
+            'nom' => 'Operation Assignee',
+        ]);
         $this->operationAssignee->setTechnicienAssigne($this->technicien);
 
         $this->operationNonAssignee = new Operation();
-        $this->operationNonAssignee->setMatricule('TEST-002');
-        $this->operationNonAssignee->setNom('Operation Non Assignee');
+        $this->operationNonAssignee->setDonneesPersonnalisees([
+            'matricule' => 'TEST-002',
+            'nom' => 'Operation Non Assignee',
+        ]);
     }
 
     private function createUtilisateur(array $roles, string $email): Utilisateur

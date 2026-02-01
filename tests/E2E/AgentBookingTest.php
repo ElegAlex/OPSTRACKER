@@ -33,17 +33,19 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  */
 class AgentBookingTest extends WebTestCase
 {
-    private EntityManagerInterface $entityManager;
-    private AgentRepository $agentRepository;
-    private CampagneRepository $campagneRepository;
-    private CreneauRepository $creneauRepository;
-    private ReservationRepository $reservationRepository;
+    private ?EntityManagerInterface $entityManager = null;
+    private ?AgentRepository $agentRepository = null;
+    private ?CampagneRepository $campagneRepository = null;
+    private ?CreneauRepository $creneauRepository = null;
+    private ?ReservationRepository $reservationRepository = null;
 
-    protected function setUp(): void
+    /**
+     * Initialise les repositories depuis le container du client.
+     * A appeler apres createClient() dans chaque test.
+     */
+    private function initRepositories(): void
     {
-        self::bootKernel();
         $container = static::getContainer();
-
         $this->entityManager = $container->get(EntityManagerInterface::class);
         $this->agentRepository = $container->get(AgentRepository::class);
         $this->campagneRepository = $container->get(CampagneRepository::class);
@@ -64,6 +66,7 @@ class AgentBookingTest extends WebTestCase
     public function testAgentVoitCreneauxDisponibles(): void
     {
         $client = static::createClient();
+        $this->initRepositories();
 
         // Recuperer un agent avec token
         $agent = $this->getAgentWithToken();
@@ -94,6 +97,7 @@ class AgentBookingTest extends WebTestCase
     public function testAgentReserveCreneau(): void
     {
         $client = static::createClient();
+        $this->initRepositories();
 
         // Creer un agent de test sans reservation
         $agent = $this->createTestAgent('TEST_RESA_001');
@@ -134,6 +138,7 @@ class AgentBookingTest extends WebTestCase
     public function testAgentNeReservePasDeuxFois(): void
     {
         $client = static::createClient();
+        $this->initRepositories();
 
         // Trouver un agent avec une reservation existante
         $agentAvecReservation = $this->getAgentAvecReservation();
@@ -158,6 +163,7 @@ class AgentBookingTest extends WebTestCase
     public function testAgentAnnuleReservation(): void
     {
         $client = static::createClient();
+        $this->initRepositories();
 
         // Creer un agent avec une reservation
         $agent = $this->createTestAgent('TEST_ANNUL_001');
@@ -206,6 +212,7 @@ class AgentBookingTest extends WebTestCase
     public function testAgentNePeutPasModifierCreneauVerrouille(): void
     {
         $client = static::createClient();
+        $this->initRepositories();
 
         // Creer un agent avec reservation sur creneau verrouille
         $agent = $this->createTestAgent('TEST_VERROU_001');

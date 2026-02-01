@@ -467,9 +467,12 @@ class ChecklistServiceTest extends TestCase
 
     private function createOperation(): Operation
     {
+        // RG-015 : matricule et nom sont dans donneesPersonnalisees
         $operation = new Operation();
-        $operation->setMatricule('MAT-' . uniqid());
-        $operation->setNom('Operation test');
+        $operation->setDonneesPersonnalisees([
+            'matricule' => 'MAT-' . uniqid(),
+            'nom' => 'Operation test',
+        ]);
 
         return $operation;
     }

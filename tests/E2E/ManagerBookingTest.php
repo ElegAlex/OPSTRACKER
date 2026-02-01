@@ -37,18 +37,20 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  */
 class ManagerBookingTest extends WebTestCase
 {
-    private EntityManagerInterface $entityManager;
-    private AgentRepository $agentRepository;
-    private CampagneRepository $campagneRepository;
-    private CreneauRepository $creneauRepository;
-    private ReservationRepository $reservationRepository;
-    private UtilisateurRepository $utilisateurRepository;
+    private ?EntityManagerInterface $entityManager = null;
+    private ?AgentRepository $agentRepository = null;
+    private ?CampagneRepository $campagneRepository = null;
+    private ?CreneauRepository $creneauRepository = null;
+    private ?ReservationRepository $reservationRepository = null;
+    private ?UtilisateurRepository $utilisateurRepository = null;
 
-    protected function setUp(): void
+    /**
+     * Initialise les repositories depuis le container du client.
+     * A appeler apres createClient() dans chaque test.
+     */
+    private function initRepositories(): void
     {
-        self::bootKernel();
         $container = static::getContainer();
-
         $this->entityManager = $container->get(EntityManagerInterface::class);
         $this->agentRepository = $container->get(AgentRepository::class);
         $this->campagneRepository = $container->get(CampagneRepository::class);
@@ -69,6 +71,7 @@ class ManagerBookingTest extends WebTestCase
     public function testManagerVoitSesAgents(): void
     {
         $client = static::createClient();
+        $this->initRepositories();
 
         // Recuperer un utilisateur gestionnaire
         $manager = $this->getGestionnaireUtilisateur();
@@ -106,6 +109,7 @@ class ManagerBookingTest extends WebTestCase
     public function testManagerPositionneAgent(): void
     {
         $client = static::createClient();
+        $this->initRepositories();
 
         // Setup
         $manager = $this->getGestionnaireUtilisateur();
@@ -154,6 +158,7 @@ class ManagerBookingTest extends WebTestCase
     public function testManagerModifieReservationAgent(): void
     {
         $client = static::createClient();
+        $this->initRepositories();
 
         // Setup
         $manager = $this->getGestionnaireUtilisateur();
@@ -193,6 +198,7 @@ class ManagerBookingTest extends WebTestCase
     public function testManagerAnnuleReservationAgent(): void
     {
         $client = static::createClient();
+        $this->initRepositories();
 
         // Setup
         $manager = $this->getGestionnaireUtilisateur();
@@ -254,6 +260,7 @@ class ManagerBookingTest extends WebTestCase
     public function testManagerVoitAlerteConcentration(): void
     {
         $client = static::createClient();
+        $this->initRepositories();
 
         // Setup
         $manager = $this->getGestionnaireUtilisateur();
@@ -291,12 +298,14 @@ class ManagerBookingTest extends WebTestCase
 
     private function getGestionnaireUtilisateur(): ?Utilisateur
     {
-        return $this->utilisateurRepository->createQueryBuilder('u')
-            ->where('u.roles LIKE :role')
-            ->setParameter('role', '%ROLE_GESTIONNAIRE%')
-            ->setMaxResults(1)
-            ->getQuery()
-            ->getOneOrNullResult();
+        // Recuperer tous les utilisateurs actifs et filtrer en PHP
+        $utilisateurs = $this->utilisateurRepository->findBy(['actif' => true]);
+        foreach ($utilisateurs as $utilisateur) {
+            if (in_array('ROLE_GESTIONNAIRE', $utilisateur->getRoles(), true)) {
+                return $utilisateur;
+            }
+        }
+        return null;
     }
 
     private function getCampagneActive(): ?Campagne

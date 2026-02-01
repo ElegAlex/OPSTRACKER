@@ -65,10 +65,11 @@ class ExportCsvServiceTest extends TestCase
 
     /**
      * Test export avec colonnes par defaut.
+     * RG-015 : Les colonnes par defaut utilisent identifiant/description (donnees personnalisees)
      */
     public function testDefaultColumnsAreDefined(): void
     {
-        $expected = ['matricule', 'nom', 'statut', 'segment', 'technicien', 'date_planifiee', 'date_realisation', 'notes'];
+        $expected = ['identifiant', 'description', 'statut', 'segment', 'technicien', 'date_planifiee', 'date_realisation', 'notes'];
 
         $this->assertSame($expected, array_keys(ExportCsvService::DEFAULT_COLUMNS));
     }
@@ -81,7 +82,7 @@ class ExportCsvServiceTest extends TestCase
         $campagne = $this->createCampagne('Test');
         $campagne->method('getOperations')->willReturn(new ArrayCollection([]));
 
-        $columns = ['matricule', 'nom', 'statut'];
+        $columns = ['identifiant', 'description', 'statut'];
         $response = $this->service->exportCampagne($campagne, $columns);
 
         $this->assertInstanceOf(StreamedResponse::class, $response);
@@ -146,8 +147,9 @@ class ExportCsvServiceTest extends TestCase
         $technicien->setEmail('karim@cpam.fr');
 
         $operation = $this->createMock(Operation::class);
-        $operation->method('getMatricule')->willReturn('OP-001');
-        $operation->method('getNom')->willReturn('Poste Test');
+        // RG-015 : Les colonnes par defaut utilisent getDisplayIdentifier/getDisplayName
+        $operation->method('getDisplayIdentifier')->willReturn('OP-001');
+        $operation->method('getDisplayName')->willReturn('Poste Test');
         $operation->method('getStatutLabel')->willReturn('Realise');
         $operation->method('getSegment')->willReturn($segment);
         $operation->method('getTechnicienAssigne')->willReturn($technicien);
@@ -169,8 +171,9 @@ class ExportCsvServiceTest extends TestCase
     public function testExportOperationWithoutTechnicien(): void
     {
         $operation = $this->createMock(Operation::class);
-        $operation->method('getMatricule')->willReturn('OP-002');
-        $operation->method('getNom')->willReturn('Poste Non Assigne');
+        // RG-015 : Les colonnes par defaut utilisent getDisplayIdentifier/getDisplayName
+        $operation->method('getDisplayIdentifier')->willReturn('OP-002');
+        $operation->method('getDisplayName')->willReturn('Poste Non Assigne');
         $operation->method('getStatutLabel')->willReturn('A planifier');
         $operation->method('getSegment')->willReturn(null);
         $operation->method('getTechnicienAssigne')->willReturn(null);
