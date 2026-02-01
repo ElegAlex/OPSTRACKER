@@ -10,7 +10,7 @@ use App\Repository\UtilisateurRepository;
 use App\Service\CampagneChampService;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -69,8 +69,8 @@ class OperationType extends AbstractType
 
         // Champs systeme (mappes sur l'entite Operation)
         $builder
-            ->add('datePlanifiee', DateType::class, [
-                'label' => 'Date planifiee',
+            ->add('datePlanifiee', DateTimeType::class, [
+                'label' => 'Date et heure planifiees',
                 'widget' => 'single_text',
                 'required' => false,
                 'attr' => [

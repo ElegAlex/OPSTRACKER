@@ -62,14 +62,12 @@ class TerrainController extends AbstractController
         // Operations a venir (toutes campagnes)
         $operationsAVenir = $this->operationRepository->findAVenirForTechnicien($user->getId(), $today);
 
-        // KPIs (retard + aujourd'hui uniquement pour le compteur actif)
-        $allOperations = array_merge($operationsRetard, $operationsAujourdhui);
+        // KPIs (toutes les operations : retard + aujourd'hui + a venir)
         $kpis = [
-            'total' => count($allOperations),
-            'a_faire' => count(array_filter($allOperations, fn ($o) => in_array($o->getStatut(), ['a_planifier', 'planifie']))),
-            'en_cours' => count(array_filter($allOperations, fn ($o) => $o->getStatut() === 'en_cours')),
-            'retard' => count($operationsRetard),
+            'total' => count($operationsRetard) + count($operationsAujourdhui) + count($operationsAVenir),
             'a_venir' => count($operationsAVenir),
+            'a_faire' => count($operationsAujourdhui),
+            'retard' => count($operationsRetard),
         ];
 
         // Mapping campagne -> index de couleur pour différenciation visuelle

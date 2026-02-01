@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Campagne;
+use App\Entity\CampagneAgentAutorise;
 use App\Entity\CampagneChamp;
 use App\Entity\Operation;
 use App\Form\CampagneStep1Type;
@@ -20,6 +21,7 @@ use App\Service\CampagneService;
 use App\Service\ChecklistService;
 use App\Service\ExportCsvService;
 use App\Service\ImportCsvService;
+use App\Service\PersonnesAutoriseesService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -50,6 +52,7 @@ class CampagneController extends AbstractController
         private readonly EntityManagerInterface $entityManager,
         private readonly ImportCsvService $importCsvService,
         private readonly ExportCsvService $exportCsvService,
+        private readonly PersonnesAutoriseesService $personnesAutoriseesService,
     ) {
     }
 
@@ -232,6 +235,18 @@ class CampagneController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
 
+            // Recuperer le mapping des colonnes date/horaire
+            $colonneDatePlanifiee = $request->request->get('colonne_date_planifiee');
+            $colonneHoraire = $request->request->get('colonne_horaire');
+
+            // Sauvegarder le mapping dans la campagne
+            if ($colonneDatePlanifiee) {
+                $campagne->setColonneDatePlanifiee($colonneDatePlanifiee);
+            }
+            if ($colonneHoraire) {
+                $campagne->setColonneHoraire($colonneHoraire);
+            }
+
             // RG-015 : Creer un CampagneChamp pour CHAQUE colonne du CSV
             $customFieldsMapping = [];
 
@@ -262,14 +277,16 @@ class CampagneController extends AbstractController
             // Persister les nouveaux champs avant l'import
             $this->entityManager->flush();
 
-            // Executer l'import (pas de mapping systeme, tout va dans donneesPersonnalisees)
+            // Executer l'import avec le mapping date/horaire
             $result = $this->importCsvService->import(
                 $campagne,
                 $csvFilePath,
                 [], // Pas de mapping systeme
                 $customFieldsMapping,
                 $data['csv_encoding'],
-                $data['csv_separator']
+                $data['csv_separator'],
+                $colonneDatePlanifiee,
+                $colonneHoraire
             );
 
             // Nettoyer le fichier temporaire
@@ -316,6 +333,7 @@ class CampagneController extends AbstractController
         // RG-016 : Campagne archivee = lecture seule
         if ($campagne->isReadOnly()) {
             $this->addFlash('danger', 'Cette campagne est archivee et ne peut pas etre modifiee.');
+
             return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
 
@@ -327,7 +345,43 @@ class CampagneController extends AbstractController
         $importErrors = $session->get('import_errors_' . $campagne->getId(), []);
         $session->remove('import_errors_' . $campagne->getId());
 
+        // Recuperer les valeurs pour les filtres annuaire
+        $valeursAnnuaire = $this->personnesAutoriseesService->getValeursDisponiblesAnnuaire();
+        $apercuNbAgents = $this->personnesAutoriseesService->countPersonnesAutorisees($campagne);
+
         if ($form->isSubmitted() && $form->isValid()) {
+            // Traitement de la reservation publique
+            if ($campagne->isReservationOuverte()) {
+                // Traitement du mode de reservation (libre, import, annuaire)
+                $reservationMode = $request->request->get('reservation_mode');
+                if ($reservationMode && array_key_exists($reservationMode, Campagne::RESERVATION_MODES)) {
+                    $campagne->setReservationMode($reservationMode);
+                }
+
+                // Mode annuaire : sauvegarder les filtres
+                if ($reservationMode === Campagne::RESERVATION_MODE_ANNUAIRE) {
+                    $filtres = $request->request->all('filtres_annuaire') ?? [];
+                    // Nettoyer les filtres vides
+                    $filtres = array_filter($filtres, fn ($v) => !empty($v));
+                    $campagne->setReservationFiltresAnnuaire($filtres ?: null);
+                }
+
+                // Mode import : traiter le CSV
+                if ($reservationMode === Campagne::RESERVATION_MODE_IMPORT) {
+                    /** @var UploadedFile|null $file */
+                    $file = $request->files->get('import_agents_csv');
+                    if ($file) {
+                        $this->importAgentsAutorises($campagne, $file);
+                    }
+                }
+
+                // Generer un shareToken si pas de token
+                if (!$campagne->getShareToken()) {
+                    $campagne->setShareToken(substr(bin2hex(random_bytes(8)), 0, 12));
+                    $campagne->setShareTokenCreatedAt(new \DateTimeImmutable());
+                }
+            }
+
             $this->entityManager->flush();
 
             $this->addFlash('success', 'Configuration de la campagne mise a jour.');
@@ -340,7 +394,72 @@ class CampagneController extends AbstractController
             'form' => $form,
             'step' => 4,
             'import_errors' => $importErrors,
+            'valeursAnnuaire' => $valeursAnnuaire,
+            'apercuNbAgents' => $apercuNbAgents,
         ]);
+    }
+
+    /**
+     * Importe les agents autorises depuis un fichier CSV.
+     */
+    private function importAgentsAutorises(Campagne $campagne, UploadedFile $file): void
+    {
+        // Supprimer les anciens agents autorises
+        foreach ($campagne->getAgentsAutorises() as $agent) {
+            $this->entityManager->remove($agent);
+        }
+        $campagne->clearAgentsAutorises();
+
+        // Lire le CSV
+        $handle = fopen($file->getPathname(), 'r');
+        if (!$handle) {
+            return;
+        }
+
+        // Detecter le separateur
+        $firstLine = fgets($handle);
+        rewind($handle);
+        $separator = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
+
+        $headers = fgetcsv($handle, 0, $separator);
+        if (!$headers) {
+            fclose($handle);
+
+            return;
+        }
+        $headers = array_map('strtolower', array_map('trim', $headers));
+
+        $count = 0;
+        while (($row = fgetcsv($handle, 0, $separator)) !== false) {
+            if (count($row) < count($headers)) {
+                continue;
+            }
+
+            $data = array_combine($headers, $row);
+
+            $nomPrenom = $data['nom_prenom'] ?? $data['nomprenom'] ?? $data['nom'] ?? null;
+            if (!$nomPrenom || trim($nomPrenom) === '') {
+                continue;
+            }
+
+            $agent = new CampagneAgentAutorise();
+            $agent->setCampagne($campagne);
+            $agent->setNomPrenom(trim($nomPrenom));
+
+            // Identifiant : email si present, sinon nom_prenom
+            $email = isset($data['email']) ? trim($data['email']) : null;
+            $agent->setIdentifiant($email ?: trim($nomPrenom));
+            $agent->setEmail($email);
+
+            $agent->setService(isset($data['service']) ? trim($data['service']) : null);
+            $agent->setSite(isset($data['site']) ? trim($data['site']) : null);
+
+            $campagne->addAgentAutorise($agent);
+            $this->entityManager->persist($agent);
+            ++$count;
+        }
+
+        fclose($handle);
     }
 
     /**

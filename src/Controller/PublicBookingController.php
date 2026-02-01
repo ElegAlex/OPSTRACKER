@@ -168,11 +168,15 @@ class PublicBookingController extends AbstractController
             $this->addFlash('danger', 'Identification invalide. Verifiez votre saisie.');
         }
 
+        // Champ d'identification pour le mode libre (defaut: "nom ou identifiant")
+        $champIdentification = $campagne->getReservationChampIdentification() ?: 'nom ou identifiant';
+
         return $this->render('booking/public/identify.html.twig', [
             'campagne' => $campagne,
             'mode' => $mode,
             'personnes' => $personnes,
             'token' => $token,
+            'champIdentification' => $champIdentification,
         ]);
     }
 

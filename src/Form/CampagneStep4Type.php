@@ -7,6 +7,8 @@ use App\Entity\ChecklistTemplate;
 use App\Entity\TypeOperation;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -56,6 +58,33 @@ class CampagneStep4Type extends AbstractType
                         ->setParameter('actif', true)
                         ->orderBy('t.nom', 'ASC');
                 },
+            ])
+            // Reservation end-user (type Doodle)
+            ->add('reservationOuverte', CheckboxType::class, [
+                'label' => 'Activer la reservation publique',
+                'required' => false,
+                'attr' => [
+                    'class' => 'w-5 h-5 rounded border-ink/20 text-primary focus:ring-primary',
+                ],
+                'label_attr' => [
+                    'class' => 'font-medium text-ink',
+                ],
+            ])
+            ->add('reservationMode', ChoiceType::class, [
+                'label' => 'Mode d\'identification',
+                'choices' => [
+                    'Saisie libre (ouvert a tous)' => Campagne::RESERVATION_MODE_LIBRE,
+                    'Liste importee (CSV specifique)' => Campagne::RESERVATION_MODE_IMPORT,
+                    'Annuaire agents (avec filtres)' => Campagne::RESERVATION_MODE_ANNUAIRE,
+                ],
+                'required' => false,
+                'placeholder' => 'Selectionnez un mode...',
+                'attr' => [
+                    'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white',
+                ],
+                'label_attr' => [
+                    'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
+                ],
             ]);
     }
 
@@ -63,6 +92,7 @@ class CampagneStep4Type extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Campagne::class,
+            'allow_extra_fields' => true,
         ]);
     }
 }

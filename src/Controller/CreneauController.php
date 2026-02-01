@@ -285,6 +285,42 @@ class CreneauController extends AbstractController
     }
 
     /**
+     * T-2204 / US-1013 : Dupliquer un creneau.
+     */
+    #[Route('/{id}/dupliquer', name: 'app_creneau_duplicate', methods: ['POST'])]
+    public function duplicate(Campagne $campagne, Creneau $creneau, Request $request): Response
+    {
+        if (!$this->isCsrfTokenValid('duplicate' . $creneau->getId(), $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Token CSRF invalide.');
+        }
+
+        // Verifier appartenance
+        if ($creneau->getCampagne()->getId() !== $campagne->getId()) {
+            throw $this->createNotFoundException('Creneau non trouve dans cette campagne.');
+        }
+
+        $newCreneau = new Creneau();
+        $newCreneau->setCampagne($campagne);
+        $newCreneau->setSegment($creneau->getSegment());
+        $newCreneau->setDate($creneau->getDate());
+        $newCreneau->setHeureDebut($creneau->getHeureDebut());
+        $newCreneau->setHeureFin($creneau->getHeureFin());
+        $newCreneau->setCapacite($creneau->getCapacite());
+        $newCreneau->setLieu($creneau->getLieu());
+        $newCreneau->setVerrouille(false);
+
+        $this->entityManager->persist($newCreneau);
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'Creneau duplique. Modifiez la date/heure si necessaire.');
+
+        return $this->redirectToRoute('app_creneau_edit', [
+            'campagne' => $campagne->getId(),
+            'id' => $newCreneau->getId(),
+        ]);
+    }
+
+    /**
      * RG-133 : Notifier les agents d'une modification de creneau.
      */
     private function notifierAgentsModification(Creneau $creneau): void

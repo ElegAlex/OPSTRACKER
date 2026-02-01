@@ -330,6 +330,8 @@ class ImportCsvService
      *
      * @param array<string, int|null> $mapping Mapping field => header_index
      * @param array<string, int> $customFieldsMapping Mapping nom champ => header_index
+     * @param string|null $colonneDatePlanifiee Nom de la colonne CSV contenant la date
+     * @param string|null $colonneHoraire Nom de la colonne CSV contenant l'horaire (optionnel)
      * @return ImportResult
      */
     public function import(
@@ -338,7 +340,9 @@ class ImportCsvService
         array $mapping,
         array $customFieldsMapping = [],
         string $encoding = 'UTF-8',
-        string $separator = ';'
+        string $separator = ';',
+        ?string $colonneDatePlanifiee = null,
+        ?string $colonneHoraire = null
     ): ImportResult {
         $result = new ImportResult();
 
@@ -400,7 +404,9 @@ class ImportCsvService
                         $customFieldsMapping,
                         $segmentsCache,
                         $lineNumber,
-                        $result
+                        $result,
+                        $colonneDatePlanifiee,
+                        $colonneHoraire
                     );
 
                     if ($operation !== null) {
@@ -455,7 +461,9 @@ class ImportCsvService
         array $customFieldsMapping,
         array &$segmentsCache,
         int $lineNumber,
-        ImportResult $result
+        ImportResult $result,
+        ?string $colonneDatePlanifiee = null,
+        ?string $colonneHoraire = null
     ): ?Operation {
         $values = array_values($record);
 
@@ -491,7 +499,7 @@ class ImportCsvService
             $operation->setNotes(trim($notes));
         }
 
-        // Date planifiee
+        // Date planifiee depuis le mapping systeme (ancien comportement)
         if (!empty($datePlanifiee)) {
             try {
                 $date = $this->parseDate($datePlanifiee);
@@ -500,6 +508,27 @@ class ImportCsvService
                 }
             } catch (\Exception $e) {
                 $result->addError($lineNumber, 'date_planifiee', 'Format de date invalide : ' . $datePlanifiee);
+            }
+        }
+
+        // Date planifiee depuis le mapping de colonnes (nouveau comportement)
+        if ($colonneDatePlanifiee && isset($donneesPersonnalisees[$colonneDatePlanifiee])) {
+            $dateStr = trim((string) $donneesPersonnalisees[$colonneDatePlanifiee]);
+            $heureStr = '';
+
+            if ($colonneHoraire && isset($donneesPersonnalisees[$colonneHoraire])) {
+                $heureStr = trim((string) $donneesPersonnalisees[$colonneHoraire]);
+            }
+
+            if (!empty($dateStr)) {
+                try {
+                    $dateTime = $this->parseDateWithTime($dateStr, $heureStr);
+                    if ($dateTime) {
+                        $operation->setDatePlanifiee($dateTime);
+                    }
+                } catch (\Exception $e) {
+                    $result->addError($lineNumber, 'date_planifiee', 'Format de date/heure invalide : ' . $dateStr . ' ' . $heureStr);
+                }
             }
         }
 
@@ -569,6 +598,53 @@ class ImportCsvService
         }
 
         return null;
+    }
+
+    /**
+     * Parse une date avec une heure optionnelle.
+     *
+     * @param string $dateStr Date (ex: "10/02/2026", "2026-02-10")
+     * @param string $timeStr Heure optionnelle (ex: "15:00", "15h00", "15:00:00")
+     */
+    private function parseDateWithTime(string $dateStr, string $timeStr = ''): ?\DateTimeImmutable
+    {
+        // Normaliser l'heure (15h00 -> 15:00)
+        $timeStr = str_replace(['h', 'H'], ':', trim($timeStr));
+
+        // Si l'heure est vide, utiliser minuit
+        if (empty($timeStr)) {
+            $timeStr = '00:00';
+        }
+
+        // S'assurer que l'heure a le format HH:MM
+        if (preg_match('/^(\d{1,2}):?(\d{2})?(?::\d{2})?$/', $timeStr, $matches)) {
+            $hours = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+            $minutes = isset($matches[2]) ? $matches[2] : '00';
+            $timeStr = "$hours:$minutes";
+        }
+
+        // Formats de date a tester
+        $dateFormats = [
+            'd/m/Y',
+            'd-m-Y',
+            'Y-m-d',
+            'd.m.Y',
+            'd/m/y',
+        ];
+
+        // Essayer chaque format de date avec l'heure
+        foreach ($dateFormats as $dateFormat) {
+            $fullFormat = $dateFormat . ' H:i';
+            $dateTimeStr = trim($dateStr) . ' ' . $timeStr;
+
+            $dateTime = \DateTimeImmutable::createFromFormat($fullFormat, $dateTimeStr);
+            if ($dateTime !== false) {
+                return $dateTime;
+            }
+        }
+
+        // Fallback : essayer de parser avec la date seule
+        return $this->parseDate($dateStr);
     }
 
     /**

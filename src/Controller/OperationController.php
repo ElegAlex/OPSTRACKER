@@ -407,7 +407,7 @@ class OperationController extends AbstractController
                 if ($request->isXmlHttpRequest()) {
                     return new JsonResponse([
                         'success' => true,
-                        'date' => $date->format('d/m/Y'),
+                        'date' => $date->format('d/m/Y H:i'),
                     ]);
                 }
 

@@ -469,9 +469,9 @@ class DashboardService
         $dateDebut = $dateDebut ?? $today->modify('-30 days');
         $dateFin = $dateFin ?? $today->modify('+7 days');
 
-        // Ne pas aller au-dela d'aujourd'hui + 7 jours
-        if ($dateFin > $today->modify('+7 days')) {
-            $dateFin = $today->modify('+7 days');
+        // S'assurer que dateFin >= dateDebut pour eviter les periodes vides
+        if ($dateFin < $dateDebut) {
+            $dateFin = $dateDebut;
         }
 
         // Generer les periodes selon la granularite

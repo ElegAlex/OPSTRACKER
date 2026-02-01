@@ -234,6 +234,27 @@ class Campagne
     #[ORM\OrderBy(['nomPrenom' => 'ASC'])]
     private Collection $agentsAutorises;
 
+    /**
+     * Nom de la colonne (CampagneChamp) utilisee pour segmenter les operations.
+     * Les valeurs uniques de cette colonne deviennent les segments.
+     */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $colonneSegment = null;
+
+    /**
+     * Nom de la colonne CSV contenant la date de planification.
+     * Utilisee a l'import pour remplir datePlanifiee des operations.
+     */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $colonneDatePlanifiee = null;
+
+    /**
+     * Nom de la colonne CSV contenant l'horaire (optionnel).
+     * Combine avec colonneDatePlanifiee pour creer le datetime complet.
+     */
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $colonneHoraire = null;
+
     public function __construct()
     {
         $this->segments = new ArrayCollection();
@@ -998,5 +1019,50 @@ class Campagne
         }
 
         return '/reservation/c/' . $this->shareToken;
+    }
+
+    /**
+     * Colonne utilisee pour segmenter les operations
+     */
+    public function getColonneSegment(): ?string
+    {
+        return $this->colonneSegment;
+    }
+
+    public function setColonneSegment(?string $colonneSegment): static
+    {
+        $this->colonneSegment = $colonneSegment;
+
+        return $this;
+    }
+
+    /**
+     * Colonne CSV contenant la date de planification
+     */
+    public function getColonneDatePlanifiee(): ?string
+    {
+        return $this->colonneDatePlanifiee;
+    }
+
+    public function setColonneDatePlanifiee(?string $colonneDatePlanifiee): static
+    {
+        $this->colonneDatePlanifiee = $colonneDatePlanifiee;
+
+        return $this;
+    }
+
+    /**
+     * Colonne CSV contenant l'horaire (optionnel)
+     */
+    public function getColonneHoraire(): ?string
+    {
+        return $this->colonneHoraire;
+    }
+
+    public function setColonneHoraire(?string $colonneHoraire): static
+    {
+        $this->colonneHoraire = $colonneHoraire;
+
+        return $this;
     }
 }
