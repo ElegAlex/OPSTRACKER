@@ -40,6 +40,10 @@
                 <i data-feather="arrow-left" class="w-4 h-4"></i>
                 Retour
             </a>
+            <a href="{{ path('app_reservation_export', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium border-2 border-ink text-ink hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="download" class="w-4 h-4"></i>
+                Export CSV
+            </a>
             <a href="{{ path('app_creneau_generate', {campagne: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-ink border-2 border-ink hover:bg-ink hover:text-white transition-colors">
                 <i data-feather="zap" class="w-4 h-4"></i>
                 Generer auto
@@ -56,15 +60,8 @@
 <div class="flex-1 overflow-auto">
     <div class="px-12 py-8">
 
-        {# Flash messages #}
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="mb-6 p-4 border-2 border-ink/20 bg-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'info' ? 'primary' : 'danger')) }}/10 flex items-center gap-3">
-                    <i data-feather="{{ label == 'success' ? 'check-circle' : (label == 'warning' ? 'alert-triangle' : (label == 'info' ? 'info' : 'alert-circle')) }}" class="w-5 h-5 text-{{ label == 'success' ? 'success' : (label == 'warning' ? 'warning' : (label == 'info' ? 'primary' : 'danger')) }}"></i>
-                    <span class="text-sm font-medium">{{ message }}</span>
-                </div>
-            {% endfor %}
-        {% endfor %}
+        {# Flash messages (T-2205 composant ameliore) #}
+        {% include 'components/_flash_messages.html.twig' %}
 
         {# T-1706 / US-1106 : Widget taux de remplissage #}
         <div class="grid grid-cols-4 gap-6 mb-8">
@@ -176,6 +173,16 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
+                                        <form action="{{ path('app_creneau_duplicate', {campagne: campagne.id, id: creneau.id}) }}"
+                                              method="post"
+                                              class="inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('duplicate' ~ creneau.id) }}">
+                                            <button type="submit"
+                                                    class="w-8 h-8 border border-ink/10 inline-flex items-center justify-center text-muted hover:bg-primary hover:text-white hover:border-primary transition-colors"
+                                                    title="Dupliquer">
+                                                <i data-feather="copy" class="w-4 h-4"></i>
+                                            </button>
+                                        </form>
                                         <a href="{{ path('app_creneau_edit', {campagne: campagne.id, id: creneau.id}) }}"
                                            class="w-8 h-8 border border-ink/10 inline-flex items-center justify-center text-muted hover:bg-ink hover:text-white hover:border-ink transition-colors"
                                            title="Modifier">

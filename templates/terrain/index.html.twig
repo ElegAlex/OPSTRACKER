@@ -43,16 +43,16 @@
                 <p class="text-[10px] text-muted font-medium uppercase">Total</p>
             </div>
 
-            {# A faire #}
+            {# A venir #}
+            <div class="bg-muted/10 p-3 text-center">
+                <p class="text-2xl font-bold text-muted num">{{ kpis.a_venir }}</p>
+                <p class="text-[10px] text-muted font-medium uppercase">A venir</p>
+            </div>
+
+            {# A faire (aujourd'hui) #}
             <div class="bg-primary/10 p-3 text-center">
                 <p class="text-2xl font-bold text-primary num">{{ kpis.a_faire }}</p>
                 <p class="text-[10px] text-primary font-medium uppercase">A faire</p>
-            </div>
-
-            {# En cours #}
-            <div class="bg-warning/10 p-3 text-center">
-                <p class="text-2xl font-bold text-warning num">{{ kpis.en_cours }}</p>
-                <p class="text-[10px] text-warning font-medium uppercase">En cours</p>
             </div>
 
             {# Retard #}
@@ -73,11 +73,12 @@
     <a href="{{ path('terrain_show', {id: op.id}) }}"
        class="flex items-center {{ bg_class }} border-l-4 border-{{ section_color }} min-h-[56px] hover:brightness-95 active:brightness-90 transition-all">
 
-        {# DATE - largeur fixe #}
-        <div class="w-14 shrink-0 px-2 py-3 text-center border-r border-ink/5">
+        {# DATE + HEURE - largeur fixe #}
+        <div class="w-16 shrink-0 px-2 py-3 text-center border-r border-ink/5">
             {% if op.datePlanifiee %}
             <p class="text-sm font-bold text-{{ section_color }} num leading-tight">{{ op.datePlanifiee|date('d') }}</p>
             <p class="text-[10px] text-muted">{{ op.datePlanifiee|date('M') }}</p>
+            <p class="text-[10px] font-medium text-{{ section_color }}">{{ op.datePlanifiee|date('H:i') }}</p>
             {% else %}
             <p class="text-xs text-muted">--</p>
             {% endif %}
@@ -103,10 +104,10 @@
             {% endif %}
         </div>
 
-        {# CHECKLIST PROGRESS (si presente) #}
-        {% if op.checklistInstance %}
-        {% set completed = op.checklistInstance.progression.completed|default(0) %}
-        {% set total = op.checklistInstance.progression.total|default(0) %}
+        {# CHECKLIST PROGRESS (si checklist configuree sur la campagne) #}
+        {% if op.campagne.hasChecklistStructure %}
+        {% set completed = op.checklistInstance ? op.checklistInstance.nombreEtapesCochees : 0 %}
+        {% set total = op.campagne.nombreEtapesActives %}
         <div class="w-12 shrink-0 px-2 py-3 text-center hidden sm:block">
             <p class="text-xs font-bold text-{{ section_color }} num">{{ completed }}/{{ total }}</p>
             <div class="w-full h-1 bg-ink/10 mt-1">

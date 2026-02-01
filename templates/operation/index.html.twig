@@ -140,7 +140,8 @@
                     {% endfor %}
                 </select>
 
-                {# Segment #}
+                {# Segment (seulement si pas de colonneSegment defini) #}
+                {% if not campagne.colonneSegment and segments|length > 0 %}
                 <select name="segment" class="px-4 py-2 border-2 border-ink/10 focus:border-ink text-sm outline-none select-inline bg-white min-w-[150px]">
                     <option value="">Tous les segments</option>
                     <option value="0" {{ filtres.segment_id == 0 ? 'selected' : '' }}>Sans segment</option>
@@ -148,6 +149,7 @@
                     <option value="{{ segment.id }}" {{ filtres.segment_id == segment.id ? 'selected' : '' }}>{{ segment.nom }}</option>
                     {% endfor %}
                 </select>
+                {% endif %}
 
                 {# Technicien #}
                 <select name="technicien" class="px-4 py-2 border-2 border-ink/10 focus:border-ink text-sm outline-none select-inline bg-white min-w-[150px]">
@@ -174,44 +176,53 @@
            TABLEAU OPERATIONS
            ======================================== #}
         {% if operations|length > 0 %}
-        <div class="bg-white border-2 border-ink overflow-hidden">
-            <table class="w-full">
+        <div class="bg-white border-2 border-ink overflow-x-auto">
+            <table class="w-full min-w-max">
                 <thead class="bg-paper border-b-2 border-ink">
                     <tr>
-                        {# Colonnes dynamiques (CampagneChamp) - toutes les donnees viennent de la #}
+                        {# Colonnes dynamiques (CampagneChamp) - exclure les colonnes mappees vers datePlanifiee #}
                         {% for champ in champs %}
+                            {% if champ.nom != campagne.colonneDatePlanifiee and champ.nom != campagne.colonneHoraire %}
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider">{{ champ.nom }}</th>
+                            {% endif %}
                         {% endfor %}
-                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-36">Segment</th>
+                        {% if campagne.colonneSegment %}
+                        <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-36">{{ campagne.colonneSegment|upper }}</th>
+                        {% endif %}
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-44">Statut</th>
                         <th class="text-center px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-24">Checklist</th>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-44">Technicien</th>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-40">Date/Heure</th>
+                        {% if campagne.reservationOuverte %}
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-36">Reserve par</th>
+                        {% endif %}
                         <th class="px-4 py-3 w-16"></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-ink/10">
                     {% for operation in operations %}
                     <tr class="table-row-hover" data-operation-id="{{ operation.id }}">
-                        {# Colonnes dynamiques (CampagneChamp) - toutes les donnees viennent de la #}
+                        {# Colonnes dynamiques (CampagneChamp) - exclure les colonnes mappees vers datePlanifiee #}
+                        {% set firstVisible = true %}
                         {% for champ in champs %}
-                        <td class="px-4 py-3 text-sm {% if loop.first %}font-medium{% endif %} text-ink">
+                            {% if champ.nom != campagne.colonneDatePlanifiee and champ.nom != campagne.colonneHoraire %}
+                        <td class="px-4 py-3 text-sm {% if firstVisible %}font-medium{% endif %} text-ink">
                             {{ operation.getDonneePersonnalisee(champ.nom) ?? '-' }}
                         </td>
+                                {% set firstVisible = false %}
+                            {% endif %}
                         {% endfor %}
 
-                        {# Segment #}
+                        {# Segment (seulement si colonneSegment defini) #}
+                        {% if campagne.colonneSegment %}
                         <td class="px-4 py-3">
-                            {% if operation.segment %}
-                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 bg-{{ operation.segment.couleur }}/10 text-{{ operation.segment.couleur }} text-xs font-medium">
-                                <span class="w-1.5 h-1.5 bg-{{ operation.segment.couleur }}"></span>
-                                {{ operation.segment.nom }}
-                            </span>
+                            {% if operation.donneesPersonnalisees[campagne.colonneSegment] is defined %}
+                                <span class="text-xs font-medium text-ink">{{ operation.donneesPersonnalisees[campagne.colonneSegment] }}</span>
                             {% else %}
-                            <span class="text-xs text-muted">-</span>
+                                <span class="text-xs text-muted">-</span>
                             {% endif %}
                         </td>
+                        {% endif %}
 
                         {# Statut avec select inline - tous les statuts disponibles #}
                         <td class="px-4 py-3">
@@ -274,7 +285,8 @@
                             </form>
                         </td>
 
-                        {# Reserve par #}
+                        {# Reserve par (seulement si reservation ouverte) #}
+                        {% if campagne.reservationOuverte %}
                         <td class="px-4 py-3">
                             {% if operation.reservePar %}
                                 <span class="text-primary font-medium">{{ operation.reserveParNomComplet }}</span>
@@ -282,6 +294,7 @@
                                 <span class="text-muted">-</span>
                             {% endif %}
                         </td>
+                        {% endif %}
 
                         {# Actions #}
                         <td class="px-4 py-3 text-right">

@@ -1,0 +1,35 @@
+{#
+  T-2205 : Composant messages flash ameliore
+  - Icones selon le type
+  - Couleurs design system
+  - Auto-dismiss apres 5s via Stimulus
+  - Bouton fermeture manuel
+#}
+{% for type, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="flash-message flex items-center gap-3 p-4 mb-4 border-2
+            {{ type == 'success' ? 'bg-success/10 border-success text-success' : '' }}
+            {{ type == 'error' or type == 'danger' ? 'bg-danger/10 border-danger text-danger' : '' }}
+            {{ type == 'warning' ? 'bg-warning/10 border-warning text-warning' : '' }}
+            {{ type == 'info' ? 'bg-primary/10 border-primary text-primary' : '' }}"
+            data-controller="flash"
+            data-flash-timeout-value="5000">
+
+            {% if type == 'success' %}
+                <i data-feather="check-circle" class="w-5 h-5 flex-shrink-0"></i>
+            {% elseif type == 'error' or type == 'danger' %}
+                <i data-feather="x-circle" class="w-5 h-5 flex-shrink-0"></i>
+            {% elseif type == 'warning' %}
+                <i data-feather="alert-triangle" class="w-5 h-5 flex-shrink-0"></i>
+            {% else %}
+                <i data-feather="info" class="w-5 h-5 flex-shrink-0"></i>
+            {% endif %}
+
+            <span class="flex-1 font-medium">{{ message }}</span>
+
+            <button type="button" data-action="flash#dismiss" class="opacity-60 hover:opacity-100 transition-opacity">
+                <i data-feather="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+    {% endfor %}
+{% endfor %}

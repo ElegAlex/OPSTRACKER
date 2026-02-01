@@ -101,10 +101,37 @@
                 <i data-feather="download" class="w-4 h-4"></i>
                 Export PDF
             </a>
-            <a href="{{ path('app_dashboard_campagne', {id: campagne.id}) }}" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
-                <i data-feather="settings" class="w-4 h-4"></i>
-                Configurer
-            </a>
+            {# Dropdown Configurer #}
+            <div class="relative" id="config-dropdown">
+                <button type="button" onclick="toggleConfigDropdown()" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
+                    <i data-feather="settings" class="w-4 h-4"></i>
+                    Configurer
+                    <i data-feather="chevron-down" class="w-4 h-4"></i>
+                </button>
+                <div id="config-menu" class="hidden absolute right-0 mt-2 w-56 bg-white border-2 border-ink shadow-lg z-50">
+                    <a href="{{ path('app_campagne_workflow', {id: campagne.id}) }}" class="flex items-center gap-3 px-4 py-3 text-sm hover:bg-paper transition-colors border-b border-ink/10">
+                        <i data-feather="check-square" class="w-4 h-4 text-success"></i>
+                        <div>
+                            <span class="font-medium text-ink">Workflow & Checklist</span>
+                            <p class="text-xs text-muted">Type operation, template</p>
+                        </div>
+                    </a>
+                    <a href="{{ path('app_campagne_visibilite', {id: campagne.id}) }}" class="flex items-center gap-3 px-4 py-3 text-sm hover:bg-paper transition-colors border-b border-ink/10">
+                        <i data-feather="eye" class="w-4 h-4 text-primary"></i>
+                        <div>
+                            <span class="font-medium text-ink">Visibilite</span>
+                            <p class="text-xs text-muted">Partage et acces</p>
+                        </div>
+                    </a>
+                    <a href="{{ path('app_campagne_proprietaire', {id: campagne.id}) }}" class="flex items-center gap-3 px-4 py-3 text-sm hover:bg-paper transition-colors">
+                        <i data-feather="user" class="w-4 h-4 text-warning"></i>
+                        <div>
+                            <span class="font-medium text-ink">Proprietaire</span>
+                            <p class="text-xs text-muted">Transferer la campagne</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -126,6 +153,34 @@
                 <span class="text-xs text-muted" id="last-update">• Mise a jour maintenant</span>
             </div>
         </turbo-frame>
+
+        {# ========================================
+           ENCART RESERVATION END-USER
+           ======================================== #}
+        {% if campagne.reservationOuverte and campagne.shareToken %}
+        <div class="bg-primary/5 border-2 border-primary/30 rounded-lg p-5 mb-8">
+            <div class="flex items-center justify-between gap-6">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <h3 class="font-bold text-primary">Reservation en ligne activee</h3>
+                    </div>
+                    <p class="text-sm text-muted mb-3">Partagez ce lien avec vos utilisateurs pour qu'ils reservent eux-memes un creneau :</p>
+                    <code id="reservation-link" class="block bg-white px-4 py-2 rounded border-2 border-ink/10 text-sm font-mono select-all">{{ app.request.schemeAndHttpHost }}/reservation/c/{{ campagne.shareToken }}</code>
+                </div>
+                <button type="button"
+                        onclick="navigator.clipboard.writeText(document.getElementById('reservation-link').textContent.trim()); this.innerHTML='<svg class=\'w-4 h-4\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M5 13l4 4L19 7\'/></svg> Copie !'; setTimeout(() => this.innerHTML='<svg class=\'w-4 h-4\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z\'/></svg> Copier', 2000);"
+                        class="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded font-semibold hover:bg-primary/90 transition-colors whitespace-nowrap">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                    Copier
+                </button>
+            </div>
+        </div>
+        {% endif %}
 
         {# ========================================
            4 WIDGETS STATUTS (T-705, US-601)
@@ -286,9 +341,28 @@ function openShareModal() {
 function closeShareModal() {
     document.getElementById('share-modal-container').classList.add('hidden');
 }
+
+// Dropdown Configurer
+function toggleConfigDropdown() {
+    const menu = document.getElementById('config-menu');
+    menu.classList.toggle('hidden');
+}
+
+// Fermer le dropdown en cliquant ailleurs
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('config-dropdown');
+    const menu = document.getElementById('config-menu');
+    if (dropdown && !dropdown.contains(e.target)) {
+        menu.classList.add('hidden');
+    }
+});
+
 // Fermer avec Escape
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeShareModal();
+    if (e.key === 'Escape') {
+        closeShareModal();
+        document.getElementById('config-menu')?.classList.add('hidden');
+    }
 });
 </script>
 {% endblock %}

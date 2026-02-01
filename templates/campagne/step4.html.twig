@@ -104,7 +104,7 @@
         <div class="bg-white border-2 border-ink p-8">
             <h2 class="text-lg font-bold text-ink mb-6">Configuration du workflow</h2>
 
-            {{ form_start(form, {'attr': {'class': 'space-y-6'}}) }}
+            {{ form_start(form, {'attr': {'class': 'space-y-6', 'enctype': 'multipart/form-data'}}) }}
 
             <div class="space-y-6">
                 <div>
@@ -116,6 +116,180 @@
                     <p class="text-sm text-muted mb-4">Selectionnez le template de checklist qui sera utilise pour les interventions.</p>
                     {{ form_row(form.checklistTemplate) }}
                 </div>
+
+                {# ============================================== #}
+                {# MODULE RESERVATION END-USER                    #}
+                {# ============================================== #}
+                <div class="border-t-2 border-ink/10 pt-6 mt-6">
+                    <div class="flex items-center gap-3 mb-2">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <h4 class="font-bold text-ink">Reservation end-user</h4>
+                    </div>
+                    <p class="text-sm text-muted mb-4">Permettre aux utilisateurs finaux de reserver eux-memes un creneau (type Doodle)</p>
+
+                    {# CHECKBOX ACTIVATION - HTML natif avec onchange inline #}
+                    <div class="flex items-center gap-3 mb-4">
+                        <input type="checkbox"
+                               id="chk_reservation_active"
+                               name="{{ form.reservationOuverte.vars.full_name }}"
+                               value="1"
+                               {% if campagne.reservationOuverte %}checked{% endif %}
+                               class="w-5 h-5 rounded border-ink/30 text-primary focus:ring-primary"
+                               onchange="document.getElementById('reservation_options_box').style.display = this.checked ? 'block' : 'none';">
+                        <label for="chk_reservation_active" class="font-medium text-ink cursor-pointer">
+                            Activer la reservation publique
+                        </label>
+                    </div>
+
+                    {# OPTIONS - Affichees/cachees selon checkbox #}
+                    <div id="reservation_options_box"
+                         style="display: {{ campagne.reservationOuverte ? 'block' : 'none' }};"
+                         class="pl-6 border-l-4 border-primary/30 space-y-5 bg-paper/50 p-4 rounded">
+
+                        {# INFO COLONNE RESERVE PAR #}
+                        <div class="p-3 bg-primary/5 border border-primary/20 rounded mb-4">
+                            <p class="text-sm text-primary">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Une colonne "Reserve par" sera automatiquement ajoutee aux operations.
+                            </p>
+                        </div>
+
+                        {# MODE D'IDENTIFICATION #}
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold uppercase tracking-wider mb-2 text-ink">
+                                Mode d'identification *
+                            </label>
+                            <select name="reservation_mode" id="select_reservation_mode"
+                                    onchange="toggleModeOptions(this.value)"
+                                    class="w-full px-4 py-3 border-2 border-ink/20 rounded bg-white">
+                                <option value="libre" {% if campagne.reservationMode == 'libre' or campagne.reservationMode is null %}selected{% endif %}>
+                                    Saisie libre (ouvert a tous)
+                                </option>
+                                <option value="import" {% if campagne.reservationMode == 'import' %}selected{% endif %}>
+                                    Liste importee (CSV specifique)
+                                </option>
+                                <option value="annuaire" {% if campagne.reservationMode == 'annuaire' %}selected{% endif %}>
+                                    Annuaire agents (avec filtres)
+                                </option>
+                            </select>
+                        </div>
+
+                        {# OPTIONS MODE IMPORT #}
+                        <div id="options_mode_import" class="mb-4 p-4 bg-white rounded border-2 border-ink/10"
+                             style="display: {% if campagne.reservationMode == 'import' %}block{% else %}none{% endif %}">
+                            <h5 class="font-semibold mb-2">Import liste autorisee</h5>
+                            <p class="text-sm text-muted mb-3">Importez un CSV avec les personnes autorisees (colonne obligatoire : nom_prenom)</p>
+
+                            {% if campagne.agentsAutorises|length > 0 %}
+                            <div class="mb-3 p-2 bg-success/10 border border-success/30 rounded">
+                                <span class="text-success font-medium">{{ campagne.agentsAutorises|length }} personne(s) importee(s)</span>
+                            </div>
+                            {% endif %}
+
+                            <input type="file" name="import_agents_csv" accept=".csv"
+                                   class="block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-primary file:text-white file:font-medium hover:file:bg-primary/90">
+                            <p class="text-xs text-muted mt-1">Format CSV : nom_prenom (obligatoire), email, service, site (optionnels)</p>
+                        </div>
+
+                        {# OPTIONS MODE ANNUAIRE #}
+                        <div id="options_mode_annuaire" class="mb-4 p-4 bg-white rounded border-2 border-ink/10"
+                             style="display: {% if campagne.reservationMode == 'annuaire' %}block{% else %}none{% endif %}">
+                            <h5 class="font-semibold mb-3">Filtrer l'annuaire</h5>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                {# Services #}
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Services</label>
+                                    <select name="filtres_annuaire[services][]" multiple
+                                            class="w-full px-3 py-2 border-2 border-ink/20 rounded bg-white h-24">
+                                        {% for service in valeursAnnuaire.services|default([]) %}
+                                        <option value="{{ service }}"
+                                            {% if campagne.reservationFiltresAnnuaire.services is defined and service in campagne.reservationFiltresAnnuaire.services %}selected{% endif %}>
+                                            {{ service }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <p class="text-xs text-muted">Ctrl+clic pour selection multiple. Vide = tous.</p>
+                                </div>
+
+                                {# Sites #}
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Sites</label>
+                                    <select name="filtres_annuaire[sites][]" multiple
+                                            class="w-full px-3 py-2 border-2 border-ink/20 rounded bg-white h-24">
+                                        {% for site in valeursAnnuaire.sites|default([]) %}
+                                        <option value="{{ site }}"
+                                            {% if campagne.reservationFiltresAnnuaire.sites is defined and site in campagne.reservationFiltresAnnuaire.sites %}selected{% endif %}>
+                                            {{ site }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                {# Roles #}
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Roles</label>
+                                    <select name="filtres_annuaire[roles][]" multiple
+                                            class="w-full px-3 py-2 border-2 border-ink/20 rounded bg-white h-24">
+                                        {% for role in valeursAnnuaire.roles|default([]) %}
+                                        <option value="{{ role }}"
+                                            {% if campagne.reservationFiltresAnnuaire.roles is defined and role in campagne.reservationFiltresAnnuaire.roles %}selected{% endif %}>
+                                            {{ role }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                {# Types contrat #}
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Types de contrat</label>
+                                    <select name="filtres_annuaire[typesContrat][]" multiple
+                                            class="w-full px-3 py-2 border-2 border-ink/20 rounded bg-white h-24">
+                                        {% for type in valeursAnnuaire.typesContrat|default([]) %}
+                                        <option value="{{ type }}"
+                                            {% if campagne.reservationFiltresAnnuaire.typesContrat is defined and type in campagne.reservationFiltresAnnuaire.typesContrat %}selected{% endif %}>
+                                            {{ type }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 p-2 bg-primary/5 rounded">
+                                <span class="text-sm text-primary font-medium" id="apercu_annuaire">
+                                    Apercu : {{ apercuNbAgents|default('?') }} agent(s) correspondent aux criteres
+                                </span>
+                            </div>
+                        </div>
+
+                        <script>
+                        function toggleModeOptions(mode) {
+                            document.getElementById('options_mode_import').style.display = mode === 'import' ? 'block' : 'none';
+                            document.getElementById('options_mode_annuaire').style.display = mode === 'annuaire' ? 'block' : 'none';
+                        }
+                        </script>
+
+                        {# LIEN DE RESERVATION SI DEJA GENERE #}
+                        {% if campagne.shareToken %}
+                        <div class="bg-success/10 border border-success/30 rounded p-4">
+                            <p class="text-sm font-medium text-success mb-1">Lien de reservation :</p>
+                            <code class="text-xs bg-white px-2 py-1 rounded border select-all">{{ app.request.schemeAndHttpHost }}/reservation/c/{{ campagne.shareToken }}</code>
+                        </div>
+                        {% else %}
+                        <div class="bg-warning/10 border border-warning/30 rounded p-3">
+                            <p class="text-xs text-warning">Un lien sera genere automatiquement a l'enregistrement.</p>
+                        </div>
+                        {% endif %}
+
+                    </div>
+                </div>
+                {# ============================================== #}
+                {# FIN MODULE RESERVATION                         #}
+                {# ============================================== #}
             </div>
 
             <div class="flex justify-between items-center gap-4 pt-6 border-t-2 border-ink/10">
@@ -128,8 +302,14 @@
                 </button>
             </div>
 
-            {{ form_end(form) }}
+            {# Champs cachés (CSRF token + champs Symfony non rendus manuellement) #}
+            <div style="display:none;">
+                {{ form_rest(form) }}
+            </div>
+
+            {{ form_end(form, {'render_rest': false}) }}
         </div>
+
 
     </div>
 </div>
