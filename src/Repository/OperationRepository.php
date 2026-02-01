@@ -376,7 +376,7 @@ class OperationRepository extends ServiceEntityRepository
             'query' => '%' . $query . '%',
             'limit' => $limit,
         ], [
-            'limit' => \PDO::PARAM_INT,
+            'limit' => \Doctrine\DBAL\ParameterType::INTEGER,
         ])->fetchAllAssociative();
 
         if (empty($result)) {
