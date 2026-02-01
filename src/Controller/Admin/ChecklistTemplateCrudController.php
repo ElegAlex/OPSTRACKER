@@ -52,11 +52,22 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     public function configureActions(Actions $actions): Actions
     {
+        // Action custom pour gerer les etapes
+        $gererEtapes = Action::new('gererEtapes', 'Gerer les etapes', 'fa fa-list-check')
+            ->linkToRoute('admin_checklist_etapes', function (ChecklistTemplate $template): array {
+                return ['id' => $template->getId()];
+            })
+            ->displayIf(static fn (ChecklistTemplate $entity): bool => null !== $entity->getId());
+
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
+            ->add(Crud::PAGE_INDEX, $gererEtapes)
+            ->add(Crud::PAGE_DETAIL, $gererEtapes)
+            ->add(Crud::PAGE_EDIT, $gererEtapes)
             ->update(Crud::PAGE_INDEX, Action::NEW, function (Action $action) {
                 return $action->setLabel('Nouveau template');
             })
+            ->reorder(Crud::PAGE_INDEX, [Action::DETAIL, 'gererEtapes', Action::EDIT, Action::DELETE])
         ;
     }
 
@@ -84,28 +95,29 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
         yield IntegerField::new('nombreEtapes', 'Nb etapes')
             ->hideOnForm()
-            ->formatValue(fn ($value) => $value . ' etapes');
+            ->formatValue(fn ($value) => $value . ' etape(s)');
 
         yield IntegerField::new('nombreEtapesObligatoires', 'Obligatoires')
             ->hideOnForm()
             ->hideOnIndex();
 
-        // Affichage des phases/etapes en detail uniquement
+        // Affichage des phases/etapes en detail (lecture)
         if ($pageName === Crud::PAGE_DETAIL) {
-            yield TextareaField::new('etapesFormatted', 'Structure des etapes')
-                ->hideOnForm()
+            yield TextareaField::new('etapes', 'Structure des etapes')
                 ->setTemplatePath('admin/field/checklist_etapes.html.twig');
         }
+
+        // Note : l'edition des etapes se fait via l'action "Gerer les etapes"
 
         yield IntegerField::new('campagnes.count', 'Campagnes')
             ->hideOnForm()
             ->hideOnDetail()
-            ->formatValue(fn ($value) => $value . ' campagnes');
+            ->formatValue(fn ($value) => $value . ' campagne(s)');
 
         yield IntegerField::new('instances.count', 'Instances')
             ->hideOnForm()
             ->hideOnDetail()
-            ->formatValue(fn ($value) => $value . ' instances');
+            ->formatValue(fn ($value) => $value . ' instance(s)');
 
         yield DateTimeField::new('createdAt', 'Cree le')
             ->hideOnForm()

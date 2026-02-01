@@ -69,10 +69,16 @@ class AgentCrudController extends AbstractCrudController
             ->linkToCrudAction('toggleActif')
             ->setIcon('fa fa-toggle-on');
 
+        $importCsv = Action::new('importCsv', 'Importer CSV', 'fa fa-upload')
+            ->linkToRoute('admin_agent_import')
+            ->setCssClass('btn btn-primary')
+            ->createAsGlobalAction();
+
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
             ->add(Crud::PAGE_INDEX, $toggleActif)
             ->add(Crud::PAGE_DETAIL, $toggleActif)
+            ->add(Crud::PAGE_INDEX, $importCsv)
             ->update(Crud::PAGE_INDEX, Action::NEW, function (Action $action) {
                 return $action->setLabel('Nouvel agent');
             })

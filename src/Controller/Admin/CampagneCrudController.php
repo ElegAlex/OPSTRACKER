@@ -153,6 +153,32 @@ class CampagneCrudController extends AbstractCrudController
             ->onlyOnForms()
             ->setHelp('Libre = saisie texte. Import = CSV specifique. Annuaire = filtrage agents.');
 
+        // Colonne segment : dropdown dynamique basé sur les champs de la campagne
+        $colonneChoices = ['' => '-- Aucun (pas de segmentation) --'];
+        if ($pageName === Crud::PAGE_EDIT) {
+            $campagne = $this->getContext()?->getEntity()?->getInstance();
+            if ($campagne instanceof Campagne) {
+                foreach ($campagne->getChamps() as $champ) {
+                    $colonneChoices[$champ->getNom()] = $champ->getNom();
+                }
+            }
+        }
+
+        yield ChoiceField::new('colonneSegment', 'Colonne segment')
+            ->setChoices($colonneChoices)
+            ->onlyOnForms()
+            ->setHelp('Colonne utilisee pour segmenter les operations. Disponible apres import CSV.');
+
+        yield ChoiceField::new('colonneDatePlanifiee', 'Colonne date planifiee')
+            ->setChoices($colonneChoices)
+            ->onlyOnForms()
+            ->setHelp('Colonne CSV contenant la date de planification des operations.');
+
+        yield ChoiceField::new('colonneHoraire', 'Colonne horaire')
+            ->setChoices($colonneChoices)
+            ->onlyOnForms()
+            ->setHelp('Colonne CSV contenant l\'heure (optionnel, combine avec la date).');
+
         yield TextField::new('shareToken', 'Token de partage')
             ->onlyOnForms()
             ->setFormTypeOption('disabled', true)
