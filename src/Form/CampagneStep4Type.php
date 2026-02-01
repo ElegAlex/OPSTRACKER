@@ -9,6 +9,7 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -84,6 +85,22 @@ class CampagneStep4Type extends AbstractType
                 ],
                 'label_attr' => [
                     'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
+                ],
+            ])
+            ->add('capaciteParDefaut', IntegerType::class, [
+                'label' => 'Capacite par operation',
+                'required' => false,
+                'attr' => [
+                    'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white',
+                    'min' => 1,
+                    'placeholder' => '1 = 1 personne par operation, 10 = 10 places par creneau',
+                ],
+                'label_attr' => [
+                    'class' => 'block text-sm font-semibold text-ink uppercase tracking-wider mb-2',
+                ],
+                'help' => '1 pour mode operation simple. Plus de 1 pour mode creneaux multi-places (type Doodle).',
+                'help_attr' => [
+                    'class' => 'text-xs text-muted mt-1',
                 ],
             ]);
     }

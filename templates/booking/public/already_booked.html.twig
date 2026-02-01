@@ -28,13 +28,31 @@
                 {% else %}
                 <p class="text-lg font-bold text-ink">Date a confirmer</p>
                 {% endif %}
+
+                {% if operation.capacite > 1 %}
+                <div class="mt-2 pt-2 border-t border-ink/10">
+                    <p class="text-xs text-muted">
+                        {{ operation.placesReservees }}/{{ operation.capacite }} place(s) reservee(s) sur ce creneau
+                    </p>
+                </div>
+                {% endif %}
             </div>
 
             <div class="bg-paper p-4">
                 <p class="text-xs font-semibold text-muted uppercase tracking-wider mb-2">Reserve par</p>
-                <p class="font-medium text-ink">{{ operation.reserveParNomComplet }}</p>
-                {% if operation.reserveParService %}
-                <p class="text-sm text-muted">{{ operation.reserveParService }}</p>
+                {% if reservations is defined and reservations|length > 0 %}
+                    {% set reservation = reservations|first %}
+                    <p class="font-medium text-ink">{{ reservation.nomPrenom }}</p>
+                    {% if reservation.service %}
+                    <p class="text-sm text-muted">{{ reservation.service }}</p>
+                    {% endif %}
+                    <p class="text-xs text-muted mt-1">Reserve le {{ reservation.reserveLe|date('d/m/Y') }} a {{ reservation.reserveLe|date('H:i') }}</p>
+                {% else %}
+                    {# Fallback pour ancien systeme #}
+                    <p class="font-medium text-ink">{{ operation.reserveParNomComplet }}</p>
+                    {% if operation.reserveParService %}
+                    <p class="text-sm text-muted">{{ operation.reserveParService }}</p>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>

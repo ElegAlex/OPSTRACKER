@@ -288,10 +288,24 @@
                         {# Reserve par (seulement si reservation ouverte) #}
                         {% if campagne.reservationOuverte %}
                         <td class="px-4 py-3">
-                            {% if operation.reservePar %}
-                                <span class="text-primary font-medium">{{ operation.reserveParNomComplet }}</span>
+                            {% set nbReservations = operation.placesReservees %}
+                            {% set capacite = operation.capacite %}
+                            {% if nbReservations > 0 %}
+                                {% if capacite > 1 %}
+                                    {# Mode multi-places #}
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-semibold text-{{ operation.couleurRemplissage }}">
+                                            {{ nbReservations }}/{{ capacite }}
+                                        </span>
+                                        <span class="text-xs text-muted">reserv.</span>
+                                    </div>
+                                {% else %}
+                                    {# Mode simple : afficher le nom #}
+                                    {% set firstReservation = operation.reservationsEndUser|first %}
+                                    <span class="text-primary font-medium text-xs">{{ firstReservation ? firstReservation.nomPrenom : operation.reserveParNomComplet }}</span>
+                                {% endif %}
                             {% else %}
-                                <span class="text-muted">-</span>
+                                <span class="text-muted text-xs">-</span>
                             {% endif %}
                         </td>
                         {% endif %}

@@ -255,6 +255,14 @@ class Campagne
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $colonneHoraire = null;
 
+    /**
+     * Capacite par defaut pour les nouvelles operations de cette campagne.
+     * Valeur appliquee lors de l'import CSV ou creation manuelle.
+     * 1 = mode operation simple, > 1 = mode creneau multi-places.
+     */
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
+    private int $capaciteParDefaut = 1;
+
     public function __construct()
     {
         $this->segments = new ArrayCollection();
@@ -1064,5 +1072,28 @@ class Campagne
         $this->colonneHoraire = $colonneHoraire;
 
         return $this;
+    }
+
+    /**
+     * Capacite par defaut pour les operations de cette campagne
+     */
+    public function getCapaciteParDefaut(): int
+    {
+        return $this->capaciteParDefaut;
+    }
+
+    public function setCapaciteParDefaut(int $capaciteParDefaut): static
+    {
+        $this->capaciteParDefaut = max(1, $capaciteParDefaut);
+
+        return $this;
+    }
+
+    /**
+     * Verifie si la campagne est en mode multi-places
+     */
+    public function isMultiPlaces(): bool
+    {
+        return $this->capaciteParDefaut > 1;
     }
 }

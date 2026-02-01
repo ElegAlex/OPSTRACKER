@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\OperationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -147,6 +149,27 @@ class Operation
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $reserveParInfos = null;
+
+    /**
+     * Capacite maximale de reservations pour cette operation.
+     * Par defaut 1 (mode simple), peut etre > 1 pour les creneaux multi-places.
+     */
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
+    private int $capacite = 1;
+
+    /**
+     * Collection des reservations end-user pour cette operation.
+     * Permet les reservations multiples si capacite > 1.
+     *
+     * @var Collection<int, ReservationEndUser>
+     */
+    #[ORM\OneToMany(mappedBy: 'operation', targetEntity: ReservationEndUser::class, cascade: ['persist', 'remove'])]
+    private Collection $reservationsEndUser;
+
+    public function __construct()
+    {
+        $this->reservationsEndUser = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -521,5 +544,112 @@ class Operation
     public function getReserveParEmail(): ?string
     {
         return $this->reserveParInfos['email'] ?? null;
+    }
+
+    // ========================================
+    // MULTI-RESERVATION (capacite > 1)
+    // ========================================
+
+    public function getCapacite(): int
+    {
+        return $this->capacite;
+    }
+
+    public function setCapacite(int $capacite): static
+    {
+        $this->capacite = max(1, $capacite);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ReservationEndUser>
+     */
+    public function getReservationsEndUser(): Collection
+    {
+        return $this->reservationsEndUser;
+    }
+
+    public function addReservationEndUser(ReservationEndUser $reservation): static
+    {
+        if (!$this->reservationsEndUser->contains($reservation)) {
+            $this->reservationsEndUser->add($reservation);
+            $reservation->setOperation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservationEndUser(ReservationEndUser $reservation): static
+    {
+        if ($this->reservationsEndUser->removeElement($reservation)) {
+            if ($reservation->getOperation() === $this) {
+                $reservation->setOperation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Nombre de places reservees (via ReservationEndUser).
+     */
+    public function getPlacesReservees(): int
+    {
+        return $this->reservationsEndUser->count();
+    }
+
+    /**
+     * Nombre de places restantes.
+     */
+    public function getPlacesRestantes(): int
+    {
+        return max(0, $this->capacite - $this->getPlacesReservees());
+    }
+
+    /**
+     * Verifie si l'operation est complete (plus de places).
+     */
+    public function isComplet(): bool
+    {
+        return $this->getPlacesRestantes() === 0;
+    }
+
+    /**
+     * Verifie si l'operation accepte plusieurs reservations.
+     */
+    public function hasMultipleReservations(): bool
+    {
+        return $this->capacite > 1;
+    }
+
+    /**
+     * Taux de remplissage en pourcentage.
+     */
+    public function getTauxRemplissage(): int
+    {
+        if ($this->capacite === 0) {
+            return 0;
+        }
+
+        return (int) round(($this->getPlacesReservees() / $this->capacite) * 100);
+    }
+
+    /**
+     * Couleur du remplissage pour l'affichage.
+     */
+    public function getCouleurRemplissage(): string
+    {
+        $taux = $this->getTauxRemplissage();
+
+        if ($taux >= 90) {
+            return 'danger';
+        }
+
+        if ($taux >= 50) {
+            return 'warning';
+        }
+
+        return 'success';
     }
 }

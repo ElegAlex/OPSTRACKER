@@ -54,6 +54,9 @@
             </a>
         </div>
     </div>
+
+    {# Onglets navigation campagne #}
+    {% include 'campagne/_tabs.html.twig' with {campagne: campagne, active: 'creneaux'} only %}
 </header>
 
 {# CONTENT #}

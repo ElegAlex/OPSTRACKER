@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Campagne;
 use App\Entity\Operation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -33,6 +34,7 @@ class OperationRepository extends ServiceEntityRepository
 
     /**
      * Trouve les operations disponibles (non reservees) pour une campagne
+     * (ancienne methode basee sur reservePar - conservee pour compatibilite)
      *
      * @return Operation[]
      */
@@ -42,6 +44,47 @@ class OperationRepository extends ServiceEntityRepository
             ->andWhere('o.campagne = :campagne')
             ->andWhere('o.reservePar IS NULL')
             ->setParameter('campagne', $campagneId)
+            ->orderBy('o.datePlanifiee', 'ASC')
+            ->addOrderBy('o.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Trouve les operations avec des places disponibles pour une campagne.
+     * Utilise le nouveau systeme multi-places avec ReservationEndUser.
+     *
+     * @return Operation[]
+     */
+    public function findAvecPlacesDisponiblesByCampagne(Campagne $campagne): array
+    {
+        // Requete native pour comparer capacite avec le nombre de reservations
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "SELECT o.id FROM operation o
+                LEFT JOIN (
+                    SELECT operation_id, COUNT(*) as nb_reservations
+                    FROM reservation_end_user
+                    GROUP BY operation_id
+                ) r ON r.operation_id = o.id
+                WHERE o.campagne_id = :campagne_id
+                AND COALESCE(r.nb_reservations, 0) < o.capacite
+                ORDER BY o.date_planifiee ASC NULLS LAST, o.id ASC";
+
+        $result = $conn->executeQuery($sql, ['campagne_id' => $campagne->getId()])->fetchAllAssociative();
+
+        if (empty($result)) {
+            return [];
+        }
+
+        $ids = array_column($result, 'id');
+
+        // Charger les entites completes avec leur collection de reservations
+        return $this->createQueryBuilder('o')
+            ->leftJoin('o.reservationsEndUser', 'r')
+            ->addSelect('r')
+            ->where('o.id IN (:ids)')
+            ->setParameter('ids', $ids)
             ->orderBy('o.datePlanifiee', 'ASC')
             ->addOrderBy('o.id', 'ASC')
             ->getQuery()

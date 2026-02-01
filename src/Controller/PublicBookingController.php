@@ -4,10 +4,12 @@ namespace App\Controller;
 
 use App\Entity\Campagne;
 use App\Entity\Operation;
+use App\Entity\ReservationEndUser;
 use App\Repository\AgentRepository;
 use App\Repository\CampagneAgentAutoriseRepository;
 use App\Repository\CampagneRepository;
 use App\Repository\OperationRepository;
+use App\Repository\ReservationEndUserRepository;
 use App\Service\PersonnesAutoriseesService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +21,7 @@ use Symfony\Component\Routing\Attribute\Route;
  * Controller pour la reservation publique d'operations (type Doodle).
  *
  * Acces par token campagne. L'utilisateur s'identifie via dropdown ou saisie libre.
- * Chaque operation peut etre reservee par une seule personne (reservePar).
+ * Supporte les reservations multiples si operation.capacite > 1.
  */
 #[Route('/reservation/c')]
 class PublicBookingController extends AbstractController
@@ -29,6 +31,7 @@ class PublicBookingController extends AbstractController
         private readonly CampagneAgentAutoriseRepository $campagneAgentAutoriseRepository,
         private readonly CampagneRepository $campagneRepository,
         private readonly OperationRepository $operationRepository,
+        private readonly ReservationEndUserRepository $reservationEndUserRepository,
         private readonly PersonnesAutoriseesService $personnesAutoriseesService,
         private readonly EntityManagerInterface $entityManager,
     ) {
@@ -57,22 +60,23 @@ class PublicBookingController extends AbstractController
         }
 
         // Verifier si l'utilisateur a deja reserve une operation
-        $operationReservee = $this->operationRepository->findOneBy([
-            'campagne' => $campagne,
-            'reservePar' => $identifiant,
-        ]);
+        $reservationsUtilisateur = $this->reservationEndUserRepository->findByIdentifiantAndCampagne($identifiant, $campagne);
 
-        if ($operationReservee) {
+        if (!empty($reservationsUtilisateur)) {
+            // Prendre la premiere reservation pour afficher la confirmation
+            $operationReservee = $reservationsUtilisateur[0]->getOperation();
+
             return $this->render('booking/public/already_booked.html.twig', [
                 'campagne' => $campagne,
                 'operation' => $operationReservee,
                 'identifiant' => $identifiant,
                 'token' => $token,
+                'reservations' => $reservationsUtilisateur,
             ]);
         }
 
-        // Afficher les operations disponibles (reservePar IS NULL)
-        $operations = $this->operationRepository->findDisponiblesByCampagne($campagne->getId());
+        // Afficher les operations avec des places disponibles
+        $operations = $this->operationRepository->findAvecPlacesDisponiblesByCampagne($campagne);
 
         // Grouper par date si datePlanifiee existe
         $operationsParDate = [];
@@ -205,21 +209,27 @@ class PublicBookingController extends AbstractController
             return $this->redirectToRoute('app_public_booking_index', ['token' => $token]);
         }
 
-        // Verifier que l'operation est disponible
-        if (!$operation->isDisponible()) {
-            $this->addFlash('danger', 'Cette operation n\'est plus disponible.');
+        // Verifier que l'operation a des places disponibles
+        if ($operation->isComplet()) {
+            $this->addFlash('danger', 'Ce creneau est complet.');
 
             return $this->redirectToRoute('app_public_booking_index', ['token' => $token]);
         }
 
-        // Verifier que l'utilisateur n'a pas deja reserve
-        $dejaReserve = $this->operationRepository->findOneBy([
-            'campagne' => $campagne,
-            'reservePar' => $identifiant,
-        ]);
+        // Verifier que l'utilisateur n'a pas deja reserve ce creneau specifique
+        $dejaReserveCeCreneau = $this->reservationEndUserRepository->findByIdentifiantAndOperation($identifiant, $operation);
 
-        if ($dejaReserve) {
-            $this->addFlash('danger', 'Vous avez deja reserve un creneau.');
+        if ($dejaReserveCeCreneau) {
+            $this->addFlash('danger', 'Vous avez deja reserve ce creneau.');
+
+            return $this->redirectToRoute('app_public_booking_index', ['token' => $token]);
+        }
+
+        // Verifier que l'utilisateur n'a pas deja reserve un autre creneau dans cette campagne
+        $reservationsUtilisateur = $this->reservationEndUserRepository->findByIdentifiantAndCampagne($identifiant, $campagne);
+
+        if (!empty($reservationsUtilisateur)) {
+            $this->addFlash('danger', 'Vous avez deja reserve un creneau pour cette campagne.');
 
             return $this->redirectToRoute('app_public_booking_index', ['token' => $token]);
         }
@@ -230,31 +240,31 @@ class PublicBookingController extends AbstractController
 
         if ($agent) {
             // Agent trouve dans l'annuaire
-            $personneInfos = [
-                'identifiant' => $identifiant,
-                'nomPrenom' => trim($agent->getNom() . ' ' . $agent->getPrenom()),
-                'service' => $agent->getService(),
-                'site' => $agent->getSite(),
-                'email' => $agent->getEmail(),
-            ];
+            $nomPrenom = trim($agent->getNom() . ' ' . $agent->getPrenom());
+            $service = $agent->getService();
+            $site = $agent->getSite();
+            $email = $agent->getEmail();
         } else {
             // Essayer via le service (mode import avec CampagneAgentAutorise)
             $personneInfos = $this->personnesAutoriseesService->getPersonneInfos($campagne, $identifiant);
 
-            // Si toujours pas de nom, utiliser l'identifiant
-            if (empty($personneInfos['nomPrenom']) || $personneInfos['nomPrenom'] === $identifiant) {
-                $personneInfos = [
-                    'identifiant' => $identifiant,
-                    'nomPrenom' => $identifiant,
-                    'service' => null,
-                    'site' => null,
-                    'email' => null,
-                ];
-            }
+            $nomPrenom = $personneInfos['nomPrenom'] ?? $identifiant;
+            $service = $personneInfos['service'] ?? null;
+            $site = $personneInfos['site'] ?? null;
+            $email = $personneInfos['email'] ?? null;
         }
 
-        // Reserver l'operation avec les infos completes
-        $operation->reserver($identifiant, $personneInfos);
+        // Creer la reservation end-user
+        $reservation = new ReservationEndUser();
+        $reservation->setOperation($operation);
+        $reservation->setIdentifiant($identifiant);
+        $reservation->setNomPrenom($nomPrenom);
+        $reservation->setService($service);
+        $reservation->setSite($site);
+        $reservation->setEmail($email);
+
+        $operation->addReservationEndUser($reservation);
+        $this->entityManager->persist($reservation);
         $this->entityManager->flush();
 
         $this->addFlash('success', 'Votre creneau a ete reserve avec succes.');
@@ -304,12 +314,10 @@ class PublicBookingController extends AbstractController
             return $this->redirectToRoute('app_public_booking_identify', ['token' => $token]);
         }
 
-        $operation = $this->operationRepository->findOneBy([
-            'campagne' => $campagne,
-            'reservePar' => $identifiant,
-        ]);
+        // Trouver les reservations de cet utilisateur pour cette campagne
+        $reservations = $this->reservationEndUserRepository->findByIdentifiantAndCampagne($identifiant, $campagne);
 
-        if (!$operation) {
+        if (empty($reservations)) {
             $this->addFlash('warning', 'Aucune reservation a annuler.');
 
             return $this->redirectToRoute('app_public_booking_index', ['token' => $token]);
@@ -321,8 +329,10 @@ class PublicBookingController extends AbstractController
             return $this->redirectToRoute('app_public_booking_index', ['token' => $token]);
         }
 
-        // Annuler la reservation
-        $operation->annulerReservation();
+        // Annuler toutes les reservations de cet utilisateur
+        foreach ($reservations as $reservation) {
+            $this->entityManager->remove($reservation);
+        }
         $this->entityManager->flush();
 
         $this->addFlash('success', 'Votre reservation a ete annulee.');

@@ -494,6 +494,9 @@ class ImportCsvService
         $operation->setCampagne($campagne);
         $operation->setDonneesPersonnalisees($donneesPersonnalisees);
 
+        // Appliquer la capacite par defaut de la campagne
+        $operation->setCapacite($campagne->getCapaciteParDefaut());
+
         // Notes
         if (!empty($notes)) {
             $operation->setNotes(trim($notes));
