@@ -329,9 +329,12 @@ class AgentBookingTest extends WebTestCase
 
     private function createTestAgent(string $matricule): Agent
     {
+        // Ajouter un suffixe unique pour eviter les conflits entre tests
+        $uniqueMatricule = $matricule . '_' . uniqid();
+
         $agent = new Agent();
-        $agent->setMatricule($matricule);
-        $agent->setEmail($matricule . '@test-e2e.local');
+        $agent->setMatricule($uniqueMatricule);
+        $agent->setEmail($uniqueMatricule . '@test-e2e.local');
         $agent->setNom('Test');
         $agent->setPrenom('Agent');
         $agent->setService('Test Service');
@@ -346,14 +349,23 @@ class AgentBookingTest extends WebTestCase
 
     private function cleanupTestAgent(Agent $agent): void
     {
-        // Supprimer les reservations associees
-        $reservations = $this->reservationRepository->findBy(['agent' => $agent]);
-        foreach ($reservations as $reservation) {
-            $this->entityManager->remove($reservation);
-        }
+        // Re-initialiser les repositories apres les requetes HTTP
+        $this->initRepositories();
 
-        // Supprimer l'agent
-        $this->entityManager->remove($agent);
-        $this->entityManager->flush();
+        // Re-fetch l'agent depuis la base (il peut etre detache)
+        $agentId = $agent->getId();
+        $freshAgent = $this->agentRepository->find($agentId);
+
+        if ($freshAgent) {
+            // Supprimer les reservations associees
+            $reservations = $this->reservationRepository->findBy(['agent' => $freshAgent]);
+            foreach ($reservations as $reservation) {
+                $this->entityManager->remove($reservation);
+            }
+
+            // Supprimer l'agent
+            $this->entityManager->remove($freshAgent);
+            $this->entityManager->flush();
+        }
     }
 }

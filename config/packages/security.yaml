@@ -39,6 +39,7 @@ security:
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/share/, roles: PUBLIC_ACCESS }  # US-605 : Partage lecture seule
         - { path: ^/reservation/c/, roles: PUBLIC_ACCESS }  # Vue client publique (type Doodle)
+        - { path: ^/reservation/, roles: PUBLIC_ACCESS }  # Reservation agent (acces par token personnel)
         - { path: ^/admin, roles: ROLE_GESTIONNAIRE }  # Sophie (gestionnaire) accede a admin
         - { path: ^/, roles: ROLE_USER }
 

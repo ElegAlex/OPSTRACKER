@@ -113,7 +113,8 @@ class CriticalPathTest extends WebTestCase
         }
 
         $this->client->loginUser($user);
-        $this->client->request('GET', '/campagnes/' . $campagne->getId());
+        // La route /campagnes/{id} redirige vers /dashboard/campagne/{id}
+        $this->client->request('GET', '/dashboard/campagne/' . $campagne->getId());
 
         $this->assertResponseIsSuccessful();
     }
