@@ -192,7 +192,48 @@ Si votre manager ou coordinateur vous a positionne :
 
 ---
 
-## 10. Regles importantes
+## 10. Notifications SMS (optionnel)
+
+### Activer les rappels SMS
+
+Si votre organisation a active les notifications SMS :
+
+1. Accedez a votre **recapitulatif** de reservation
+2. Cliquez sur **"Activer les rappels SMS"**
+3. Saisissez votre **numero de telephone portable**
+4. Validez
+
+### Rappels recus
+
+- **J-2** : Rappel SMS de votre rendez-vous
+- **J** (matin) : Rappel le jour meme (si configure)
+
+**Note** : Cette fonctionnalite est optionnelle et depend de la configuration de votre organisation.
+
+---
+
+## 11. Acces via lien de campagne (mode public)
+
+### Alternative au lien personnel
+
+Certaines campagnes utilisent un **lien de campagne** plutot qu'un lien personnel :
+
+1. Vous recevez un lien du type `/reservation/c/XXXXXX`
+2. Vous devez vous **identifier** (email ou nom/prenom)
+3. Le systeme verifie que vous etes autorise a reserver
+4. Vous accedez ensuite aux creneaux disponibles
+
+### Difference avec le lien personnel
+
+| Lien personnel | Lien campagne |
+|----------------|---------------|
+| `/reservation/{votre-token}` | `/reservation/c/{token-campagne}` |
+| Pas d'identification | Identification requise |
+| Acces direct aux creneaux | Verification d'autorisation |
+
+---
+
+## 12. Regles importantes
 
 - **Un seul creneau par campagne** : Vous ne pouvez avoir qu'une seule reservation active
 - **Verrouillage J-2** : Les modifications sont impossibles 2 jours avant l'intervention
@@ -201,4 +242,4 @@ Si votre manager ou coordinateur vous a positionne :
 
 ---
 
-_Documentation OpsTracker V2.0.0 - Organisation_
+_Documentation OpsTracker V2.1.0 - Organisation_

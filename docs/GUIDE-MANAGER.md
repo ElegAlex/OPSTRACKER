@@ -155,7 +155,34 @@ Un **badge d'alerte** (orange/rouge) apparait si :
 
 ---
 
-## 7. Bonnes pratiques
+## 7. Vue Calendrier
+
+### Acces
+
+Depuis l'interface equipe, cliquez sur **"Calendrier"** (icone calendrier)
+
+### Fonctionnalites
+
+La vue calendrier offre une **visualisation interactive** :
+
+- **Affichage mensuel** des reservations de votre equipe
+- **Code couleur** par statut (confirme, en attente, realise)
+- **Drag & drop** pour deplacer une reservation (si non verrouillee)
+- **Clic** sur un evenement pour voir les details
+
+### Navigation
+
+- Fleches **<** et **>** pour changer de mois
+- Bouton **Aujourd'hui** pour revenir a la date actuelle
+- Cliquez sur un **jour vide** pour voir les creneaux disponibles
+
+### Export
+
+- Bouton **"Exporter ICS"** pour telecharger toutes les reservations de votre equipe dans votre calendrier
+
+---
+
+## 8. Bonnes pratiques
 
 ### Avant la campagne
 
@@ -177,7 +204,7 @@ Un **badge d'alerte** (orange/rouge) apparait si :
 
 ---
 
-## 8. Questions frequentes
+## 9. Questions frequentes
 
 ### Je ne vois pas tous mes agents
 
@@ -214,7 +241,7 @@ Contactez le manager concerne ou le coordinateur.
 
 ---
 
-## 9. Interface Coordinateur
+## 10. Interface Coordinateur
 
 Si vous avez le role **Coordinateur**, vous avez acces a des fonctionnalites etendues :
 
@@ -230,7 +257,7 @@ Menu : **Coordinateur > Campagne > Agents**
 
 ---
 
-## 10. Contacts utiles
+## 11. Contacts utiles
 
 | Besoin | Contact |
 |--------|---------|
@@ -240,7 +267,7 @@ Menu : **Coordinateur > Campagne > Agents**
 
 ---
 
-## 11. Regles metier importantes
+## 12. Regles metier importantes
 
 | Regle | Description |
 |-------|-------------|
@@ -253,4 +280,4 @@ Menu : **Coordinateur > Campagne > Agents**
 
 ---
 
-_Documentation OpsTracker V2.0.0 - Organisation_
+_Documentation OpsTracker V2.1.0 - Organisation_
