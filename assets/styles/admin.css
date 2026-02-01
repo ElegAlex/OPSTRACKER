@@ -1,0 +1,410 @@
+/* ===========================================
+   OPSTRACK ADMIN - BAUHAUS MONOCHROME
+   Override EasyAdmin Theme Variables
+   =========================================== */
+
+/* -----------------------------------------
+   1. PALETTE BAUHAUS MONOCHROME
+   ----------------------------------------- */
+:root {
+    /* Nos couleurs Bauhaus */
+    --admin-ink: #1a1a1a;
+    --admin-graphite: #374151;
+    --admin-slate: #4b5563;
+    --admin-gray-600: #6b7280;
+    --admin-gray-500: #9ca3af;
+    --admin-gray-400: #d1d5db;
+    --admin-gray-300: #e5e7eb;
+    --admin-gray-200: #f3f4f6;
+    --admin-gray-100: #f9fafb;
+    --admin-white: #ffffff;
+
+    /* Couleurs semantiques */
+    --admin-success: #059669;
+    --admin-warning: #d97706;
+    --admin-danger: #dc2626;
+
+    /* Override EasyAdmin color-primary */
+    --color-primary: var(--admin-graphite);
+
+    /* Override gray scale for monochrome look */
+    --gray-50: var(--admin-gray-100);
+    --gray-100: var(--admin-gray-200);
+    --gray-200: var(--admin-gray-300);
+    --gray-300: var(--admin-gray-400);
+    --gray-400: var(--admin-gray-500);
+    --gray-500: var(--admin-gray-600);
+    --gray-600: var(--admin-slate);
+    --gray-700: var(--admin-graphite);
+    --gray-800: var(--admin-ink);
+    --gray-900: var(--admin-ink);
+
+    /* Override text colors */
+    --text-color: var(--admin-ink);
+    --text-muted: var(--admin-gray-600);
+    --link-color: var(--admin-graphite);
+    --link-hover-color: var(--admin-ink);
+
+    /* -----------------------------------------
+       2. OVERRIDE EASYADMIN LAYOUT VARIABLES
+       ----------------------------------------- */
+
+    /* Sidebar - Gris clair Bauhaus */
+    --sidebar-bg: var(--admin-gray-200);
+    --sidebar-border-color: var(--admin-gray-300);
+    --sidebar-logo-color: var(--admin-ink);
+    --sidebar-menu-color: var(--admin-slate);
+    --sidebar-menu-header-color: var(--admin-gray-500);
+    --sidebar-menu-icon-color: var(--admin-gray-600);
+    --sidebar-menu-active-item-bg: var(--admin-white);
+    --sidebar-menu-active-item-color: var(--admin-ink);
+    --sidebar-menu-submenu-color: var(--admin-gray-600);
+    --sidebar-menu-badge-bg: var(--admin-graphite);
+    --sidebar-menu-badge-color: var(--admin-white);
+    --sidebar-menu-badge-active-bg: var(--admin-ink);
+    --sidebar-menu-badge-active-color: var(--admin-white);
+
+    /* Content area */
+    --body-bg: var(--admin-gray-100);
+    --content-bg: var(--admin-white);
+    --content-section-border-color: var(--admin-gray-300);
+    --content-top-border-color: var(--admin-gray-300);
+
+    /* Responsive header */
+    --responsive-header-bg: var(--admin-gray-200);
+    --responsive-header-border-color: var(--admin-gray-300);
+    --responsive-header-logo-color: var(--admin-ink);
+
+    /* User menu */
+    --user-avatar-icon-bg: var(--admin-graphite);
+    --user-avatar-icon-color: var(--admin-white);
+    --user-name-color: var(--admin-slate);
+
+    /* Dropdowns & popovers */
+    --dropdown-toggle-bg: var(--admin-white);
+    --dropdown-toggle-color: var(--admin-slate);
+    --dropdown-toggle-border-color: var(--admin-gray-300);
+    --popover-bg: var(--admin-white);
+    --popover-border-color: var(--admin-gray-300);
+    --popover-color: var(--admin-ink);
+
+    /* -----------------------------------------
+       3. OVERRIDE DATAGRID/TABLE VARIABLES
+       ----------------------------------------- */
+    --datagrid-header-bg: var(--admin-graphite);
+    --datagrid-header-color: var(--admin-white);
+    --datagrid-row-color: var(--admin-ink);
+    --datagrid-row-border-color: var(--admin-gray-200);
+    --datagrid-row-hover-bg: #f1f5f9;
+
+    /* -----------------------------------------
+       4. OVERRIDE FORM VARIABLES
+       ----------------------------------------- */
+    --form-input-bg: var(--admin-white);
+    --form-input-border-color: var(--admin-gray-300);
+    --form-input-color: var(--admin-ink);
+    --form-input-hover-border-color: var(--admin-graphite);
+    --form-input-focus-border-color: var(--admin-ink);
+
+    /* -----------------------------------------
+       5. OVERRIDE BUTTON VARIABLES
+       ----------------------------------------- */
+    --button-primary-bg: var(--admin-ink);
+    --button-primary-color: var(--admin-white);
+    --button-secondary-bg: var(--admin-white);
+    --button-secondary-color: var(--admin-ink);
+    --button-secondary-border-color: var(--admin-ink);
+
+    /* -----------------------------------------
+       6. OVERRIDE PAGE ACTIONS VARIABLES
+       ----------------------------------------- */
+    --page-actions-bg: var(--admin-white);
+    --page-actions-border-color: var(--admin-gray-300);
+
+    /* -----------------------------------------
+       7. FONT OVERRIDE
+       ----------------------------------------- */
+    --font-family-sans-serif: 'Space Grotesk', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-family-base: var(--font-family-sans-serif);
+}
+
+/* -----------------------------------------
+   8. CUSTOM BAUHAUS STYLES
+   ----------------------------------------- */
+
+/* Sidebar border - Bauhaus 2px */
+.sidebar {
+    border-right-width: 2px !important;
+}
+
+/* Header border - Bauhaus 2px */
+.content-top {
+    border-bottom-width: 2px !important;
+}
+
+/* Menu active item - left border accent */
+.sidebar .menu-item.active > a {
+    border-left: 3px solid var(--admin-ink);
+}
+
+/* Datagrid header - graphite background */
+.datagrid thead {
+    background-color: var(--admin-graphite) !important;
+}
+
+.datagrid thead th {
+    color: var(--admin-white) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+/* Alternating row colors */
+.datagrid tbody tr:nth-child(even) {
+    background-color: var(--admin-gray-100);
+}
+
+/* Card borders - Bauhaus 2px */
+.card {
+    border-width: 2px !important;
+    border-color: var(--admin-gray-300) !important;
+    border-radius: 0 !important;
+}
+
+/* Buttons - square corners, 2px border */
+.btn {
+    border-radius: 0 !important;
+    border-width: 2px !important;
+}
+
+.btn-primary {
+    background-color: var(--admin-ink) !important;
+    border-color: var(--admin-ink) !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--admin-graphite) !important;
+    border-color: var(--admin-graphite) !important;
+}
+
+.btn-secondary {
+    background-color: var(--admin-white) !important;
+    border-color: var(--admin-ink) !important;
+    color: var(--admin-ink) !important;
+}
+
+.btn-secondary:hover {
+    background-color: var(--admin-gray-100) !important;
+}
+
+/* Form inputs - square corners, 2px border */
+.form-control,
+.form-select {
+    border-radius: 0 !important;
+    border-width: 2px !important;
+    border-color: var(--admin-gray-300) !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--admin-ink) !important;
+    box-shadow: none !important;
+}
+
+/* Badges - square, uppercase */
+.badge {
+    border-radius: 0 !important;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+/* Page title styling */
+.content-header-title .title {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+/* -----------------------------------------
+   9. STATUS BADGES BAUHAUS
+   ----------------------------------------- */
+.badge-success,
+.badge.bg-success {
+    background-color: var(--admin-success) !important;
+}
+
+.badge-warning,
+.badge.bg-warning {
+    background-color: var(--admin-warning) !important;
+}
+
+.badge-danger,
+.badge.bg-danger {
+    background-color: var(--admin-danger) !important;
+}
+
+.badge-secondary,
+.badge.bg-secondary {
+    background-color: var(--admin-gray-500) !important;
+}
+
+.badge-primary,
+.badge.bg-primary {
+    background-color: var(--admin-graphite) !important;
+}
+
+/* -----------------------------------------
+   10. BAUHAUS DECORATIVE ELEMENTS
+   ----------------------------------------- */
+
+/* Logo area enhancement */
+.sidebar-header .sidebar-logo {
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+/* Section headers */
+.menu-header {
+    font-weight: 700 !important;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.7rem !important;
+}
+
+/* -----------------------------------------
+   11. FLASH MESSAGES
+   ----------------------------------------- */
+.alert {
+    border-radius: 0 !important;
+    border-width: 2px !important;
+}
+
+.alert-success {
+    background-color: rgba(5, 150, 105, 0.1);
+    border-color: var(--admin-success);
+    color: var(--admin-success);
+}
+
+.alert-warning {
+    background-color: rgba(217, 119, 6, 0.1);
+    border-color: var(--admin-warning);
+    color: var(--admin-warning);
+}
+
+.alert-danger {
+    background-color: rgba(220, 38, 38, 0.1);
+    border-color: var(--admin-danger);
+    color: var(--admin-danger);
+}
+
+/* -----------------------------------------
+   12. RESPONSIVE ADJUSTMENTS
+   ----------------------------------------- */
+@media (max-width: 992px) {
+    .responsive-header {
+        border-bottom-width: 2px !important;
+    }
+}
+
+/* -----------------------------------------
+   13. CUSTOM ADMIN COMPONENTS
+   (For custom pages using admin/base.html.twig)
+   ----------------------------------------- */
+
+/* KPI Cards */
+.admin-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 1200px) {
+    .admin-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-kpi-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.admin-kpi-card {
+    background-color: var(--admin-white);
+    padding: 1.25rem;
+    border: 2px solid var(--admin-gray-300);
+    transition: all 0.15s ease;
+}
+
+.admin-kpi-card:hover {
+    border-color: var(--admin-graphite);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.admin-kpi-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--admin-gray-500);
+    margin-bottom: 0.5rem;
+}
+
+.admin-kpi-value {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--admin-ink);
+    line-height: 1;
+}
+
+.admin-kpi-sublabel {
+    font-size: 0.875rem;
+    color: var(--admin-gray-600);
+    margin-top: 0.25rem;
+}
+
+.admin-kpi-card-accent {
+    background-color: var(--admin-graphite);
+    border-color: var(--admin-graphite);
+}
+
+.admin-kpi-card-accent .admin-kpi-label {
+    color: var(--admin-gray-400);
+}
+
+.admin-kpi-card-accent .admin-kpi-value {
+    color: var(--admin-white);
+}
+
+.admin-kpi-card-accent .admin-kpi-sublabel {
+    color: var(--admin-gray-400);
+}
+
+/* Title underline - Bauhaus style */
+.admin-title-line {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 0.5rem;
+}
+
+.admin-title-line span:nth-child(1) {
+    width: 48px;
+    height: 4px;
+    background-color: var(--admin-ink);
+}
+
+.admin-title-line span:nth-child(2) {
+    width: 24px;
+    height: 4px;
+    background-color: var(--admin-gray-600);
+}
+
+.admin-title-line span:nth-child(3) {
+    width: 12px;
+    height: 4px;
+    background-color: var(--admin-gray-400);
+}
