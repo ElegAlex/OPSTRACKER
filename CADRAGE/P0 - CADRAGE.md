@@ -3,7 +3,7 @@
 ## OpsTracker — Application Générique de Pilotage d'Opérations IT
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 **CHARTE DE CADRAGE** Version : **2.0** (mise à jour post-réunion CPAM) Niveau de confiance : **95%**
+📋 **CHARTE DE CADRAGE** Version : **2.0** (mise à jour post-réunion Organisation) Niveau de confiance : **95%**
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ---
@@ -13,28 +13,28 @@
 |Version|Date|Modification|
 |---|---|---|
 |1.0|Janvier 2025|Version initiale|
-|2.0|Janvier 2025|Intégration des besoins P1.3bis (réunion CPAM) : nouveaux stakeholders, modules réservation/créneaux/notifications, risques, clarification modèle déploiement|
+|2.0|Janvier 2025|Intégration des besoins P1.3bis (réunion Organisation) : nouveaux stakeholders, modules réservation/créneaux/notifications, risques, clarification modèle déploiement|
 
 ---
 
 ## 1. Contexte & Déclencheur
 
-**Pitch** : Développer une application générique et modulaire de pilotage d'opérations IT (migrations, déploiements, renouvellements matériels) à destination des CPAM. L'application doit permettre de planifier, suivre et piloter des opérations de masse sur des cibles variées (utilisateurs, postes, serveurs, devices) avec des champs, statuts, checklists et dashboards entièrement configurables. **Elle inclut également une interface de réservation de créneaux pour les agents et managers métier impactés par les opérations.**
+**Pitch** : Développer une application générique et modulaire de pilotage d'opérations IT (migrations, déploiements, renouvellements matériels) à destination des organisations. L'application doit permettre de planifier, suivre et piloter des opérations de masse sur des cibles variées (utilisateurs, postes, serveurs, devices) avec des champs, statuts, checklists et dashboards entièrement configurables. **Elle inclut également une interface de réservation de créneaux pour les agents et managers métier impactés par les opérations.**
 
-**Déclencheur** : Une application spécifique a été développée pour la migration DRSM→CPAM. Cette app, bien que fonctionnelle et appréciée, n'est pas réutilisable en l'état. Plusieurs CPAM (37, 75, 77, 93) ont exprimé des besoins similaires de pilotage d'opérations IT. **Une réunion de recueil de besoins (janvier 2025) a permis d'identifier des besoins complémentaires majeurs : interface de réservation type "Doctolib", gestion de la capacité IT, notifications avec intégration agenda.**
+**Déclencheur** : Une application spécifique a été développée pour la migration DRSM→Organisation. Cette app, bien que fonctionnelle et appréciée, n'est pas réutilisable en l'état. Plusieurs Organisation (37, 75, 77, 93) ont exprimé des besoins similaires de pilotage d'opérations IT. **Une réunion de recueil de besoins (janvier 2025) a permis d'identifier des besoins complémentaires majeurs : interface de réservation type "Doctolib", gestion de la capacité IT, notifications avec intégration agenda.**
 
 **Existant valorisable** :
 
-- L'application DRSM→CPAM constitue un POC fonctionnel validant les concepts clés (segmentation, planification, checklists, dashboard, base documentaire).
-- 🆕 **Application RDV CPAM 75** : La CPAM 75 dispose d'une application de prise de rendez-vous fonctionnant avec la carte agent. Possibilité d'export/intégration à évaluer.
+- L'application DRSM→Organisation constitue un POC fonctionnel validant les concepts clés (segmentation, planification, checklists, dashboard, base documentaire).
+- 🆕 **Application RDV Org. B** : La Org. B dispose d'une application de prise de rendez-vous fonctionnant avec la carte agent. Possibilité d'export/intégration à évaluer.
 
 ---
 
 ## 2. Gouvernance
 
-- **Sponsor** : DSI CPAM Nanterre (porteur du projet)
-- **Décideur** : DSI CPAM Nanterre
-- **Contributeurs** : CPAM demandeuses (37, 75, 77, 78, 93), techniciens informatiques (utilisateurs finaux), **managers métier et agents impactés (bénéficiaires)** 🆕
+- **Sponsor** : DSI Organisation (porteur du projet)
+- **Décideur** : DSI Organisation
+- **Contributeurs** : organisations demandeuses (37, 75, 77, 78, 93), techniciens informatiques (utilisateurs finaux), **managers métier et agents impactés (bénéficiaires)** 🆕
 
 ---
 
@@ -42,8 +42,8 @@
 
 |Partie prenante|Rôle|Intérêt|Influence|
 |---|---|---|---|
-|DSI CPAM Nanterre|Sponsor / Développeur / Éditeur|Haut|Haut|
-|CPAM 37, 75, 77, 78, 93|Utilisateurs demandeurs|Haut|Moyen|
+|DSI Organisation|Sponsor / Développeur / Éditeur|Haut|Haut|
+|Org. A, 75, 77, 78, 93|Utilisateurs demandeurs|Haut|Moyen|
 |Techniciens IT (Ops)|Utilisateurs finaux (exécutent les interventions)|Haut|Bas|
 |🆕 **Agents impactés**|Bénéficiaires des opérations (end-users métier)|Moyen|Bas|
 |🆕 **Managers métier**|Positionnent leurs agents, préservent continuité service|Moyen|Moyen|
@@ -60,7 +60,7 @@
 
 **Module cœur — Planification d'opérations :**
 
-- Segmentation paramétrable (CPAM, site, service, etc.)
+- Segmentation paramétrable (Organisation, site, service, etc.)
 - Cibles configurables (users, postes, serveurs, devices)
 - Champs custom paramétrables (nom, prénom, numéro agent, adresse IP, MAC, etc.)
 - Gestion des rendez-vous (date initiale, date réelle, heure, lieu, opérateur assigné)
@@ -72,7 +72,7 @@
 
 **Module Dashboard :**
 
-- Vision macro par CPAM et par segment
+- Vision macro par organisation et par segment
 - Métriques configurables (taux de réalisation, compteurs par statut)
 - Widgets modulables et personnalisables par utilisateur
 - Graphiques de suivi temporel (histogrammes par jour/semaine/mois)
@@ -87,7 +87,7 @@
 
 **Module Prérequis :**
 
-- Suivi des prérequis par entité (CPAM, site, service)
+- Suivi des prérequis par entité (Organisation, site, service)
 - Statuts (À faire, En cours, Fait)
 - Rang chronologique configurable
 
@@ -160,13 +160,13 @@
 |---|---|
 |Intégration GLPI|❌ Hors scope V1 — Import CSV suffit|
 |Authentification|V1 : Comptes locaux + AD / V2 : + Carte agent + SSO CNAM|
-|Hébergement|Serveur local CPAM 92 (self-hosted)|
+|Hébergement|Serveur local Organisation (self-hosted)|
 |Homologation sécurité|Faible (self-hosted, pas d'exposition externe, stack à jour)|
 |Bundle Symfony AM|Normalement disponible (à confirmer lors du setup)|
 |Priorisation V1|100% des features décrites + modules réservation/créneaux/notifications|
-|🆕 **Modèle de déploiement**|**Portail des Applications Locales** (pas Filigramme labellisé). CPAM 92 = éditeur, création d'instances pour autres CPAM demandeuses|
+|🆕 **Modèle de déploiement**|**Portail des Applications Locales** (pas Filigramme labellisé). Organisation = éditeur, création d'instances pour autres organisations demandeuses|
 |🆕 **Mode inscription par défaut**|À valider avec sponsor (Agent / Manager)|
-|🆕 **Auth carte agent V1**|AD simple en V1, carte agent évaluée pour V2 (faisabilité technique à confirmer avec CPAM 75)|
+|🆕 **Auth carte agent V1**|AD simple en V1, carte agent évaluée pour V2 (faisabilité technique à confirmer avec Org. B)|
 |🆕 **Extension non-IT**|L'outil peut servir à d'autres directions (RH, SIRH) pour des campagnes non-IT (photos ID Prime, etc.) — cloisonnement par propriétaire|
 
 ---
@@ -179,11 +179,11 @@
 |Délai|Non défini (hors sujet selon sponsor)|Faible — Pas de deadline imposée. MVP visé : 12-14 semaines|
 |Techno|**Symfony obligatoire** (framework Assurance Maladie)|Fort — Architecture et choix de bundles contraints par l'écosystème Symfony|
 |Techno|Bundle AM à récupérer (normalement disponible)|Moyen — À confirmer lors du setup technique|
-|Infra|**Hébergement self-hosted CPAM 92**|Faible — Contrôle total, pas de contraintes cloud/HDS|
-|🆕 Infra|**Serveur SMTP** pour notifications email|Moyen — Nécessite accès SMTP CPAM ou relais mail|
+|Infra|**Hébergement self-hosted Organisation**|Faible — Contrôle total, pas de contraintes cloud/HDS|
+|🆕 Infra|**Serveur SMTP** pour notifications email|Moyen — Nécessite accès SMTP Organisation ou relais mail|
 |🆕 Format|**Fichiers ICS** compatibles Outlook|Faible — Standard iCalendar, bibliothèques disponibles|
 |Orga|Développement solo (DSI + IA)|Moyen — Vélocité dépendante d'une seule personne, pas de bus factor|
-|🆕 Orga|**Divergences pratiques entre CPAM** (inscription agent vs manager)|Moyen — Configurabilité maximale requise (4 modes d'inscription)|
+|🆕 Orga|**Divergences pratiques entre Organisation** (inscription agent vs manager)|Moyen — Configurabilité maximale requise (4 modes d'inscription)|
 |Réglementaire|RGAA 4.1 (accessibilité secteur public)|Fort — Obligation légale, sanctions financières possibles|
 |Sécurité|Homologation légère (self-hosted, pas d'exposition externe)|Faible — Stack à jour suffit|
 
@@ -193,11 +193,11 @@
 
 ### État actuel
 
-- **Application DRSM→CPAM (TAM)** : Application spécifique fonctionnelle pour la migration DRSM→CPAM. A validé les concepts clés mais n'est pas générique/réutilisable.
+- **Application DRSM→Organisation (TAM)** : Application spécifique fonctionnelle pour la migration DRSM→Organisation. A validé les concepts clés mais n'est pas générique/réutilisable.
     
-- 🆕 **Application RDV CPAM 75** : La CPAM 75 dispose d'une application de prise de rendez-vous fonctionnant avec la carte agent. Brique technique potentiellement réutilisable ou source d'inspiration pour le module réservation.
+- 🆕 **Application RDV Org. B** : La Org. B dispose d'une application de prise de rendez-vous fonctionnant avec la carte agent. Brique technique potentiellement réutilisable ou source d'inspiration pour le module réservation.
     
-- 🆕 **Pratiques actuelles de recensement** : Les CPAM utilisent des fichiers Excel partagés pour recenser les disponibilités des agents. Processus fastidieux, source d'erreurs et de conflits de versions.
+- 🆕 **Pratiques actuelles de recensement** : Les Organisation utilisent des fichiers Excel partagés pour recenser les disponibilités des agents. Processus fastidieux, source d'erreurs et de conflits de versions.
     
 
 ### Leçons du passé
@@ -207,7 +207,7 @@
 - ⚠️ La modification des checklists écrasait tout le suivi back → **Problème corrigé** : ajouts séquentiels uniquement, protection des checklists "in progress"
 - ⚠️ Application non générique → **Problème à corriger** : tout doit être paramétrable
 - 🆕 ⚠️ Le recensement des disponibilités par Excel était fastidieux et source d'erreurs → **Solution identifiée** : interface self-service type "Doctolib"
-- 🆕 ⚠️ Divergence organisationnelle entre CPAM (agents autonomes vs managers qui positionnent) → **Solution identifiée** : mode d'inscription configurable par campagne
+- 🆕 ⚠️ Divergence organisationnelle entre Organisation (agents autonomes vs managers qui positionnent) → **Solution identifiée** : mode d'inscription configurable par campagne
 
 ---
 
@@ -216,13 +216,13 @@
 |#|Risque|Probabilité|Impact|Mitigation|
 |---|---|---|---|---|
 |1|**Complexité de la configurabilité** : Rendre TOUT paramétrable (champs, statuts, segments, checklists) augmente significativement la complexité technique|Haute|Fort|Architecture modulaire dès le départ, patterns JSONB/EAV pour champs dynamiques, Symfony Workflow pour statuts|
-|2|**Dérive du périmètre** : Liste de features très ambitieuse pour un développement solo|Moyenne|Fort|Priorisation MoSCoW, livraison incrémentale, validation par les CPAM pilotes|
+|2|**Dérive du périmètre** : Liste de features très ambitieuse pour un développement solo|Moyenne|Fort|Priorisation MoSCoW, livraison incrémentale, validation par les organisations pilotes|
 |3|**Dépendance au bundle AM** : Si le bundle n'est pas récupérable ou incompatible|Moyenne|Moyen|Prévoir architecture standalone compatible avec intégration ultérieure|
 |4|**Accessibilité RGAA** : Intégration tardive = refonte coûteuse|Haute|Fort|Intégrer les critères RGAA dès la conception, utiliser composants accessibles|
-|5|**Adoption multi-CPAM** : Hétérogénéité des pratiques entre CPAM|Moyenne|Moyen|Configuration de base partagée + personnalisations encadrées, gouvernance claire|
+|5|**Adoption multi-organisations** : Hétérogénéité des pratiques entre Organisation|Moyenne|Moyen|Configuration de base partagée + personnalisations encadrées, gouvernance claire|
 |6|**Bus factor = 1** : Développeur unique|Moyenne|Fort|Documentation exhaustive, code propre, tests automatisés|
 |7|**Performance sur volumes** : Opérations de masse (100 000 lignes), champs dynamiques JSONB|Moyenne|Moyen|Indexation GIN PostgreSQL, imports asynchrones (Symfony Messenger)|
-|🆕 8|**Divergence organisationnelle** : Chaque CPAM veut son mode de fonctionnement (agents autonomes vs managers qui positionnent)|Haute|Moyen|Configurabilité maximale par campagne (4 modes d'inscription : Agent / Manager / Liste / Mixte)|
+|🆕 8|**Divergence organisationnelle** : Chaque organisation veut son mode de fonctionnement (agents autonomes vs managers qui positionnent)|Haute|Moyen|Configurabilité maximale par campagne (4 modes d'inscription : Agent / Manager / Liste / Mixte)|
 |🆕 9|**Récupération nationale** : CNAM pourrait bloquer ou reprendre l'initiative locale|Moyenne|Fort|Avancer vite, créer de la valeur, positionner sur Portail Applications Locales (pas Filigramme labellisé), rester sous le radar|
 |🆕 10|**Adoption end-users** : Interface trop complexe pour les agents métier (usage ponctuel, zéro formation)|Faible|Fort|UX "Doctolib" (3 clics max), interface ultra-simplifiée, authentification transparente (AD puis carte agent V2)|
 |🆕 11|**Capacité serveur SMTP** : Notifications en masse (invitations, rappels)|Faible|Moyen|Envoi asynchrone (Symfony Messenger), rate limiting, file d'attente|
@@ -250,11 +250,11 @@
 |---|---|---|
 |1|Intégration GLPI|Import CSV suffit en V1|
 |2|Authentification|V1 : Comptes locaux + AD / V2 : + Carte agent + SSO CNAM|
-|3|Hébergement cible|Serveur local CPAM 92|
+|3|Hébergement cible|Serveur local Organisation|
 |4|Bundle Symfony AM|Normalement disponible|
 |5|Homologation|Légère (self-hosted, pas d'exposition externe, stack à jour)|
 |6|Priorisation V1|100% des features de l'input initial + modules P1.3bis|
-|🆕 7|Modèle déploiement|Portail Applications Locales (CPAM 92 = éditeur)|
+|🆕 7|Modèle déploiement|Portail Applications Locales (Organisation = éditeur)|
 |🆕 8|Extension non-IT|Autorisée (campagnes RH, SIRH) avec cloisonnement|
 
 ### Points en attente de validation sponsor
@@ -292,10 +292,10 @@
 
 **Niveau de confiance : 95%**
 
-_Les 5% d'incertitude portent sur : disponibilité effective du bundle Symfony AM, faisabilité technique auth carte agent (à confirmer avec CPAM 75), points sponsor en attente de validation._
+_Les 5% d'incertitude portent sur : disponibilité effective du bundle Symfony AM, faisabilité technique auth carte agent (à confirmer avec Org. B), points sponsor en attente de validation._
 
 ---
 
 **Statut** : 🟢 **GO DISCOVERY (P1) — CONFIRMÉ**
 
-_Document mis à jour suite à la réunion de recueil de besoins CPAM (P1.3bis)._ _Prochaine étape : Mise à jour P4.2 (Architecture) et P4.3 (Validation) avec les nouveaux modules._
+_Document mis à jour suite à la réunion de recueil de besoins Organisation (P1.3bis)._ _Prochaine étape : Mise à jour P4.2 (Architecture) et P4.3 (Validation) avec les nouveaux modules._

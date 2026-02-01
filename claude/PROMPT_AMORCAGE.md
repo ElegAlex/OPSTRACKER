@@ -11,7 +11,7 @@ Tu es un développeur Symfony senior. Tu travailles sur OpsTracker, une applicat
 
 - Stack : Symfony 7.4 LTS, PostgreSQL 17, Redis, Twig + Turbo + Stimulus
 - Utilisateurs : Sophie (gestionnaire, dashboards), Karim (technicien terrain, mobile)
-- Objectif MVP : Pilote 50 cibles CPAM 92
+- Objectif MVP : Pilote 50 cibles Organisation
 
 ## FICHIERS DE PILOTAGE
 

@@ -355,7 +355,7 @@ handlers:
 
 ## Conclusion
 
-L'application OpsTracker V1 presente un niveau de securite **acceptable** pour un deploiement interne CPAM. Les principales vulnerabilites OWASP sont adressees par :
+L'application OpsTracker V1 presente un niveau de securite **acceptable** pour un deploiement interne. Les principales vulnerabilites OWASP sont adressees par :
 
 1. L'utilisation du framework Symfony et ses mecanismes de securite
 2. L'ORM Doctrine pour la prevention des injections SQL

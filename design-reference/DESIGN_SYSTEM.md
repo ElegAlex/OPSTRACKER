@@ -291,7 +291,7 @@ Liserés d'accent (status) :
 ┌─────────────────────────┐
 │  LOGO                   │  p-8
 │  [■] OpsTracker         │
-│      CPAM Nanterre      │
+│      Organisation      │
 ├─────────────────────────┤
 │  NAV                    │  px-6 py-4
 │  ■ Campagnes (actif)    │

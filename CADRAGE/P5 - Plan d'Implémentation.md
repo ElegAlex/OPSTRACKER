@@ -8,7 +8,7 @@
 
 ```mermaid
 gantt
-    title Roadmap OpsTracker — MVP Pilote CPAM 92
+    title Roadmap OpsTracker — MVP Pilote Organisation
     dateFormat  YYYY-MM-DD
     
     section Sprint 0
@@ -40,7 +40,7 @@ gantt
     Bug fixes + polish                   :s5a, 2026-03-24, 5d
     
     section Milestone
-    MVP Pilote CPAM 92                   :milestone, 2026-03-28, 0d
+    MVP Pilote Organisation                   :milestone, 2026-03-28, 0d
 ```
 
 ---
@@ -53,9 +53,9 @@ gantt
 
 |Action|Responsable|Délai|Statut|
 |---|---|---|---|
-|Provisioning serveur Docker CPAM 92|Ops/Marc|J+3|⬜|
+|Provisioning serveur Docker Organisation|Ops/Marc|J+3|⬜|
 |Setup `docker-compose.yml` (Nginx + PHP-FPM + PostgreSQL 17 + Redis 7)|Dev|J+2|⬜|
-|Certificat SSL interne CPAM déposé|Marc|J+1|⬜|
+|Certificat SSL interne déposé|Marc|J+1|⬜|
 |Fichier `.env.local` avec secrets (`DB_PASSWORD`, `APP_SECRET`)|Dev|J+2|⬜|
 |Volumes Docker persistants configurés|Dev|J+2|⬜|
 
@@ -64,7 +64,7 @@ gantt
 |Action|Responsable|Délai|Statut|
 |---|---|---|---|
 |Dépôt Git créé (GitLab interne ou GitHub)|Dev|J+1|⬜|
-|Accès SSH serveur CPAM 92|Marc|J+1|⬜|
+|Accès SSH serveur Organisation|Marc|J+1|⬜|
 |Bundle AM Symfony récupéré (si disponible)|Dev|J+3|⬜|
 
 ### 🔬 Spike Technique Critique
@@ -254,7 +254,7 @@ GROUP BY custom_data->>'bureau';
 
 ### 🏃 Sprint 5 : Hardening (Buffer)
 
-**Dates** : 24 — 28 mars 2026 (1 semaine) **Objectif** : Stabiliser le MVP pour le pilote CPAM 92
+**Dates** : 24 — 28 mars 2026 (1 semaine) **Objectif** : Stabiliser le MVP pour le pilote Organisation
 
 |#|Ticket|Type|Effort|
 |---|---|---|---|
@@ -298,7 +298,7 @@ Pour qu'un ticket passe en "Terminé" :
 
 |Bloqueur Potentiel|Impact|Sprint|Mitigation (Qui fait quoi ?)|
 |---|---|---|---|
-|**Serveur CPAM 92 non provisionné**|Bloque Sprint 0|S0|Marc provisionne J+1, plan B = VM locale dev|
+|**Serveur Organisation non provisionné**|Bloque Sprint 0|S0|Marc provisionne J+1, plan B = VM locale dev|
 |**Spike JSONB échoue**|Bloque architecture|S0|Pagination aggressive dès 10k ops|
 |**Bundle AM indisponible**|Impact Auth|S1|Architecture standalone (déjà prévu)|
 |**Symfony Workflow complexité**|Bloque S2|S2|Pattern fallback état machine simple|
@@ -357,7 +357,7 @@ graph LR
 |**Qui valide les US ?**|Vous (auto-validation sur critères BDD)|
 |**Qui développe ?**|Vous (assisté IA)|
 |**Qui déploie ?**|Vous (via script `git pull + docker-compose`)|
-|**Qui teste la recette ?**|Vous + 1-2 utilisateurs pilotes CPAM 92 (Sophie/Karim)|
+|**Qui teste la recette ?**|Vous + 1-2 utilisateurs pilotes Organisation (Sophie/Karim)|
 |**Qui gère les incidents prod ?**|Vous (support N2) + Marc (infra si besoin)|
 |**Qui décide GO/NO-GO ?**|Vous|
 
@@ -375,7 +375,7 @@ graph LR
 |**S3**|2 sem|7|Interface Karim + Checklists|
 |**S4**|2 sem|4|Dashboard + Import CSV + RGAA|
 |**S5**|1 sem|—|Stabilisation + Docs|
-|**TOTAL**|**~10 sem**|**23**|**MVP Pilote CPAM 92**|
+|**TOTAL**|**~10 sem**|**23**|**MVP Pilote Organisation**|
 
 ---
 
@@ -389,7 +389,7 @@ graph LR
 |**Review/Demo**|Fin de sprint|15 min|Auto-review + capture vidéo si besoin|
 |**Rétrospective**|Fin de sprint|10 min|Note sur ce qui a marché/bloqué|
 |**Refinement**|Mi-sprint|20 min|Relecture US prochaines + ajustements|
-|**Validation terrain**|Fin S3 + S4|1h|Demo avec 1-2 utilisateurs CPAM 92|
+|**Validation terrain**|Fin S3 + S4|1h|Demo avec 1-2 utilisateurs Organisation|
 
 > **Conseil** : Tenez un journal de bord (markdown ou Notion) pour tracer les décisions. C'est votre mémoire projet et votre protection contre le bus factor.
 
@@ -424,7 +424,7 @@ graph LR
 |3|**Sprints**|2 semaines ✅|
 |4|**Spike JSONB**|J+5 validé ✅|
 |5|**Buffer S5**|1 semaine ✅|
-|6|**Serveur CPAM 92**|Provisionnable avant J+3 ✅|
+|6|**Serveur Organisation**|Provisionnable avant J+3 ✅|
 
 ---
 

@@ -6,8 +6,8 @@
 
 |Phase|Sprints|Statut|US|Focus|
 |---|---|---|---|---|
-|**MVP**|0-8|✅ Terminé|47|Pilote 50 cibles CPAM 92|
-|**V1**|9-14|✅ Terminé|29|Déploiement 4 CPAM|
+|**MVP**|0-8|✅ Terminé|47|Pilote 50 cibles Organisation|
+|**V1**|9-14|✅ Terminé|29|Déploiement multi-sites|
 |**Audit V1**|15|✅ Terminé|-|Qualification Production|
 |**V2 Réservation**|16-17|✅ Terminé|16|Module Réservation Doodle|
 |**V2.1**|18+|⏳ Backlog|9|Notifications + Améliorations|
@@ -472,7 +472,7 @@
 
 1. ✅ ~~Audit V1 (P6-QUALIFY)~~
 2. ✅ ~~Module Réservation V2 (EPIC-10/11)~~
-3. 🔜 Déploiement production CPAM 92
+3. 🔜 Déploiement production Organisation
 4. 🔜 Formation utilisateurs (Sophie, Karim, Agent, Manager)
 5. 🔜 EPIC-12 Notifications (emails automatiques)
 6. 🔜 P7 — Évaluation post-lancement (KPIs)

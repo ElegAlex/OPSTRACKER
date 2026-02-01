@@ -90,7 +90,7 @@ Les fixtures V2 (`ReservationFixtures.php`) etablissent le jeu de donnees de ref
    - Duplication de creneaux d'une semaine sur l'autre
    - Rappels SMS en plus des emails
 
-5. Recommanderiez-vous OpsTracker a un collegue d'une autre CPAM ?
+5. Recommanderiez-vous OpsTracker a un collegue d'une autre Organisation ?
    [X] Oui, certainement  [ ] Oui, probablement  [ ] Non, probablement pas  [ ] Non
 ```
 
@@ -342,7 +342,7 @@ TOTAL ECONOMIE ANNUELLE : 132 heures = 16.5 jours-homme
 
 | # | Amelioration | Benefice | Effort |
 |---|--------------|----------|--------|
-| 1 | Authentification SSO/AD complete | Securite CPAM | 2 sprints |
+| 1 | Authentification SSO/AD complete | Securite Organisation | 2 sprints |
 | 2 | Module statistiques avancees | Pilotage direction | 2 sprints |
 
 ### Backlog V2.1 Priorise

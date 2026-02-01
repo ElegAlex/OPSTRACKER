@@ -247,7 +247,7 @@ Tous les critères de qualité sont satisfaits :
 
 1. ✅ ~~Corriger les findings bloquants~~
 2. ✅ ~~Re-valider après corrections~~
-3. 🔜 Déploiement production CPAM 92
+3. 🔜 Déploiement production Organisation
 4. 🔜 Formation utilisateurs (Sophie, Karim)
 5. 🔜 P7 — Évaluation post-lancement (KPIs)
 

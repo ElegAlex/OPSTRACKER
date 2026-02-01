@@ -1224,7 +1224,7 @@
 ### Réalisé
 - Projet Symfony 7.4.3 LTS créé via Docker
 - Docker Compose configuré (PHP 8.3, PostgreSQL 17, Redis 7, Nginx)
-- AssetMapper + Tailwind CDN avec couleurs CPAM
+- AssetMapper + Tailwind CDN avec couleurs organisation
 - EasyAdmin 4.27 installé
 - UX Turbo + Stimulus (inclus avec --webapp)
 - PHPUnit configuré avec 2 tests passants

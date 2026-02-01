@@ -131,7 +131,7 @@
 - `src/Service/IcsGenerator.php` - Generation fichiers ICS (2 alarmes)
 - `src/Service/NotificationService.php` - Envoi emails avec Twig + ICS
 - `src/Command/SendReminderCommand.php` - Commande cron rappels J-X
-- `templates/emails/base.html.twig` - Layout emails CPAM
+- `templates/emails/base.html.twig` - Layout emails Organisation
 - `templates/emails/confirmation.html.twig` - Email confirmation RDV
 - `templates/emails/rappel.html.twig` - Email rappel J-2
 - `templates/emails/modification.html.twig` - Email modification (ancien+nouveau)
@@ -467,7 +467,7 @@ php bin/console app:send-reminders --dry-run
 
 ### Phase P7 - Post-deploiement (4-8 semaines)
 
-1. Deploiement sur serveur de test CPAM 92
+1. Deploiement sur serveur de test Organisation
 2. Formation utilisateurs (Sophie, Karim, Managers)
 3. Collecte feedback utilisateurs
 4. Optimisations performances si necessaire

@@ -584,7 +584,7 @@
 
 **Stéphane :** Non non, Nanterre. Excuse-moi Alexandre. Mais donc du coup ça veut bien... voilà. Donc du coup ça veut dire que euh la solution elle va être commune à tout le monde. Maintenant on a des organisations différentes. Donc ça veut dire qu'en gros on est sur une seule appli mais avec des organisations qui peuvent être différentes d'une caisse à l'autre.
 
-**Alexandre :** On est d'accord là-dessus. Bah après Stéphane le le principe ça peut être enfin le le principe Filigramme hein, c'est hébergé à la CPAM de Nanterre mais il y a une instance par euh CPAM qui demande, mais effectivement la maintenance...
+**Alexandre :** On est d'accord là-dessus. Bah après Stéphane le le principe ça peut être enfin le le principe Filigramme hein, c'est hébergé à la Organisation mais il y a une instance par euh Organisation qui demande, mais effectivement la maintenance...
 
 **Stéphane :** D'accord. OK.
 
@@ -632,11 +632,11 @@
 
 **Laurent :** Absolument. Et là c'est euh c'est tout ce qu'on veut hein. C'est-à-dire toutes les applications, soit à télécharger à mettre chez soi, soit avec un partage d'une caisse à une autre, euh soit certaines en hébergement parce qu'ils ont une histoire différente des autres. Euh après on retrouve tous les les trucs. Mais ceux qui rentrent dans la filière normalement sont voués à être sur le M2 Cloud. Quand c'est possible.
 
-**Alexandre :** Oui, donc là effectivement c'est aussi moi qui fais l'amalgame, on serait plus sur le portail des applications locales pour laquelle la CPAM 92 serait...
+**Alexandre :** Oui, donc là effectivement c'est aussi moi qui fais l'amalgame, on serait plus sur le portail des applications locales pour laquelle la Organisation serait...
 
 **Laurent :** Voilà. C'est une application partagée. Tout à fait.
 
-**Alexandre :** ...on va dire en éditeur de l'application avec création d'instance pour les les autres CPAM qui en en exprimeraient le souhait.
+**Alexandre :** ...on va dire en éditeur de l'application avec création d'instance pour les les autres Organisation qui en en exprimeraient le souhait.
 
 **Laurent :** Ouais ouais.
 
@@ -652,7 +652,7 @@
 
 **Laurent :** Ouais.
 
-**Alexandre :** ...d'assumer le développement, l'hébergement, la maintenance et de mettre à disposition les instances pour euh toutes les euh les CPAM qui demandent.
+**Alexandre :** ...d'assumer le développement, l'hébergement, la maintenance et de mettre à disposition les instances pour euh toutes les euh les organisations qui demandent.
 
 **Stéphane :** Ouais c'est ça. Ouais ouais. On est d'accord.
 
@@ -904,7 +904,7 @@
 
 **Laurent :** OK.
 
-**Alexandre :** Euh donc ouais alors c'est vrai que là donc là cette slide elle est elle est incomplète maintenant parce que je l'avais vu que sur le la vision la vision Ta Mère DV donc en fait en gros c'était nous qui gérions enfin la partie IT qui gérait tout, c'est-à-dire euh la préparation de la campagne, le suivi, le pilotage et puis euh les techs qui étaient sur le déploiement et l'alimentation on va dire individuelle. Donc là je rajouterai en terme en en terme de personas bah les les users alors que ça soit la partie manager ou si on l'étend à à bah jusqu'à l'agent hein. Mais je pense qu'il faut il faut que je qualifie ces deux personas en plus. Je vais voir comment ça s'intègre. Sachant mais là là c'est qu'un rappel hein c'était euh moi une de mes finalités si j'avais fait Ta Mère DV alors au lieu de le au en plus de pouvoir gérer individuellement les rendez-vous, c'était aussi pouvoir communiquer euh à la CPAM de Paris en un clic euh où on est où on en était et puis je crois que c'était pareil euh Paris pour vous parce que vous certains d'entre vous avaient donné des accès carrément à des AD sur l'outil et ça de toute façon c'était totalement fait pour. Euh mais j'avais pas perçu la partie allez jusqu'aux end-users et c'est vrai que ouais si on peut se faire un Doctolib interne euh même simple, bah c'est ça ouais ça peut être pas mal. Euh donc voilà là ce que j'avais euh ce que j'avais euh qualifié euh comme comme features euh invariables sur ce que je vais vous proposer sur la première version. Donc là en plus de ce qu'on a dit donc je sais pas si vous voyez des trucs là qui vous viennent qui faut bien que je pense à rajouter assez rapidement.
+**Alexandre :** Euh donc ouais alors c'est vrai que là donc là cette slide elle est elle est incomplète maintenant parce que je l'avais vu que sur le la vision la vision Ta Mère DV donc en fait en gros c'était nous qui gérions enfin la partie IT qui gérait tout, c'est-à-dire euh la préparation de la campagne, le suivi, le pilotage et puis euh les techs qui étaient sur le déploiement et l'alimentation on va dire individuelle. Donc là je rajouterai en terme en en terme de personas bah les les users alors que ça soit la partie manager ou si on l'étend à à bah jusqu'à l'agent hein. Mais je pense qu'il faut il faut que je qualifie ces deux personas en plus. Je vais voir comment ça s'intègre. Sachant mais là là c'est qu'un rappel hein c'était euh moi une de mes finalités si j'avais fait Ta Mère DV alors au lieu de le au en plus de pouvoir gérer individuellement les rendez-vous, c'était aussi pouvoir communiquer euh à la Organisation de Paris en un clic euh où on est où on en était et puis je crois que c'était pareil euh Paris pour vous parce que vous certains d'entre vous avaient donné des accès carrément à des AD sur l'outil et ça de toute façon c'était totalement fait pour. Euh mais j'avais pas perçu la partie allez jusqu'aux end-users et c'est vrai que ouais si on peut se faire un Doctolib interne euh même simple, bah c'est ça ouais ça peut être pas mal. Euh donc voilà là ce que j'avais euh ce que j'avais euh qualifié euh comme comme features euh invariables sur ce que je vais vous proposer sur la première version. Donc là en plus de ce qu'on a dit donc je sais pas si vous voyez des trucs là qui vous viennent qui faut bien que je pense à rajouter assez rapidement.
 
 **Laurent :** Non pour que ça soit simple.
 

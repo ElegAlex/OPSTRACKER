@@ -63,7 +63,7 @@ Les items sont priorises selon la valeur metier et l'effort estime.
 
 | ID | US | Description | Effort | Source |
 |----|----|-----------|----|--------|
-| US-108 | SSO/AD complet | Authentification complete via Active Directory CPAM | 2 sprints | Securite |
+| US-108 | SSO/AD complet | Authentification complete via Active Directory Organisation | 2 sprints | Securite |
 
 ### EPIC-14 : Statistiques Avancees
 

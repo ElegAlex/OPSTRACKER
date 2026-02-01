@@ -7,7 +7,7 @@
 
 ## Introduction
 
-OpsTracker est une application de gestion d'operations IT terrain pour les CPAM. Elle permet de piloter des campagnes de migration/deploiement avec un suivi en temps reel.
+OpsTracker est une application de gestion d'operations IT terrain pour les organisations. Elle permet de piloter des campagnes de migration/deploiement avec un suivi en temps reel.
 
 ### Utilisateurs
 

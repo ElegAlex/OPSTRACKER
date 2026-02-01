@@ -1,7 +1,7 @@
 # Guide Agent - Reserver un creneau
 
 > **OpsTracker V2** - Module Reservation
-> Documentation utilisateur pour les agents CPAM
+> Documentation utilisateur pour les agents
 
 ---
 
@@ -187,7 +187,7 @@ Si votre manager ou coordinateur vous a positionne :
 | Besoin | Contact |
 |--------|---------|
 | Question sur mon creneau | Mon manager direct |
-| Probleme technique | Support IT CPAM |
+| Probleme technique | Support IT |
 | Informations campagne | Coordinateur de campagne |
 
 ---
@@ -201,4 +201,4 @@ Si votre manager ou coordinateur vous a positionne :
 
 ---
 
-_Documentation OpsTracker V2.0.0 - CPAM 92_
+_Documentation OpsTracker V2.0.0 - Organisation_

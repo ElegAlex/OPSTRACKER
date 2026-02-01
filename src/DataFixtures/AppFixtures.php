@@ -406,10 +406,10 @@ class AppFixtures extends Fixture
     ): void {
         $techniciens = [$utilisateurs['karim'], $utilisateurs['tech1'], $utilisateurs['tech2'], $utilisateurs['tech3']];
 
-        // Campagne 1 : En cours - Migration Windows 11 CPAM 92
+        // Campagne 1 : En cours - Migration Windows 11
         $campagne1 = $this->createCampagne(
             $manager,
-            'Migration Windows 11 - CPAM 92',
+            'Migration Windows 11 - Siege',
             'Campagne de migration du parc informatique vers Windows 11. Objectif : 50 postes en janvier 2026.',
             new \DateTimeImmutable('2026-01-06'),
             new \DateTimeImmutable('2026-02-28'),

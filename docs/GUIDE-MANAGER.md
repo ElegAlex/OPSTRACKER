@@ -1,7 +1,7 @@
 # Guide Manager - Positionner vos agents
 
 > **OpsTracker V2** - Module Reservation
-> Documentation utilisateur pour les managers CPAM
+> Documentation utilisateur pour les managers
 
 ---
 
@@ -235,7 +235,7 @@ Menu : **Coordinateur > Campagne > Agents**
 | Besoin | Contact |
 |--------|---------|
 | Question fonctionnelle | Coordinateur de campagne |
-| Probleme technique | Support IT CPAM |
+| Probleme technique | Support IT |
 | Demande de perimetre | Responsable applicatif |
 
 ---
@@ -253,4 +253,4 @@ Menu : **Coordinateur > Campagne > Agents**
 
 ---
 
-_Documentation OpsTracker V2.0.0 - CPAM 92_
+_Documentation OpsTracker V2.0.0 - Organisation_

@@ -766,7 +766,7 @@ class IcsGenerator
         return <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//OpsTracker//CPAM92//FR
+PRODID:-//OpsTracker//Organisation92//FR
 BEGIN:VEVENT
 UID:{$reservation->getId()}@opstracker.cpam92.local
 DTSTART:$dtStart

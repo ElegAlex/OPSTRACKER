@@ -1,14 +1,14 @@
-# OpsTracker — Dossier Complet pour Mutualisation Inter-CPAM
+# OpsTracker — Dossier Complet pour Mutualisation Inter-Organisation
 
 **Application de Pilotage d'Opérations IT de Masse**
 
 ---
 
-> **Document destiné aux DSI des CPAM d'Île-de-France**  
+> **Document destiné aux DSI des organisations d'Île-de-France**  
 > **Version** : 2.1.1 (Tag v2.1.1)  
 > **Date** : 27 janvier 2026  
-> **Éditeur** : CPAM des Hauts-de-Seine (92)  
-> **Contact** : DSI CPAM 92 — Alexandre  
+> **Éditeur** : Organisation des Hauts-de-Seine (92)  
+> **Contact** : DSI Organisation — Alexandre  
 > **Licence** : EUPL 1.2
 
 ---
@@ -35,7 +35,7 @@
 
 ### 1.1 Le Problème
 
-Les CPAM gèrent régulièrement des opérations IT de masse impliquant des centaines voire des milliers de cibles : migrations applicatives, déploiements matériels, renouvellements de parc, mises à jour sécuritaires. Ces opérations sont aujourd'hui pilotées via des fichiers Excel ad hoc.
+Les Organisation gèrent régulièrement des opérations IT de masse impliquant des centaines voire des milliers de cibles : migrations applicatives, déploiements matériels, renouvellements de parc, mises à jour sécuritaires. Ces opérations sont aujourd'hui pilotées via des fichiers Excel ad hoc.
 
 ```mermaid
 flowchart LR
@@ -58,7 +58,7 @@ flowchart LR
 
 ### 1.2 La Solution
 
-**OpsTracker** est une application web de pilotage d'opérations IT de masse conçue spécifiquement pour le contexte CPAM.
+**OpsTracker** est une application web de pilotage d'opérations IT de masse conçue spécifiquement pour le contexte Organisation.
 
 ```mermaid
 flowchart LR
@@ -122,8 +122,8 @@ timeline
         2024 : Migration TAM IDF
              : Application spécifique développée
              : Validation des concepts clés
-    section Demande Multi-CPAM
-        2025-Q1 : Expression d'intérêt CPAM 75, 77, 78, 93
+    section Demande Multi-Organisation
+        2025-Q1 : Expression d'intérêt Org. B, 77, 78, 93
                 : Besoin d'outil générique identifié
     section Développement
         2025-Q2 : Lancement projet OpsTracker
@@ -142,27 +142,27 @@ timeline
 |Dashboard avancement|✅ Visibilité direction|Configurable|
 |Base documentaire|✅ Accès contextualisé|Conservée|
 
-### 2.2 Expression du Besoin Multi-CPAM
+### 2.2 Expression du Besoin Multi-Organisation
 
 ```mermaid
 flowchart TB
-    subgraph CPAM92["🏢 CPAM 92 - Éditeur"]
+    subgraph Organisation92["🏢 Organisation - Éditeur"]
         OT["OpsTracker<br/>Code source"]
     end
     
-    subgraph Demandeurs["🤝 CPAM Intéressées"]
-        CPAM75["CPAM 75 - Paris<br/>App RDV carte agent"]
-        CPAM77["CPAM 77 - Seine-et-Marne<br/>Segmentation territoire"]
-        CPAM78["CPAM 78 - Yvelines<br/>Checklists standards"]
-        CPAM93["CPAM 93 - Seine-Saint-Denis<br/>Dashboard temps réel"]
+    subgraph Demandeurs["🤝 Organisation Intéressées"]
+        Organisation75["Org. B - Paris<br/>App RDV carte agent"]
+        Organisation77["Org. C - Seine-et-Marne<br/>Segmentation territoire"]
+        Organisation78["Org. D - Yvelines<br/>Checklists standards"]
+        Organisation93["Org. E - Seine-Saint-Denis<br/>Dashboard temps réel"]
     end
     
-    OT -.->|"Instance"| CPAM75
-    OT -.->|"Instance"| CPAM77
-    OT -.->|"Instance"| CPAM78
-    OT -.->|"Instance"| CPAM93
+    OT -.->|"Instance"| Organisation75
+    OT -.->|"Instance"| Organisation77
+    OT -.->|"Instance"| Organisation78
+    OT -.->|"Instance"| Organisation93
     
-    style CPAM92 fill:#e3f2fd
+    style Organisation92 fill:#e3f2fd
     style Demandeurs fill:#fff3e0
 ```
 
@@ -201,7 +201,7 @@ quadrantChart
 
 ### 3.1 Le Manifeste
 
-> _"Chaque opération IT pilotée, pas subie. Chaque technicien équipé, pas perdu. Chaque CPAM autonome, pas dépendante."_
+> _"Chaque opération IT pilotée, pas subie. Chaque technicien équipé, pas perdu. Chaque organisation autonome, pas dépendante."_
 
 ### 3.2 Transformation AS-IS → TO-BE
 
@@ -488,13 +488,13 @@ erDiagram
 
 ```mermaid
 flowchart TB
-    subgraph Users["👥 Utilisateurs - Intranet CPAM"]
+    subgraph Users["👥 Utilisateurs - Intranet Organisation"]
         SOPH["👩‍💼 Sophie<br/>Desktop"]
         KAR["👨‍🔧 Karim<br/>Laptop terrain"]
         AGT["👤 Agent<br/>Desktop"]
     end
     
-    subgraph Docker["🐳 Docker CPAM - Self-hosted"]
+    subgraph Docker["🐳 Docker Organisation - Self-hosted"]
         subgraph Web["Couche Web"]
             NGINX["🌐 Nginx<br/>Reverse Proxy + SSL"]
         end
@@ -509,7 +509,7 @@ flowchart TB
         end
     end
     
-    subgraph External["🔗 Services Externes CPAM"]
+    subgraph External["🔗 Services Externes Organisation"]
         SMTP["📧 SMTP<br/>Emails"]
         SMS["📱 Provider SMS<br/>OVH"]
     end
@@ -993,7 +993,7 @@ gantt
 
 ```mermaid
 flowchart TB
-    subgraph Prod["🏭 Production CPAM"]
+    subgraph Prod["🏭 Production Organisation"]
         subgraph Docker["Docker Compose"]
             NG["Nginx"]
             APP["PHP-FPM"]
@@ -1072,8 +1072,8 @@ flowchart TB
     end
     
     subgraph Modele["🤝 Mutualisation"]
-        M1["CPAM 92 = Éditeur"]
-        M2["Chaque CPAM = Instance"]
+        M1["Organisation = Éditeur"]
+        M2["Chaque organisation = Instance"]
         M3["Évolutions partagées"]
     end
     
@@ -1092,7 +1092,7 @@ flowchart TB
 
 ---
 
-**Contact** : DSI CPAM des Hauts-de-Seine (92)  
+**Contact** : DSI des Hauts-de-Seine (92)  
 **Licence** : EUPL 1.2  
 **Version** : 2.0 — 27 janvier 2026
 

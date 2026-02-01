@@ -19,8 +19,8 @@ class IcsGenerator
     private string $domain;
 
     public function __construct(
-        string $prodId = '-//OpsTracker//CPAM//FR',
-        string $domain = 'opstracker.cpam.local'
+        string $prodId = '-//OpsTracker//FR',
+        string $domain = 'opstracker.local'
     ) {
         $this->prodId = $prodId;
         $this->domain = $domain;

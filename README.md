@@ -1,6 +1,6 @@
 # OpsTracker
 
-Application de suivi des operations IT pour les CPAM - Pilotage des campagnes de migration et deploiement en temps reel.
+Application de suivi des operations IT pour les organisations - Pilotage des campagnes de migration et deploiement en temps reel.
 
 **Version:** 0.1.0-mvp
 
@@ -161,7 +161,7 @@ docker compose exec php php bin/console doctrine:migrations:migrate --env=prod -
 
 ## Licence
 
-Proprietary - CPAM 92
+MIT License
 
 ---
 
