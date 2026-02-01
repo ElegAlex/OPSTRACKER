@@ -1,8 +1,8 @@
 # CLAUDE.md — Instructions pour Claude Code
 
-> **Projet** : OpsTracker  
-> **Version** : 1.0 MVP  
-> **Dernière mise à jour** : 2026-01-22
+> **Projet** : OpsTracker
+> **Version** : 2.0 (Module Réservation Doodle)
+> **Dernière mise à jour** : 2026-02-01
 
 ---
 
@@ -238,6 +238,8 @@ templates/
 
 ## 🔢 Règles Métier Critiques
 
+### Core (MVP/V1)
+
 | Code | Règle | Impact |
 |------|-------|--------|
 | RG-006 | Verrouillage compte après 5 échecs | Sécurité auth |
@@ -246,6 +248,66 @@ templates/
 | RG-031 | Snapshot Pattern checklists | Versioning |
 | RG-080 | Triple signalisation RGAA | Accessibilité |
 | RG-082 | Touch targets 44×44px minimum | Mobile Karim |
+
+### Module Réservation (V2)
+
+| Code | Règle | Impact |
+|------|-------|--------|
+| RG-120 | Agent ne voit que créneaux de son segment | Filtrage créneaux |
+| RG-121 | Un agent = max 1 réservation par campagne | UNIQUE constraint |
+| RG-122 | Confirmation automatique email + ICS | Notifications |
+| RG-123 | Verrouillage créneaux J-X (défaut J-2) | Modification interdite |
+| RG-124 | Manager ne voit que ses agents | Filtrage équipe |
+| RG-125 | Traçabilité positionnement (agent/manager/coord) | Audit trail |
+| RG-126 | Notification agent si positionné par tiers | Email automatique |
+| RG-127 | Alerte si >50% équipe même jour | Dashboard planning |
+| RG-130 | Création créneaux manuelle ou auto | Génération plage |
+| RG-131 | Capacité IT configurable par créneau | Limite réservations |
+| RG-133 | Modification créneau = notification agents | Email si changement |
+| RG-134 | Suppression créneau = annulation + notif | Cascade agents |
+| RG-135 | Créneaux par segment optionnel | Filtrage optionnel |
+
+---
+
+## 📦 Entités (17 au total)
+
+### Core (11)
+
+| Entité | Description |
+|--------|-------------|
+| `Utilisateur` | Utilisateur IT (auth, rôles) |
+| `Campagne` | Campagne d'opérations |
+| `Operation` | Unité de travail terrain |
+| `Segment` | Groupement logique d'opérations |
+| `TypeOperation` | Catégorie d'opération |
+| `ChecklistTemplate` | Modèle de checklist |
+| `ChecklistInstance` | Instance d'exécution checklist |
+| `Document` | Fichier attaché |
+| `HabilitationCampagne` | Droits granulaires |
+| `Prerequis` | Tâches préalables |
+| `CoordinateurPerimetre` | Périmètre délégation |
+
+### Module Réservation V2 (6)
+
+| Entité | Description | RG |
+|--------|-------------|-----|
+| `Agent` | Personne métier (matricule, email, service) | RG-121 |
+| `Creneau` | Plage horaire réservable | RG-130, RG-131 |
+| `Reservation` | Association Agent ↔ Creneau | RG-121, RG-125 |
+| `Notification` | Historique emails/SMS | RG-122 |
+| `CampagneChamp` | Colonnes dynamiques CSV | RG-015 |
+| `CampagneAgentAutorise` | Liste agents mode import | — |
+
+---
+
+## 🎯 Controllers Module Réservation
+
+| Controller | Routes | Persona |
+|------------|--------|---------|
+| `BookingController` | `/reservation/{token}/*` | Agent (token privé) |
+| `PublicBookingController` | `/reservation/c/{token}/*` | Public (Doodle) |
+| `ManagerBookingController` | `/manager/campagne/{id}/*` | Manager |
+| `CreneauController` | `/campagnes/{id}/creneaux/*` | Sophie (admin) |
 
 ---
 
@@ -269,6 +331,12 @@ php bin/console cache:clear
 
 # Fixtures
 php bin/console doctrine:fixtures:load
+
+# Import agents depuis CSV (V2)
+php bin/console app:import-agents fichier.csv [--separator=;] [--update]
+
+# Synchroniser segments depuis colonne CSV (V2)
+php bin/console app:sync-segments <campagne_id>
 ```
 
 ---

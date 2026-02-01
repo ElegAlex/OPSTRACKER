@@ -1,4 +1,4 @@
-> **Dernière mise à jour** : 2025-01-24 (Session #16 - Audit V1 Complete) **Source** : P4.1 - Backlog & Requirements Fonctionnels **Total** : 85 User Stories | 12 EPICs
+> **Dernière mise à jour** : 2026-02-01 (Session #27 - Audit Documentation V2) **Source** : P4.1 - Backlog & Requirements Fonctionnels **Total** : 101 User Stories | 14 EPICs
 
 ---
 
@@ -9,7 +9,8 @@
 |**MVP**|0-8|✅ Terminé|47|Pilote 50 cibles CPAM 92|
 |**V1**|9-14|✅ Terminé|29|Déploiement 4 CPAM|
 |**Audit V1**|15|✅ Terminé|-|Qualification Production|
-|**V2**|16+|⏳ Backlog|9|Référencement SILL|
+|**V2 Réservation**|16-17|✅ Terminé|16|Module Réservation Doodle|
+|**V2.1**|18+|⏳ Backlog|9|Notifications + Améliorations|
 
 ---
 
@@ -269,39 +270,118 @@
 
 ---
 
-## 🟢 PHASE V2 — Backlog (Post-V1)
+## 🟢 PHASE V2 — Sprints 16 à 17 ✅
 
-### Réservation End-Users (EPIC-10)
+### Sprint 16 — Module Réservation Core (EPIC-10 + EPIC-11) ✅
 
-|US|Titre|Priorité|
+> **Objectif** : Implémenter le système de réservation type Doodle pour les agents et managers.
+
+#### Nouvelles Entités Créées
+
+|Entité|Description|RG|
 |---|---|---|
-|US-1001|Voir les créneaux disponibles (Agent)|🔴 MVP*|
-|US-1002|Se positionner sur un créneau (Agent)|🔴 MVP*|
-|US-1003|Annuler/modifier son créneau (Agent)|🔴 MVP*|
-|US-1004|Voir mon récapitulatif (Agent)|🟡 V1|
-|US-1005|Voir la liste de mes agents (Manager)|🔴 MVP*|
-|US-1006|Positionner un agent (Manager)|🔴 MVP*|
-|US-1007|Modifier/annuler le créneau d'un agent|🔴 MVP*|
-|US-1008|Voir les créneaux avec répartition équipe|🟡 V1|
-|US-1009|Recevoir notification agents non positionnés|🟢 V2|
-|US-1010|Positionner des agents (Coordinateur)|🟡 V1|
-|US-1011|S'authentifier par carte agent|🟡 V1|
-|US-1012|Voir les informations de l'intervention|🟢 V2|
+|`Agent`|Personne métier pouvant réserver (matricule, email, service, site)|RG-121|
+|`Creneau`|Plage horaire réservable avec capacité|RG-130, RG-131|
+|`Reservation`|Association Agent ↔ Creneau avec traçabilité|RG-121, RG-125|
+|`CampagneChamp`|Colonnes dynamiques pour import CSV|RG-015|
+|`CampagneAgentAutorise`|Liste agents autorisés (mode import)|—|
 
-_* MVP = MVP du module Réservation, pas du MVP OpsTracker core_
+#### User Stories EPIC-10 — Interface Réservation End-Users ✅
 
-### Gestion Créneaux (EPIC-11)
+|ID|US|Titre|Statut|RG|
+|---|---|---|---|---|
+|T-1601|US-1001|Voir les créneaux disponibles (Agent)|✅|RG-120|
+|T-1602|US-1002|Se positionner sur un créneau (Agent)|✅|RG-121, RG-122|
+|T-1603|US-1003|Annuler/modifier son créneau (Agent)|✅|RG-123|
+|T-1604|US-1004|Voir mon récapitulatif (Agent)|✅|—|
+|T-1605|US-1005|Voir la liste de mes agents (Manager)|✅|RG-124|
+|T-1606|US-1006|Positionner un agent (Manager)|✅|RG-125|
+|T-1607|US-1007|Modifier/annuler le créneau d'un agent|✅|RG-126|
+|T-1608|US-1008|Voir les créneaux avec répartition équipe|✅|RG-127|
 
-|US|Titre|Priorité|
+#### User Stories EPIC-11 — Gestion des Créneaux ✅
+
+|ID|US|Titre|Statut|RG|
+|---|---|---|---|---|
+|T-1609|US-1101|Créer des créneaux pour une campagne|✅|RG-130|
+|T-1610|US-1102|Définir la capacité IT (ressources)|✅|RG-131|
+|T-1611|US-1103|Définir la durée d'intervention (abaques)|✅|RG-132|
+|T-1612|US-1104|Modifier un créneau + notifications|✅|RG-133|
+|T-1613|US-1105|Supprimer un créneau + confirmation|✅|RG-134|
+|T-1614|US-1106|Voir le taux de remplissage|✅|—|
+|T-1615|US-1107|Définir une date de verrouillage|✅|RG-123|
+|T-1616|US-1108|Associer créneaux à segments/sites|✅|RG-135|
+
+#### Controllers Créés
+
+|Controller|Routes|Responsabilité|
 |---|---|---|
-|US-1101|Créer des créneaux pour une campagne|🔴 MVP*|
-|US-1102|Définir la capacité IT (ressources)|🟡 V1|
-|US-1103|Définir la durée d'intervention (abaques)|🟡 V1|
-|US-1104|Modifier un créneau|🔴 MVP*|
-|US-1105|Supprimer un créneau|🔴 MVP*|
-|US-1106|Voir le taux de remplissage|🔴 MVP*|
-|US-1107|Définir une date de verrouillage|🟡 V1|
-|US-1108|Associer créneaux à segments/sites|🟡 V1|
+|`BookingController`|`/reservation/{token}/*`|Interface agent (token privé)|
+|`PublicBookingController`|`/reservation/c/{token}/*`|Mode Doodle (accès public)|
+|`ManagerBookingController`|`/manager/campagne/{id}/*`|Interface manager|
+|`CreneauController`|`/campagnes/{id}/creneaux/*`|CRUD créneaux|
+
+---
+
+### Sprint 17 — Réservation Publique & Améliorations (EPIC-10 Extended) ✅
+
+> **Objectif** : Mode Doodle public avec 3 modes d'identification + améliorations terrain.
+
+#### Fonctionnalités Implémentées
+
+|ID|Fonctionnalité|Description|Statut|
+|---|---|---|---|
+|T-1701|Mode Libre|Saisie libre identifiant (ouvert à tous)|✅|
+|T-1702|Mode Import|Liste CSV préchargée d'agents autorisés|✅|
+|T-1703|Mode Annuaire|Dropdown agents avec filtres (service, site, rôle)|✅|
+|T-1704|Génération ShareToken|Token public unique par campagne|✅|
+|T-1705|Configuration Step 4|UI configuration réservation dans wizard|✅|
+|T-1706|Dashboard Encart|Affichage lien réservation sur dashboard|✅|
+|T-1707|Import Agents CLI|Commande `app:import-agents`|✅|
+|T-1708|Sync Segments CLI|Commande `app:sync-segments`|✅|
+|T-1709|Colonnes Dynamiques|CampagneChamp pour import CSV flexible|✅|
+|T-1710|Mapping Date/Horaire|Configuration colonnes date_planifiee + horaire|✅|
+
+#### Migrations Appliquées (Jan 2026)
+
+|Version|Description|
+|---|---|
+|`20260129200141`|Création table `campagne_champ`|
+|`20260131114710`|`operation.date_planifiee` : DATE → TIMESTAMP|
+|`20260131144256`|Config réservation publique (3 colonnes Campagne)|
+|`20260131180923`|Table `campagne_agent_autorise` + filtres annuaire|
+|`20260131212107`|`campagne.colonne_segment` (mapping)|
+|`20260131220324`|`campagne.colonne_date_planifiee` + `colonne_horaire`|
+
+#### Règles Métier Implémentées
+
+|RG|Description|Implémentation|
+|---|---|---|
+|RG-120|Agent ne voit que créneaux de son segment|`CreneauRepository::findDisponibles()`|
+|RG-121|Un agent = max 1 réservation par campagne|UNIQUE constraint + validation|
+|RG-122|Confirmation automatique email + ICS|`NotificationService` + `IcsGenerator`|
+|RG-123|Verrouillage J-X (défaut J-2)|`Creneau::isVerrouillePourDate()`|
+|RG-124|Manager ne voit que ses agents|Filtrage `Agent.manager_id`|
+|RG-125|Traçabilité positionnement|`Reservation.typePositionnement`|
+|RG-126|Notification agent si tiers positionne|Email automatique|
+|RG-127|Alerte si >50% équipe même jour|Dashboard planning|
+|RG-130|Création manuelle ou génération auto|`CreneauService::genererPlage()`|
+|RG-131|Capacité IT configurable|`Creneau.capacite`|
+|RG-132|Durée intervention par type|Paramètre génération|
+|RG-133|Modification créneau = notification|`CreneauController::edit()`|
+|RG-134|Suppression créneau = annulation + notif|`CreneauController::delete()`|
+|RG-135|Créneaux par segment optionnel|`Creneau.segment_id` nullable|
+
+---
+
+## 🔵 PHASE V2.1 — Backlog (Post-Réservation)
+
+### Réservation — Fonctionnalités Restantes
+
+|US|Titre|Priorité|Statut|
+|---|---|---|---|
+|US-1009|Recevoir notification agents non positionnés|🟡 V2.1|⏳|
+|US-1011|S'authentifier par carte agent|🟢 V2.2|⏳|
 
 ### Notifications (EPIC-12)
 
@@ -333,14 +413,15 @@ _* MVP = MVP du module Réservation, pas du MVP OpsTracker core_
 
 ## 📈 Métriques
 
-|Métrique|Actuel|Cible MVP|Cible V1|
-|---|---|---|---|
-|Tâches terminées|110|65|110|
-|User Stories done|76/85|47/85|76/85|
-|Entités créées|11|6|8|
-|Tests passants|240|60+|100+|
-|Couverture code|~80%|70%|80%|
-|**Score Audit V1**|**100/100**|-|-|
+|Métrique|Actuel|Cible MVP|Cible V1|Cible V2|
+|---|---|---|---|---|
+|Tâches terminées|**136**|65|110|136|
+|User Stories done|**92/101**|47/85|76/85|92/101|
+|Entités créées|**17**|6|8|17|
+|Tests passants|240+|60+|100+|250+|
+|Couverture code|~80%|70%|80%|80%|
+|**Score Audit V1**|**100/100**|-|-|-|
+|**Module Réservation**|**100%**|-|-|100%|
 
 ---
 
@@ -379,19 +460,24 @@ _* MVP = MVP du module Réservation, pas du MVP OpsTracker core_
 |13|7|7|Prérequis + Dashboard|
 |14|5|-|Polish & Tag V1|
 |**V1**|**41**|**31**|**v1.0.0**|
-|15|6|-|**Audit V1 Ready ✅**|
-|**TOTAL**|**109**|**55**|**V1 READY**|
+|15|6|-|Audit V1 Ready|
+|16|16|8|Module Réservation Core|
+|17|10|8|Réservation Publique Doodle|
+|**V2**|**26**|**16**|**v2.0.0**|
+|**TOTAL**|**135**|**71**|**V2 READY**|
 
 ---
 
 ## 🚀 Prochaines Étapes
 
 1. ✅ ~~Audit V1 (P6-QUALIFY)~~
-2. 🔜 Déploiement production CPAM 92
-3. 🔜 Formation utilisateurs (Sophie, Karim)
-4. 🔜 P7 — Évaluation post-lancement (KPIs)
-5. 🔜 Backlog V2 (EPIC-10/11/12 Réservation)
+2. ✅ ~~Module Réservation V2 (EPIC-10/11)~~
+3. 🔜 Déploiement production CPAM 92
+4. 🔜 Formation utilisateurs (Sophie, Karim, Agent, Manager)
+5. 🔜 EPIC-12 Notifications (emails automatiques)
+6. 🔜 P7 — Évaluation post-lancement (KPIs)
+7. 🔜 V2.1 — Améliorations continue (authentification carte agent)
 
 ---
 
-_Dernière mise à jour : 2025-01-24 — OpsTracker v1.0.0 V1 READY_
+_Dernière mise à jour : 2026-02-01 — OpsTracker v2.0.0 V2 READY (Module Réservation Doodle)_

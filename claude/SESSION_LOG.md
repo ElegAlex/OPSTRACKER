@@ -31,6 +31,58 @@
 
 ## Sessions
 
+### Session #27 — 2026-02-01
+
+**Duree** : ~45 min
+**Tache(s)** : Audit Documentation V2
+**Statut** : ✅ Termine
+
+### Realise
+
+- **Audit complet du repository**
+  - Analyse du systeme de reservation "facon Doodle" (EPIC-10/11)
+  - Inventaire des 30+ nouveaux fichiers non trackes
+  - Analyse des 24 fichiers modifies
+  - Cartographie des 17 entites (vs 11 documentees)
+  - Documentation des ecrans par persona
+
+- **Mise a jour PROGRESS.md**
+  - Ajout Sprints 16-17 (Module Reservation)
+  - Mise a jour metriques : 136 taches, 92/101 US, 17 entites
+  - Documentation des 16 regles metier RG-120 a RG-135
+  - Mise a jour resume par sprint
+
+- **Mise a jour CURRENT_TASK.md**
+  - Reflet de l'etat actuel post-audit
+  - Documentation des decouvertes majeures
+
+- **Mise a jour CLAUDE.md**
+  - Ajout des 6 nouvelles entites
+  - Ajout des regles metier reservation
+
+### Decouvertes Cles
+
+| Aspect | Documente | Realite |
+|--------|-----------|---------|
+| Entites | 11 | 17 |
+| User Stories EPIC-10/11 | Backlog | 16/16 terminees |
+| Module Reservation | Non documente | 100% fonctionnel |
+| Modes identification | - | 3 (libre, import, annuaire) |
+
+### Fichiers modifies
+
+- `claude/PROGRESS.md`
+- `claude/CURRENT_TASK.md`
+- `claude/SESSION_LOG.md`
+- `claude/CLAUDE.md`
+
+### Prochaines etapes
+
+- Commit des modifications de documentation
+- Backlog V2.1 : EPIC-12 Notifications
+
+---
+
 ### Session #26 — 2026-01-25
 
 **Duree** : ~30 min
