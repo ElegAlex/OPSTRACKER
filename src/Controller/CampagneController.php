@@ -53,6 +53,7 @@ class CampagneController extends AbstractController
         private readonly ImportCsvService $importCsvService,
         private readonly ExportCsvService $exportCsvService,
         private readonly PersonnesAutoriseesService $personnesAutoriseesService,
+        private readonly \App\Service\SegmentSyncService $segmentSyncService,
     ) {
     }
 
@@ -236,9 +237,10 @@ class CampagneController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
 
-            // Recuperer le mapping des colonnes date/horaire
+            // Recuperer le mapping des colonnes date/horaire/segment
             $colonneDatePlanifiee = $request->request->get('colonne_date_planifiee');
             $colonneHoraire = $request->request->get('colonne_horaire');
+            $colonneSegment = $request->request->get('colonne_segment');
 
             // Sauvegarder le mapping dans la campagne
             if ($colonneDatePlanifiee) {
@@ -246,6 +248,9 @@ class CampagneController extends AbstractController
             }
             if ($colonneHoraire) {
                 $campagne->setColonneHoraire($colonneHoraire);
+            }
+            if ($colonneSegment) {
+                $campagne->setColonneSegment($colonneSegment);
             }
 
             // RG-015 : Creer un CampagneChamp pour CHAQUE colonne du CSV
@@ -309,6 +314,11 @@ class CampagneController extends AbstractController
                 ));
                 // Stocker les erreurs en session pour affichage
                 $session->set('import_errors_' . $campagne->getId(), $result->getErrors());
+            }
+
+            // Synchroniser les segments si une colonne segment est definie
+            if ($colonneSegment) {
+                $this->segmentSyncService->syncFromColonne($campagne);
             }
 
             return $this->redirectToRoute('app_campagne_step4', ['id' => $campagne->getId()]);
