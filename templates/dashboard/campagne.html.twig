@@ -92,15 +92,47 @@
 
         {# Actions #}
         <div class="flex items-center gap-3">
-            {# Partager - US-605, RG-041 #}
-            <button type="button" onclick="openShareModal()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors" title="Partager">
-                <i data-feather="share-2" class="w-4 h-4"></i>
-                Partager
-            </button>
-            <a href="{{ path('app_dashboard_export_pdf', {id: campagne.id}) }}" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors" title="Exporter en PDF">
-                <i data-feather="download" class="w-4 h-4"></i>
-                Export PDF
-            </a>
+            {# Dropdown Partager - US-605, RG-041 #}
+            <div class="relative" id="share-dropdown">
+                <button type="button" onclick="toggleShareDropdown()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                    <i data-feather="share-2" class="w-4 h-4"></i>
+                    Partager
+                    <i data-feather="chevron-down" class="w-4 h-4"></i>
+                </button>
+                <div id="share-menu" class="hidden absolute right-0 mt-2 w-72 bg-white border-2 border-ink shadow-lg z-50">
+                    {% if campagne.reservationOuverte and campagne.shareToken %}
+                    <div class="px-4 py-3 border-b border-ink/10 hover:bg-paper transition-colors cursor-pointer" onclick="copyReservationLink()">
+                        <div class="flex items-center gap-3">
+                            <i data-feather="calendar" class="w-4 h-4 text-primary"></i>
+                            <div class="flex-1 min-w-0">
+                                <span class="font-medium text-ink">Lien de reservation</span>
+                                <p class="text-xs text-muted truncate" id="reservation-link-preview">{{ app.request.schemeAndHttpHost }}/reservation/c/{{ campagne.shareToken }}</p>
+                            </div>
+                            <i data-feather="copy" class="w-4 h-4 text-muted"></i>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="px-4 py-3 border-b border-ink/10 hover:bg-paper transition-colors cursor-pointer" onclick="openShareModal()">
+                        <div class="flex items-center gap-3">
+                            <i data-feather="eye" class="w-4 h-4 text-success"></i>
+                            <div class="flex-1">
+                                <span class="font-medium text-ink">Lien lecture seule</span>
+                                <p class="text-xs text-muted">Partager sans modification</p>
+                            </div>
+                            <i data-feather="external-link" class="w-4 h-4 text-muted"></i>
+                        </div>
+                    </div>
+                    <a href="{{ path('app_dashboard_export_pdf', {id: campagne.id}) }}" class="block px-4 py-3 hover:bg-paper transition-colors">
+                        <div class="flex items-center gap-3">
+                            <i data-feather="download" class="w-4 h-4 text-warning"></i>
+                            <div class="flex-1">
+                                <span class="font-medium text-ink">Export PDF</span>
+                                <p class="text-xs text-muted">Telecharger le rapport</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
             {# Dropdown Configurer #}
             <div class="relative" id="config-dropdown">
                 <button type="button" onclick="toggleConfigDropdown()" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
@@ -154,33 +186,6 @@
             </div>
         </turbo-frame>
 
-        {# ========================================
-           ENCART RESERVATION END-USER
-           ======================================== #}
-        {% if campagne.reservationOuverte and campagne.shareToken %}
-        <div class="bg-primary/5 border-2 border-primary/30 rounded-lg p-5 mb-8">
-            <div class="flex items-center justify-between gap-6">
-                <div class="flex-1">
-                    <div class="flex items-center gap-2 mb-2">
-                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        <h3 class="font-bold text-primary">Reservation en ligne activee</h3>
-                    </div>
-                    <p class="text-sm text-muted mb-3">Partagez ce lien avec vos utilisateurs pour qu'ils reservent eux-memes un creneau :</p>
-                    <code id="reservation-link" class="block bg-white px-4 py-2 rounded border-2 border-ink/10 text-sm font-mono select-all">{{ app.request.schemeAndHttpHost }}/reservation/c/{{ campagne.shareToken }}</code>
-                </div>
-                <button type="button"
-                        onclick="navigator.clipboard.writeText(document.getElementById('reservation-link').textContent.trim()); this.innerHTML='<svg class=\'w-4 h-4\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M5 13l4 4L19 7\'/></svg> Copie !'; setTimeout(() => this.innerHTML='<svg class=\'w-4 h-4\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z\'/></svg> Copier', 2000);"
-                        class="flex items-center gap-2 px-5 py-3 bg-primary text-white rounded font-semibold hover:bg-primary/90 transition-colors whitespace-nowrap">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                    </svg>
-                    Copier
-                </button>
-            </div>
-        </div>
-        {% endif %}
 
         {# ========================================
            4 WIDGETS STATUTS (T-705, US-601)
@@ -336,24 +341,57 @@
 
 <script>
 function openShareModal() {
+    document.getElementById('share-menu').classList.add('hidden');
     document.getElementById('share-modal-container').classList.remove('hidden');
 }
 function closeShareModal() {
     document.getElementById('share-modal-container').classList.add('hidden');
 }
 
+// Dropdown Partager
+function toggleShareDropdown() {
+    const menu = document.getElementById('share-menu');
+    menu.classList.toggle('hidden');
+    // Fermer l'autre dropdown
+    document.getElementById('config-menu')?.classList.add('hidden');
+}
+
+// Copier le lien de reservation
+function copyReservationLink() {
+    const linkEl = document.getElementById('reservation-link-preview');
+    if (linkEl) {
+        navigator.clipboard.writeText(linkEl.textContent.trim());
+        const originalText = linkEl.textContent;
+        linkEl.textContent = 'Lien copie !';
+        linkEl.classList.add('text-success');
+        setTimeout(() => {
+            linkEl.textContent = originalText;
+            linkEl.classList.remove('text-success');
+        }, 2000);
+    }
+    document.getElementById('share-menu').classList.add('hidden');
+}
+
 // Dropdown Configurer
 function toggleConfigDropdown() {
     const menu = document.getElementById('config-menu');
     menu.classList.toggle('hidden');
+    // Fermer l'autre dropdown
+    document.getElementById('share-menu')?.classList.add('hidden');
 }
 
-// Fermer le dropdown en cliquant ailleurs
+// Fermer les dropdowns en cliquant ailleurs
 document.addEventListener('click', function(e) {
-    const dropdown = document.getElementById('config-dropdown');
-    const menu = document.getElementById('config-menu');
-    if (dropdown && !dropdown.contains(e.target)) {
-        menu.classList.add('hidden');
+    const shareDropdown = document.getElementById('share-dropdown');
+    const shareMenu = document.getElementById('share-menu');
+    if (shareDropdown && !shareDropdown.contains(e.target)) {
+        shareMenu?.classList.add('hidden');
+    }
+
+    const configDropdown = document.getElementById('config-dropdown');
+    const configMenu = document.getElementById('config-menu');
+    if (configDropdown && !configDropdown.contains(e.target)) {
+        configMenu?.classList.add('hidden');
     }
 });
 
@@ -361,6 +399,7 @@ document.addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeShareModal();
+        document.getElementById('share-menu')?.classList.add('hidden');
         document.getElementById('config-menu')?.classList.add('hidden');
     }
 });
