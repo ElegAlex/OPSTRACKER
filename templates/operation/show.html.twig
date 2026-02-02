@@ -261,8 +261,40 @@
                     </div>
                 </div>
 
-                {# Reserve par (reservation publique) #}
-                {% if operation.reservePar %}
+                {# Reservations (nouveau systeme multi-places) #}
+                {% if campagne.reservationOuverte and operation.reservationsEndUser|length > 0 %}
+                <div class="bg-white border-2 border-primary">
+                    <div class="px-6 py-4 border-b-2 border-primary/20 bg-primary/5">
+                        <h2 class="font-bold text-primary flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            </svg>
+                            Reservations ({{ operation.placesReservees }}/{{ operation.capacite }})
+                        </h2>
+                    </div>
+                    <div class="p-4">
+                        <div class="space-y-3">
+                            {% for reservation in operation.reservationsEndUser %}
+                            <div class="flex items-start gap-3 p-3 bg-paper rounded {% if not loop.last %}border-b border-ink/10{% endif %}">
+                                <div class="w-10 h-10 bg-primary/10 flex items-center justify-center rounded-full flex-shrink-0">
+                                    <span class="text-primary font-bold text-sm">{{ reservation.nomPrenom|slice(0,1)|upper }}</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold text-ink">{{ reservation.nomPrenom }}</p>
+                                    <p class="text-xs text-muted">
+                                        {% if reservation.service %}{{ reservation.service }}{% endif %}
+                                        {% if reservation.service and reservation.email %} · {% endif %}
+                                        {% if reservation.email %}<a href="mailto:{{ reservation.email }}" class="text-primary hover:underline">{{ reservation.email }}</a>{% endif %}
+                                    </p>
+                                    <p class="text-xs text-muted mt-1">Reserve le {{ reservation.reserveLe|date('d/m/Y') }} a {{ reservation.reserveLe|date('H:i') }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% elseif operation.reservePar %}
+                {# Fallback ancien systeme (reservePar simple) #}
                 <div class="bg-white border-2 border-success">
                     <div class="px-6 py-4 border-b-2 border-success/20 bg-success/5">
                         <h2 class="font-bold text-success flex items-center gap-2">
@@ -281,23 +313,10 @@
                             <p class="font-medium text-ink">{{ operation.reserveParService }}</p>
                         </div>
                         {% endif %}
-                        {% if operation.reserveParEmail %}
-                        <div>
-                            <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Email</p>
-                            <p class="font-medium text-ink">
-                                <a href="mailto:{{ operation.reserveParEmail }}" class="text-primary hover:underline">{{ operation.reserveParEmail }}</a>
-                            </p>
-                        </div>
-                        {% endif %}
                         {% if operation.reserveLe %}
                         <div>
-                            <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Date de reservation</p>
+                            <p class="text-xs text-muted uppercase tracking-wider font-semibold mb-1">Date</p>
                             <p class="text-sm text-muted">{{ operation.reserveLe|format_datetime('long', 'short', locale='fr') }}</p>
-                        </div>
-                        {% endif %}
-                        {% if operation.reserveParInfos.identifiant is defined and operation.reserveParInfos.identifiant != operation.reserveParNomComplet %}
-                        <div class="pt-2 border-t border-ink/10">
-                            <p class="text-xs text-muted">Identifiant : {{ operation.reserveParInfos.identifiant }}</p>
                         </div>
                         {% endif %}
                     </div>
