@@ -5,9 +5,7 @@
 {% endblock %}
 
 {% block page_actions %}
-    <a href="{{ ea_url()
-        .setController('App\\Controller\\Admin\\ChecklistTemplateCrudController')
-        .setAction('index') }}" class="btn btn-secondary">
+    <a href="{{ ea_url().setAction('index').unset('entityId') }}" class="btn btn-secondary">
         <i class="fa fa-arrow-left"></i> Retour a la liste
     </a>
 {% endblock %}
@@ -43,7 +41,7 @@
             <i class="fa fa-plus"></i> Ajouter une phase
         </div>
         <div class="card-body">
-            <form action="{{ path('admin_checklist_phase_add', {id: template.id}) }}" method="POST" class="row g-2 align-items-end">
+            <form action="{{ ea_url().setAction('ajouterPhase') }}" method="POST" class="row g-2 align-items-end">
                 <div class="col-md-6">
                     <label class="form-label">Nom de la phase *</label>
                     <input type="text" name="nom" class="form-control" required placeholder="Ex: Preparation, Deploiement...">
@@ -75,7 +73,8 @@
             <div class="card mb-4 border-dark">
                 <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                     {# Formulaire edition phase inline #}
-                    <form action="{{ path('admin_checklist_phase_edit', {id: template.id, phaseId: phase.id}) }}" method="POST" class="d-flex align-items-center flex-grow-1 me-3">
+                    <form action="{{ ea_url().setAction('modifierPhase') }}" method="POST" class="d-flex align-items-center flex-grow-1 me-3">
+                        <input type="hidden" name="phaseId" value="{{ phase.id }}">
                         <span class="badge bg-dark me-2">{{ phase.ordre }}</span>
                         <input type="text" name="nom" value="{{ phase.nom }}" class="form-control form-control-sm me-2" style="max-width: 300px;" required>
                         <div class="form-check me-2">
@@ -92,22 +91,19 @@
 
                     {# Boutons actions phase #}
                     <div class="btn-group btn-group-sm">
-                        <form action="{{ path('admin_checklist_phase_up', {id: template.id, phaseId: phase.id}) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-outline-light" {{ loop.first ? 'disabled' : '' }} title="Monter">
-                                <i class="fa fa-arrow-up"></i>
-                            </button>
-                        </form>
-                        <form action="{{ path('admin_checklist_phase_down', {id: template.id, phaseId: phase.id}) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-outline-light" {{ loop.last ? 'disabled' : '' }} title="Descendre">
-                                <i class="fa fa-arrow-down"></i>
-                            </button>
-                        </form>
-                        <form action="{{ path('admin_checklist_phase_delete', {id: template.id, phaseId: phase.id}) }}" method="POST" class="d-inline"
-                              onsubmit="return confirm('Supprimer cette phase et toutes ses etapes ?')">
-                            <button type="submit" class="btn btn-outline-danger" title="Supprimer">
-                                <i class="fa fa-trash"></i>
-                            </button>
-                        </form>
+                        <a href="{{ ea_url().setAction('monterPhase').set('phaseId', phase.id) }}"
+                           class="btn btn-outline-light {{ loop.first ? 'disabled' : '' }}" title="Monter">
+                            <i class="fa fa-arrow-up"></i>
+                        </a>
+                        <a href="{{ ea_url().setAction('descendrePhase').set('phaseId', phase.id) }}"
+                           class="btn btn-outline-light {{ loop.last ? 'disabled' : '' }}" title="Descendre">
+                            <i class="fa fa-arrow-down"></i>
+                        </a>
+                        <a href="{{ ea_url().setAction('supprimerPhase').set('phaseId', phase.id) }}"
+                           class="btn btn-outline-danger"
+                           onclick="return confirm('Supprimer cette phase et toutes ses etapes ?')" title="Supprimer">
+                            <i class="fa fa-trash"></i>
+                        </a>
                     </div>
                 </div>
 
@@ -129,7 +125,9 @@
                             <tbody>
                                 {% for etape in phase.etapes %}
                                 <tr>
-                                    <form action="{{ path('admin_checklist_etape_edit', {id: template.id, phaseId: phase.id, etapeId: etape.id}) }}" method="POST">
+                                    <form action="{{ ea_url().setAction('modifierEtape') }}" method="POST">
+                                        <input type="hidden" name="phaseId" value="{{ phase.id }}">
+                                        <input type="hidden" name="etapeId" value="{{ etape.id }}">
                                         <td class="align-middle">
                                             <span class="badge bg-{{ etape.obligatoire ? 'danger' : 'secondary' }}">{{ etape.ordre }}</span>
                                         </td>
@@ -161,22 +159,19 @@
                                                     <i class="fa fa-save"></i>
                                                 </button>
                                     </form>
-                                                <form action="{{ path('admin_checklist_etape_up', {id: template.id, phaseId: phase.id, etapeId: etape.id}) }}" method="POST" class="d-inline">
-                                                    <button type="submit" class="btn btn-outline-secondary" {{ loop.first ? 'disabled' : '' }} title="Monter">
-                                                        <i class="fa fa-arrow-up"></i>
-                                                    </button>
-                                                </form>
-                                                <form action="{{ path('admin_checklist_etape_down', {id: template.id, phaseId: phase.id, etapeId: etape.id}) }}" method="POST" class="d-inline">
-                                                    <button type="submit" class="btn btn-outline-secondary" {{ loop.last ? 'disabled' : '' }} title="Descendre">
-                                                        <i class="fa fa-arrow-down"></i>
-                                                    </button>
-                                                </form>
-                                                <form action="{{ path('admin_checklist_etape_delete', {id: template.id, phaseId: phase.id, etapeId: etape.id}) }}" method="POST" class="d-inline"
-                                                      onsubmit="return confirm('Supprimer cette etape ?')">
-                                                    <button type="submit" class="btn btn-outline-danger" title="Supprimer">
-                                                        <i class="fa fa-trash"></i>
-                                                    </button>
-                                                </form>
+                                                <a href="{{ ea_url().setAction('monterEtape').set('phaseId', phase.id).set('etapeId', etape.id) }}"
+                                                   class="btn btn-outline-secondary {{ loop.first ? 'disabled' : '' }}" title="Monter">
+                                                    <i class="fa fa-arrow-up"></i>
+                                                </a>
+                                                <a href="{{ ea_url().setAction('descendreEtape').set('phaseId', phase.id).set('etapeId', etape.id) }}"
+                                                   class="btn btn-outline-secondary {{ loop.last ? 'disabled' : '' }}" title="Descendre">
+                                                    <i class="fa fa-arrow-down"></i>
+                                                </a>
+                                                <a href="{{ ea_url().setAction('supprimerEtape').set('phaseId', phase.id).set('etapeId', etape.id) }}"
+                                                   class="btn btn-outline-danger"
+                                                   onclick="return confirm('Supprimer cette etape ?')" title="Supprimer">
+                                                    <i class="fa fa-trash"></i>
+                                                </a>
                                             </div>
                                         </td>
                                 </tr>
@@ -189,7 +184,8 @@
 
                     {# Formulaire ajout etape #}
                     <div class="border-top pt-3">
-                        <form action="{{ path('admin_checklist_etape_add', {id: template.id, phaseId: phase.id}) }}" method="POST" class="row g-2 align-items-end">
+                        <form action="{{ ea_url().setAction('ajouterEtape') }}" method="POST" class="row g-2 align-items-end">
+                            <input type="hidden" name="phaseId" value="{{ phase.id }}">
                             <div class="col-md-2">
                                 <label class="form-label small">Titre *</label>
                                 <input type="text" name="titre" class="form-control form-control-sm" required placeholder="Titre de l'etape">
