@@ -106,56 +106,54 @@
                     {{ form_widget(form.csv_separator) }}
 
                     {# Mapping colonnes DATE / HORAIRE #}
-                    <div class="bg-primary/5 border border-primary/20 p-4 mb-6">
-                        <h4 class="font-semibold text-ink mb-3 flex items-center gap-2">
-                            <i data-feather="calendar" class="w-4 h-4 text-primary"></i>
-                            Mapping des dates de planification
-                        </h4>
-                        <p class="text-xs text-muted mb-4">
-                            Selectionnez les colonnes contenant la date et l'heure pour remplir automatiquement la date de planification des operations.
+                    <div class="bg-white border border-ink/10 rounded-lg p-4 mb-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i data-feather="calendar" class="w-5 h-5 text-primary"></i>
+                            <h4 class="font-semibold text-ink">Mapping des dates</h4>
+                        </div>
+                        <p class="text-sm text-muted mb-4">
+                            Selectionnez les colonnes contenant la date et l'heure pour la planification.
                         </p>
 
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold text-ink mb-1">Colonne DATE</label>
-                                <select name="colonne_date_planifiee" class="w-full px-3 py-2 text-sm border-2 border-ink/20 bg-white focus:border-primary focus:outline-none">
-                                    <option value="">-- Aucune --</option>
-                                    {% for header in headers %}
-                                    <option value="{{ header }}" {% if header|lower in ['date', 'date_planifiee', 'jour', 'day'] %}selected{% endif %}>{{ header }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-ink mb-1">Colonne HORAIRE (optionnel)</label>
-                                <select name="colonne_horaire" class="w-full px-3 py-2 text-sm border-2 border-ink/20 bg-white focus:border-primary focus:outline-none">
-                                    <option value="">-- Inclus dans la date --</option>
-                                    {% for header in headers %}
-                                    <option value="{{ header }}" {% if header|lower in ['horaire', 'heure', 'time', 'hour'] %}selected{% endif %}>{{ header }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1rem;">
+                            <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #6b6b6b;">Colonne DATE</label>
+                            <label style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #6b6b6b;">Colonne HORAIRE (optionnel)</label>
+                            <select name="colonne_date_planifiee" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background: white;">
+                                <option value="">-- Aucune --</option>
+                                {% for header in headers %}
+                                <option value="{{ header }}" {% if header|lower in ['date', 'date_planifiee', 'jour', 'day'] %}selected{% endif %}>{{ header }}</option>
+                                {% endfor %}
+                            </select>
+                            <select name="colonne_horaire" style="width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background: white;">
+                                <option value="">-- Inclus dans la date --</option>
+                                {% for header in headers %}
+                                <option value="{{ header }}" {% if header|lower in ['horaire', 'heure', 'time', 'hour'] %}selected{% endif %}>{{ header }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
 
                     {# Mapping colonne SEGMENT #}
-                    <div class="bg-success/5 border border-success/20 p-4 mb-6">
-                        <h4 class="font-semibold text-ink mb-3 flex items-center gap-2">
-                            <i data-feather="grid" class="w-4 h-4 text-success"></i>
-                            Mapping des segments
-                        </h4>
-                        <p class="text-xs text-muted mb-4">
-                            Selectionnez la colonne pour regrouper les operations par segment (ex: Site, Service, Batiment...).
+                    <div class="bg-white border border-ink/10 rounded-lg p-4 mb-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i data-feather="grid" class="w-5 h-5 text-primary"></i>
+                            <h4 class="font-semibold text-ink">Mapping des segments</h4>
+                        </div>
+                        <p class="text-sm text-muted mb-4">
+                            Regroupez les operations par segment (Site, Service, Batiment...).
                         </p>
 
                         <div>
-                            <label class="block text-xs font-semibold text-ink mb-1">Colonne SEGMENT (optionnel)</label>
-                            <select name="colonne_segment" class="w-full px-3 py-2 text-sm border-2 border-ink/20 bg-white focus:border-success focus:outline-none">
+                            <label class="block text-xs font-semibold text-muted uppercase tracking-wider mb-2">
+                                Colonne SEGMENT <span class="font-normal">(optionnel)</span>
+                            </label>
+                            <select name="colonne_segment" class="w-full px-3 py-2 border border-ink/20 rounded-lg bg-white focus:border-primary focus:outline-none">
                                 <option value="">-- Pas de segmentation --</option>
                                 {% for header in headers %}
                                 <option value="{{ header }}" {% if header|lower in ['segment', 'site', 'service', 'batiment', 'building', 'departement', 'zone'] %}selected{% endif %}>{{ header }}</option>
                                 {% endfor %}
                             </select>
-                            <p class="text-xs text-muted mt-1">Les segments seront crees automatiquement a partir des valeurs uniques de cette colonne.</p>
+                            <p class="text-xs text-muted mt-2">Les segments seront crees automatiquement a partir des valeurs uniques.</p>
                         </div>
                     </div>
 
