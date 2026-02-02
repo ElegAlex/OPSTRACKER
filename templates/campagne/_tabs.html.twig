@@ -3,14 +3,13 @@
 
     Parametres requis :
     - campagne : l'entite Campagne
-    - active : string ('dashboard'|'operations'|'segments'|'creneaux'|'documents'|'prerequis')
+    - active : string ('dashboard'|'operations'|'segments'|'documents'|'prerequis')
 #}
 
 {% set tabs = [
     { id: 'dashboard', label: 'Dashboard', route: 'app_dashboard_campagne', params: {id: campagne.id}, icon: 'bar-chart-2' },
     { id: 'operations', label: 'Operations', route: 'app_operation_index', params: {campagne: campagne.id}, icon: 'list' },
     { id: 'segments', label: 'Segments', route: 'app_segment_index', params: {campagne: campagne.id}, icon: 'grid' },
-    { id: 'creneaux', label: 'Creneaux', route: 'app_creneau_index', params: {campagne: campagne.id}, icon: 'calendar' },
     { id: 'documents', label: 'Documents', route: 'app_document_index', params: {campagneId: campagne.id}, icon: 'file-text' },
     { id: 'prerequis', label: 'Prerequis', route: 'app_prerequis_index', params: {campagneId: campagne.id}, icon: 'check-square' },
 ] %}

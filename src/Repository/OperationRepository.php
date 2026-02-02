@@ -251,6 +251,8 @@ class OperationRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('o')
             ->leftJoin('o.segment', 's')
             ->leftJoin('o.technicienAssigne', 't')
+            ->leftJoin('o.reservationsEndUser', 'r')
+            ->addSelect('r')
             ->andWhere('o.campagne = :campagne')
             ->setParameter('campagne', $campagneId);
 
@@ -344,6 +346,7 @@ class OperationRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('o')
             ->leftJoin('o.segment', 's')->addSelect('s')
             ->leftJoin('o.technicienAssigne', 't')->addSelect('t')
+            ->leftJoin('o.reservationsEndUser', 'r')->addSelect('r')
             ->where('o.id IN (:ids)')
             ->setParameter('ids', $ids)
             ->addOrderBy('COALESCE(s.ordre, 999)', 'ASC')

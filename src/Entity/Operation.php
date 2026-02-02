@@ -468,11 +468,12 @@ class Operation
     }
 
     /**
-     * Verifie si l'operation est disponible a la reservation
+     * Verifie si l'operation est disponible a la reservation.
+     * Utilise le nouveau systeme multi-places (capacite - reservationsEndUser).
      */
     public function isDisponible(): bool
     {
-        return $this->reservePar === null;
+        return $this->getPlacesRestantes() > 0;
     }
 
     /**
