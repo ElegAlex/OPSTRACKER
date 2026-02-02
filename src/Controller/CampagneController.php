@@ -65,10 +65,11 @@ class CampagneController extends AbstractController
     public function index(): Response
     {
         $currentUser = $this->getUser();
-        $isAdmin = $this->isGranted('ROLE_ADMIN');
+        // RG-003 : Admin et Gestionnaire voient toutes les campagnes
+        $hasFullAccess = $this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_GESTIONNAIRE');
 
         // RG-112 : Filtrage par visibilite
-        $campagnesGroupees = $this->campagneService->getCampagnesVisiblesGroupedByStatut($currentUser, $isAdmin);
+        $campagnesGroupees = $this->campagneService->getCampagnesVisiblesGroupedByStatut($currentUser, $hasFullAccess);
         $statistiques = $this->campagneService->getStatistiquesGlobales();
 
         // Calculer les stats par campagne pour l'affichage
@@ -380,6 +381,12 @@ class CampagneController extends AbstractController
                     $campagne->setShareToken(substr(bin2hex(random_bytes(8)), 0, 12));
                     $campagne->setShareTokenCreatedAt(new \DateTimeImmutable());
                 }
+            }
+
+            // Mettre à jour la capacité de toutes les opérations existantes
+            $newCapacite = $campagne->getCapaciteParDefaut();
+            foreach ($campagne->getOperations() as $operation) {
+                $operation->setCapacite($newCapacite);
             }
 
             $this->entityManager->flush();
