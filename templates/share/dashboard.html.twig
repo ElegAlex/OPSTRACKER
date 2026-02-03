@@ -231,7 +231,7 @@
                                     <span class="flex items-center gap-2">
                                         <span class="w-2 h-2 bg-primary"></span>
                                         <span class="text-muted">Planifie:</span>
-                                        <span class="font-semibold">{{ segmentData.planifie + segmentData.en_cours }}</span>
+                                        <span class="font-semibold">{{ segmentData.planifie + (segmentData.counts_by_statut.en_cours ?? 0) }}</span>
                                     </span>
                                     <span class="flex items-center gap-2">
                                         <span class="w-2 h-2 bg-warning"></span>
