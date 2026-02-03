@@ -127,7 +127,8 @@
             <div class="section-content space-y-4">
                 {% for campagne in actives %}
                     {% set stats = stats_par_campagne[campagne.id] %}
-                    {% include 'campagne/_card.html.twig' with {campagne: campagne, stats: stats} %}
+                    {% set temps = temps_par_campagne[campagne.id]|default(null) %}
+                    {% include 'campagne/_card.html.twig' with {campagne: campagne, stats: stats, temps: temps} %}
                 {% endfor %}
             </div>
         </section>
@@ -147,7 +148,8 @@
             <div class="section-content space-y-3">
                 {% for campagne in terminees %}
                     {% set stats = stats_par_campagne[campagne.id] %}
-                    {% include 'campagne/_card_compact.html.twig' with {campagne: campagne, stats: stats} %}
+                    {% set temps = temps_par_campagne[campagne.id]|default(null) %}
+                    {% include 'campagne/_card_compact.html.twig' with {campagne: campagne, stats: stats, temps: temps} %}
                 {% endfor %}
             </div>
         </section>
@@ -167,7 +169,8 @@
             <div class="section-content space-y-3">
                 {% for campagne in archivees %}
                     {% set stats = stats_par_campagne[campagne.id] %}
-                    {% include 'campagne/_card_archived.html.twig' with {campagne: campagne, stats: stats} %}
+                    {% set temps = temps_par_campagne[campagne.id]|default(null) %}
+                    {% include 'campagne/_card_archived.html.twig' with {campagne: campagne, stats: stats, temps: temps} %}
                 {% endfor %}
             </div>
         </section>

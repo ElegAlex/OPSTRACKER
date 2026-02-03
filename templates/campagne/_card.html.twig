@@ -32,6 +32,12 @@
                             <i data-feather="calendar" class="w-4 h-4"></i>
                             {{ campagne.dateDebut|date('d M') }} - {{ campagne.dateFin|date('d M Y') }}
                         </span>
+                        {% if temps is defined and temps %}
+                        <span class="flex items-center gap-2" title="Temps total declare">
+                            <i data-feather="clock" class="w-4 h-4 text-purple-500"></i>
+                            <span class="font-medium text-purple-700">{{ temps.formate }}</span>
+                        </span>
+                        {% endif %}
                     </div>
                 </div>
             </div>

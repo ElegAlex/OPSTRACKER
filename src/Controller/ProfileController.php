@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Utilisateur;
 use App\Form\ChangePasswordType;
+use App\Repository\CampagneRepository;
+use App\Service\DureeInterventionService;
 use App\Service\UtilisateurService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,6 +26,8 @@ class ProfileController extends AbstractController
     public function __construct(
         private UtilisateurService $utilisateurService,
         private UserPasswordHasherInterface $passwordHasher,
+        private DureeInterventionService $dureeService,
+        private CampagneRepository $campagneRepository,
     ) {
     }
 
@@ -38,9 +42,36 @@ class ProfileController extends AbstractController
             $stats = $this->utilisateurService->getStatistiques($user);
         }
 
+        // Temps cumule par campagne pour ce technicien
+        $tempsByCampagne = [];
+        if ($user->isTechnicien()) {
+            $tempsParCampagneId = $this->dureeService->getTotalParCampagnePourTechnicien($user);
+
+            foreach ($tempsParCampagneId as $campagneId => $minutes) {
+                $campagne = $this->campagneRepository->find($campagneId);
+                if ($campagne && $minutes > 0) {
+                    $tempsByCampagne[] = [
+                        'campagne' => $campagne,
+                        'minutes' => $minutes,
+                        'formate' => DureeInterventionService::formatMinutes($minutes),
+                    ];
+                }
+            }
+
+            // Trier par temps decroissant
+            usort($tempsByCampagne, fn($a, $b) => $b['minutes'] <=> $a['minutes']);
+        }
+
+        // Temps total toutes campagnes
+        $tempsTotal = array_sum(array_column($tempsByCampagne, 'minutes'));
+        $tempsTotalFormate = DureeInterventionService::formatMinutes($tempsTotal);
+
         return $this->render('profile/index.html.twig', [
             'user' => $user,
             'stats' => $stats,
+            'tempsByCampagne' => $tempsByCampagne,
+            'tempsTotal' => $tempsTotal,
+            'tempsTotalFormate' => $tempsTotalFormate,
         ]);
     }
 

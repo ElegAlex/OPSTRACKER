@@ -19,6 +19,7 @@ use App\Repository\ChecklistTemplateRepository;
 use App\Service\CampagneChampService;
 use App\Service\CampagneService;
 use App\Service\ChecklistService;
+use App\Service\DureeInterventionService;
 use App\Service\ExportCsvService;
 use App\Service\ImportCsvService;
 use App\Service\PersonnesAutoriseesService;
@@ -54,6 +55,7 @@ class CampagneController extends AbstractController
         private readonly ExportCsvService $exportCsvService,
         private readonly PersonnesAutoriseesService $personnesAutoriseesService,
         private readonly \App\Service\SegmentSyncService $segmentSyncService,
+        private readonly DureeInterventionService $dureeService,
     ) {
     }
 
@@ -75,9 +77,19 @@ class CampagneController extends AbstractController
 
         // Calculer les stats par campagne pour l'affichage
         $statsParCampagne = [];
+        $tempsByCampagne = [];
         foreach ($campagnesGroupees as $statut => $data) {
             foreach ($data['campagnes'] as $campagne) {
                 $statsParCampagne[$campagne->getId()] = $this->campagneService->getStatistiquesCampagne($campagne);
+
+                // Calculer temps total si saisie activee
+                if ($campagne->isSaisieTempsActivee()) {
+                    $minutes = $this->dureeService->getTotalCampagne($campagne);
+                    $tempsByCampagne[$campagne->getId()] = [
+                        'minutes' => $minutes,
+                        'formate' => DureeInterventionService::formatMinutes($minutes),
+                    ];
+                }
             }
         }
 
@@ -85,6 +97,7 @@ class CampagneController extends AbstractController
             'campagnes_groupees' => $campagnesGroupees,
             'statistiques' => $statistiques,
             'stats_par_campagne' => $statsParCampagne,
+            'temps_par_campagne' => $tempsByCampagne,
         ]);
     }
 

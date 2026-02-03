@@ -197,7 +197,7 @@
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-44">Technicien</th>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-40">Date/Heure</th>
                         {% if showDureeColumn %}
-                        <th class="text-center px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-20">Duree</th>
+                        <th class="text-center px-1 py-3 text-xs font-bold text-ink uppercase tracking-wider w-12">Durée</th>
                         {% endif %}
                         {% if campagne.reservationOuverte %}
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-36">Reserve par</th>
@@ -291,18 +291,13 @@
                             </form>
                         </td>
 
-                        {# Duree - colonne fixe si affichee #}
+                        {# Duree - colonne fixe compacte #}
                         {% if showDureeColumn %}
-                        <td class="px-4 py-3 text-center w-20">
+                        <td class="px-1 py-3 text-center w-12">
                             {% if operation.dureeInterventionMinutes is not null %}
-                                <span class="inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 min-w-[60px]">
-                                    <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    {{ operation.dureeFormatee }}
-                                </span>
+                                <span class="text-xs font-medium text-purple-700">{{ operation.dureeFormatee }}</span>
                             {% else %}
-                                <span class="text-xs text-muted">-</span>
+                                <span class="text-xs text-muted">—</span>
                             {% endif %}
                         </td>
                         {% endif %}

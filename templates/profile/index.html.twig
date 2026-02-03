@@ -114,6 +114,41 @@
             </div>
             {% endif %}
 
+            {# Section Temps d'intervention #}
+            {% if user.technicien and tempsByCampagne|length > 0 %}
+            <div class="bg-white border-2 border-ink p-6 mb-6">
+                <h2 class="text-xl font-bold text-ink mb-6 flex items-center gap-3">
+                    <div class="w-8 h-8 bg-purple-600 flex items-center justify-center">
+                        <i data-feather="clock" class="w-4 h-4 text-white"></i>
+                    </div>
+                    Temps d'intervention
+                </h2>
+
+                {# Total global #}
+                <div class="mb-6 p-4 bg-purple-50 border border-purple-200">
+                    <p class="text-sm text-purple-700 font-medium">Temps total declare</p>
+                    <p class="text-3xl font-bold text-purple-900 mt-1">{{ tempsTotalFormate }}</p>
+                </div>
+
+                {# Detail par campagne #}
+                <h3 class="text-sm font-semibold text-muted uppercase tracking-wider mb-3">Par campagne</h3>
+                <div class="space-y-2">
+                    {% for item in tempsByCampagne %}
+                        <div class="flex items-center justify-between p-3 bg-paper">
+                            <div class="flex items-center gap-3">
+                                <div class="w-2 h-2 bg-purple-500"></div>
+                                <div>
+                                    <p class="font-medium text-ink">{{ item.campagne.nom }}</p>
+                                    <p class="text-xs text-muted">{{ item.campagne.typeOperation.nom|default('Type non defini') }}</p>
+                                </div>
+                            </div>
+                            <span class="text-lg font-semibold text-purple-700">{{ item.formate }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             {# Actions rapides #}
             <div class="bg-white border-2 border-ink p-6">
                 <h2 class="text-xl font-bold text-ink mb-4">Actions rapides</h2>

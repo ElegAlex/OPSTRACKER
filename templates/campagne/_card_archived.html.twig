@@ -12,7 +12,10 @@
                     <h3 class="font-medium text-muted truncate">{{ campagne.nom }}</h3>
                     <span class="px-2 py-0.5 bg-ink/5 text-muted text-[10px] font-bold uppercase tracking-wider">Archivee</span>
                 </div>
-                <p class="text-sm text-muted/70 mt-1">{{ campagne.dateDebut|date('d M Y') }} - {{ campagne.dateFin|date('d M Y') }} | {{ stats.total }} operations</p>
+                <p class="text-sm text-muted/70 mt-1">
+                    {{ campagne.dateDebut|date('d M Y') }} - {{ campagne.dateFin|date('d M Y') }} | {{ stats.total }} operations
+                    {% if temps is defined and temps %} | <span class="text-purple-500">{{ temps.formate }}</span>{% endif %}
+                </p>
             </div>
 
             <div class="relative flex-shrink-0" onclick="event.stopPropagation();">
