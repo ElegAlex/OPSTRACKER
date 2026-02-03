@@ -243,13 +243,13 @@
                                 {# Progress bar #}
                                 <div class="col-span-3">
                                     <div class="h-3 bg-paper border border-ink/10">
-                                        <div class="h-full bg-success transition-all" style="width: {{ segmentData.pourcentage }}%"></div>
+                                        <div class="h-full bg-success transition-all" style="width: {{ segmentData.progression }}%"></div>
                                     </div>
                                 </div>
 
                                 {# Percentage #}
                                 <div class="col-span-1 text-right">
-                                    <span class="text-lg font-bold num">{{ segmentData.pourcentage }}%</span>
+                                    <span class="text-lg font-bold num">{{ segmentData.progression }}%</span>
                                 </div>
                             </div>
                             {% endfor %}
