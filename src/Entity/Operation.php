@@ -125,6 +125,25 @@ class Operation
     #[ORM\OneToOne(targetEntity: ChecklistInstance::class, mappedBy: 'operation', cascade: ['persist', 'remove'])]
     private ?ChecklistInstance $checklistInstance = null;
 
+    /**
+     * Duree de l'intervention en minutes
+     */
+    #[ORM\Column(type: 'integer', nullable: true)]
+    private ?int $dureeInterventionMinutes = null;
+
+    /**
+     * Date et heure de saisie de la duree
+     */
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $dureeRenseigneeLe = null;
+
+    /**
+     * Utilisateur ayant renseigne la duree
+     */
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Utilisateur $dureeRenseigneePar = null;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -652,5 +671,66 @@ class Operation
         }
 
         return 'success';
+    }
+
+    // ========================================
+    // DUREE D'INTERVENTION
+    // ========================================
+
+    public function getDureeInterventionMinutes(): ?int
+    {
+        return $this->dureeInterventionMinutes;
+    }
+
+    /**
+     * Definit la duree d'intervention avec tracabilite
+     *
+     * @param int|null $minutes Duree en minutes
+     * @param Utilisateur|null $par Utilisateur ayant renseigne la duree
+     */
+    public function setDureeInterventionMinutes(?int $minutes, ?Utilisateur $par = null): static
+    {
+        $this->dureeInterventionMinutes = $minutes;
+        $this->dureeRenseigneeLe = new \DateTimeImmutable();
+        $this->dureeRenseigneePar = $par;
+
+        return $this;
+    }
+
+    public function getDureeRenseigneeLe(): ?\DateTimeImmutable
+    {
+        return $this->dureeRenseigneeLe;
+    }
+
+    public function getDureeRenseigneePar(): ?Utilisateur
+    {
+        return $this->dureeRenseigneePar;
+    }
+
+    /**
+     * Retourne la duree formatee : "2h30" ou null si non renseignee
+     */
+    public function getDureeFormatee(): ?string
+    {
+        if ($this->dureeInterventionMinutes === null) {
+            return null;
+        }
+
+        $heures = intdiv($this->dureeInterventionMinutes, 60);
+        $minutes = $this->dureeInterventionMinutes % 60;
+
+        if ($heures === 0 && $minutes === 0) {
+            return '0min';
+        }
+
+        if ($heures === 0) {
+            return sprintf('%dmin', $minutes);
+        }
+
+        if ($minutes === 0) {
+            return sprintf('%dh', $heures);
+        }
+
+        return sprintf('%dh%02d', $heures, $minutes);
     }
 }

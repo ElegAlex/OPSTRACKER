@@ -275,6 +275,29 @@
                     </div>
                 </div>
             </div>
+
+            {# Widget TEMPS TOTAL (si saisie activee OU donnees existantes) #}
+            {% if campagne.saisieTempsActivee or tempsTotal > 0 %}
+            <div class="grid grid-cols-4 gap-6 mb-10">
+                <div class="card-elevated border-2 border-ink p-6 relative overflow-hidden col-span-1">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-purple-600"></div>
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 bg-purple-100 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-4xl font-bold num text-ink mb-1">{{ tempsTotalFormate ?? '0h' }}</p>
+                    <p class="text-sm font-medium text-muted uppercase tracking-wide">Temps total</p>
+                    {% if tempsTotal and tempsTotal > 0 %}
+                    <div class="mt-4 pt-4 border-t border-ink/10">
+                        <p class="text-xs text-muted">{{ (tempsTotal / 60)|number_format(1, ',', ' ') }} heures cumulees</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </turbo-frame>
 
         {# ========================================

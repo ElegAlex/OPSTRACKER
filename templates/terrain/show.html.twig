@@ -177,14 +177,100 @@
             </form>
 
         {% elseif operation.statut == 'en_cours' %}
-            {# En cours -> Terminer / Reporter / Probleme #}
-            <form action="{{ path('terrain_terminer', {id: operation.id}) }}" method="post">
-                <input type="hidden" name="_token" value="{{ csrf_token('terminer_' ~ operation.id) }}">
-                <button type="submit" class="btn-action w-full bg-success text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-success/90 transition-colors">
-                    <i data-feather="check-circle" class="w-6 h-6"></i>
-                    TERMINER L'INTERVENTION
-                </button>
-            </form>
+            {# En cours -> Terminer (avec ou sans saisie duree) / Reporter / Probleme #}
+            {% if operation.campagne.saisieTempsActivee %}
+                {# AVEC modale saisie duree #}
+                <div data-controller="duree-modal"
+                     data-duree-modal-operation-id-value="{{ operation.id }}"
+                     data-duree-modal-current-minutes-value="{{ operation.dureeInterventionMinutes ?? 0 }}">
+
+                    {# Bouton qui ouvre la modale #}
+                    <button type="button"
+                            data-action="duree-modal#open"
+                            class="btn-action w-full bg-success text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-success/90 transition-colors">
+                        <i data-feather="check-circle" class="w-6 h-6"></i>
+                        TERMINER L'INTERVENTION
+                    </button>
+
+                    {# Modale saisie duree #}
+                    <div data-duree-modal-target="modal"
+                         data-action="click->duree-modal#closeOnOverlay keydown@window->duree-modal#closeOnEscape"
+                         class="hidden fixed inset-0 bg-ink/50 z-50 items-center justify-center p-4">
+
+                        <div class="bg-white border-2 border-ink w-full max-w-sm p-6"
+                             data-action="keydown->duree-modal#submitOnEnter">
+
+                            <h3 class="text-lg font-bold text-ink mb-4 flex items-center gap-2">
+                                <i data-feather="clock" class="w-5 h-5 text-success"></i>
+                                Duree de l'intervention
+                            </h3>
+
+                            <div class="flex items-center justify-center gap-4 mb-6">
+                                {# Heures #}
+                                <div class="flex flex-col items-center">
+                                    <input type="number"
+                                           min="0"
+                                           value="0"
+                                           data-duree-modal-target="heures"
+                                           data-action="change->duree-modal#validateHeures"
+                                           class="w-20 h-16 text-3xl text-center font-mono border-2 border-ink focus:border-success focus:outline-none"
+                                           aria-label="Heures">
+                                    <span class="text-sm text-muted mt-1">heures</span>
+                                </div>
+
+                                <span class="text-3xl font-bold text-muted">:</span>
+
+                                {# Minutes #}
+                                <div class="flex flex-col items-center">
+                                    <input type="number"
+                                           min="0"
+                                           max="59"
+                                           value="0"
+                                           data-duree-modal-target="minutes"
+                                           data-action="change->duree-modal#validateMinutes"
+                                           class="w-20 h-16 text-3xl text-center font-mono border-2 border-ink focus:border-success focus:outline-none"
+                                           aria-label="Minutes">
+                                    <span class="text-sm text-muted mt-1">minutes</span>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-muted text-center mb-4">
+                                Appuyez sur Entree pour valider rapidement
+                            </p>
+
+                            {# Formulaire cache pour soumission #}
+                            <form method="post"
+                                  action="{{ path('terrain_terminer', {id: operation.id}) }}"
+                                  data-duree-modal-target="form">
+                                <input type="hidden" name="_token" value="{{ csrf_token('terminer_' ~ operation.id) }}">
+                                <input type="hidden" name="duree_minutes" value="0">
+
+                                <div class="flex gap-2">
+                                    <button type="button"
+                                            data-action="duree-modal#close"
+                                            class="flex-1 btn-action bg-white border-2 border-ink text-ink font-bold hover:bg-ink hover:text-white transition-colors">
+                                        ANNULER
+                                    </button>
+                                    <button type="button"
+                                            data-action="duree-modal#submit"
+                                            class="flex-1 btn-action bg-success text-white font-bold hover:bg-success/90 transition-colors">
+                                        ENREGISTRER
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                {# SANS modale - terminer directement #}
+                <form action="{{ path('terrain_terminer', {id: operation.id}) }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('terminer_' ~ operation.id) }}">
+                    <button type="submit" class="btn-action w-full bg-success text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-success/90 transition-colors">
+                        <i data-feather="check-circle" class="w-6 h-6"></i>
+                        TERMINER L'INTERVENTION
+                    </button>
+                </form>
+            {% endif %}
 
             {# Actions secondaires #}
             <div class="grid grid-cols-2 gap-2">
@@ -202,10 +288,103 @@
             </div>
 
         {% elseif operation.statut == 'realise' %}
-            {# Realise -> Retour liste #}
-            <a href="{{ path('terrain_index') }}" class="btn-action w-full bg-success/10 border-2 border-success text-success font-bold text-lg flex items-center justify-center gap-3 hover:bg-success hover:text-white transition-colors">
-                <i data-feather="check-circle" class="w-6 h-6"></i>
-                INTERVENTION TERMINEE
+            {# Realise -> Afficher duree (si existe) + possibilite de modifier #}
+            <div class="bg-success/10 border-2 border-success p-4 mb-2">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i data-feather="check-circle" class="w-6 h-6 text-success"></i>
+                        <div>
+                            <p class="font-bold text-success">INTERVENTION TERMINEE</p>
+                            {% if operation.dureeInterventionMinutes is not null %}
+                            <p class="text-sm text-muted">
+                                Duree : <span class="font-bold text-ink">{{ operation.dureeFormatee }}</span>
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if operation.campagne.saisieTempsActivee or operation.dureeInterventionMinutes is not null %}
+            {# Modifier la duree (seulement si saisie temps activee) #}
+            <div data-controller="duree-modal"
+                 data-duree-modal-operation-id-value="{{ operation.id }}"
+                 data-duree-modal-current-minutes-value="{{ operation.dureeInterventionMinutes ?? 0 }}">
+
+                <button type="button"
+                        data-action="duree-modal#open"
+                        class="btn-action w-full bg-white border-2 border-ink text-ink font-bold flex items-center justify-center gap-2 hover:bg-ink hover:text-white transition-colors mb-2">
+                    <i data-feather="clock" class="w-5 h-5"></i>
+                    MODIFIER LA DUREE
+                </button>
+
+                {# Modale modification duree #}
+                <div data-duree-modal-target="modal"
+                     data-action="click->duree-modal#closeOnOverlay keydown@window->duree-modal#closeOnEscape"
+                     class="hidden fixed inset-0 bg-ink/50 z-50 items-center justify-center p-4">
+
+                    <div class="bg-white border-2 border-ink w-full max-w-sm p-6"
+                         data-action="keydown->duree-modal#submitOnEnter">
+
+                        <h3 class="text-lg font-bold text-ink mb-4 flex items-center gap-2">
+                            <i data-feather="clock" class="w-5 h-5 text-primary"></i>
+                            Modifier la duree
+                        </h3>
+
+                        <div class="flex items-center justify-center gap-4 mb-6">
+                            <div class="flex flex-col items-center">
+                                <input type="number"
+                                       min="0"
+                                       value="{{ (operation.dureeInterventionMinutes ?? 0) // 60 }}"
+                                       data-duree-modal-target="heures"
+                                       data-action="change->duree-modal#validateHeures"
+                                       class="w-20 h-16 text-3xl text-center font-mono border-2 border-ink focus:border-primary focus:outline-none"
+                                       aria-label="Heures">
+                                <span class="text-sm text-muted mt-1">heures</span>
+                            </div>
+
+                            <span class="text-3xl font-bold text-muted">:</span>
+
+                            <div class="flex flex-col items-center">
+                                <input type="number"
+                                       min="0"
+                                       max="59"
+                                       value="{{ (operation.dureeInterventionMinutes ?? 0) % 60 }}"
+                                       data-duree-modal-target="minutes"
+                                       data-action="change->duree-modal#validateMinutes"
+                                       class="w-20 h-16 text-3xl text-center font-mono border-2 border-ink focus:border-primary focus:outline-none"
+                                       aria-label="Minutes">
+                                <span class="text-sm text-muted mt-1">minutes</span>
+                            </div>
+                        </div>
+
+                        <form method="post"
+                              action="{{ path('terrain_update_duree', {id: operation.id}) }}"
+                              data-duree-modal-target="form">
+                            <input type="hidden" name="_token" value="{{ csrf_token('duree' ~ operation.id) }}">
+                            <input type="hidden" name="duree_minutes" value="{{ operation.dureeInterventionMinutes ?? 0 }}">
+
+                            <div class="flex gap-2">
+                                <button type="button"
+                                        data-action="duree-modal#close"
+                                        class="flex-1 btn-action bg-white border-2 border-ink text-ink font-bold hover:bg-ink hover:text-white transition-colors">
+                                    ANNULER
+                                </button>
+                                <button type="button"
+                                        data-action="duree-modal#submit"
+                                        class="flex-1 btn-action bg-primary text-white font-bold hover:bg-primary/90 transition-colors">
+                                    ENREGISTRER
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <a href="{{ path('terrain_index') }}" class="btn-action w-full bg-ink/10 border-2 border-ink text-ink font-bold flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="arrow-left" class="w-5 h-5"></i>
+                Retour a la liste
             </a>
 
         {% elseif operation.statut == 'a_remedier' %}

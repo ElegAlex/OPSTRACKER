@@ -392,7 +392,7 @@ class TerrainController extends AbstractController
     }
 
     /**
-     * Terminer une intervention (raccourci).
+     * Terminer une intervention avec saisie de duree.
      * Transition en_cours -> realise
      */
     #[Route('/{id}/terminer', name: 'terrain_terminer', methods: ['POST'])]
@@ -405,6 +405,12 @@ class TerrainController extends AbstractController
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }
 
+        // Saisie duree uniquement si activee sur la campagne
+        if ($operation->getCampagne()->isSaisieTempsActivee()) {
+            $dureeMinutes = $request->request->getInt('duree_minutes', 0);
+            $operation->setDureeInterventionMinutes($dureeMinutes, $this->getUser());
+        }
+
         $success = $this->operationService->appliquerTransition($operation, 'realiser');
 
         if ($success) {
@@ -414,6 +420,30 @@ class TerrainController extends AbstractController
         }
 
         $this->addFlash('error', 'Impossible de terminer cette intervention.');
+        return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
+    }
+
+    /**
+     * Modifier la duree d'intervention a posteriori.
+     * Accessible uniquement pour les operations terminees.
+     */
+    #[Route('/{id}/duree', name: 'terrain_update_duree', methods: ['POST'])]
+    public function updateDuree(Request $request, Operation $operation): Response
+    {
+        $this->denyAccessUnlessGranted('edit', $operation);
+
+        if (!$this->isCsrfTokenValid('duree' . $operation->getId(), $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token de securite invalide.');
+            return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
+        }
+
+        $dureeMinutes = $request->request->getInt('duree_minutes', 0);
+        $operation->setDureeInterventionMinutes($dureeMinutes, $this->getUser());
+
+        $this->entityManager->flush();
+
+        $this->addFlash('success', 'Duree mise a jour.');
+
         return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
     }
 

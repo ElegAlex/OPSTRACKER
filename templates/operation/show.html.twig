@@ -372,6 +372,35 @@
                     </div>
                 </div>
 
+                {# Temps d'intervention (si saisie activee OU donnees existantes) #}
+                {% if campagne.saisieTempsActivee or operation.dureeInterventionMinutes is not null %}
+                <div class="bg-white border-2 border-purple-300">
+                    <div class="px-6 py-4 border-b-2 border-purple-200 bg-purple-50">
+                        <h2 class="font-bold text-purple-700 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Temps d'intervention
+                        </h2>
+                    </div>
+                    <div class="p-6">
+                        {% if operation.dureeInterventionMinutes is not null %}
+                            <div class="text-center mb-4">
+                                <p class="text-3xl font-bold text-purple-700">{{ operation.dureeFormatee }}</p>
+                            </div>
+                            {% if operation.dureeRenseigneePar %}
+                            <div class="text-center text-xs text-muted border-t border-purple-100 pt-3">
+                                <p>Renseigne par <span class="font-medium text-ink">{{ operation.dureeRenseigneePar.nomComplet }}</span></p>
+                                <p>le {{ operation.dureeRenseigneeLe|date('d/m/Y') }} a {{ operation.dureeRenseigneeLe|date('H:i') }}</p>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-center text-muted text-sm italic">Non renseigne</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
                 {# Historique #}
                 <div class="bg-white border-2 border-ink">
                     <div class="px-6 py-4 border-b-2 border-ink/10">

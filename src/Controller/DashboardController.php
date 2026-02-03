@@ -8,6 +8,7 @@ use App\Repository\CampagneRepository;
 use App\Repository\PrerequisRepository;
 use App\Service\CampagneService;
 use App\Service\DashboardService;
+use App\Service\DureeInterventionService;
 use App\Service\PdfExportService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -39,6 +40,7 @@ class DashboardController extends AbstractController
         private readonly CampagneRepository $campagneRepository,
         private readonly PrerequisRepository $prerequisRepository,
         private readonly PdfExportService $pdfExportService,
+        private readonly DureeInterventionService $dureeService,
     ) {
     }
 
@@ -119,6 +121,10 @@ class DashboardController extends AbstractController
         }
         unset($segmentData);
 
+        // Temps total (toujours calculer, afficher si activee OU si donnees existent)
+        $tempsTotal = $this->dureeService->getTotalCampagne($campagne);
+        $tempsTotalFormate = DureeInterventionService::formatMinutes($tempsTotal);
+
         return $this->render('dashboard/campagne.html.twig', [
             'campagne' => $campagne,
             'kpi' => $kpi,
@@ -128,6 +134,8 @@ class DashboardController extends AbstractController
             'evolutionData' => $evolutionData,
             'evolutionOptions' => $evolutionOptions,
             'prerequisGlobauxStats' => $prerequisGlobauxStats,
+            'tempsTotal' => $tempsTotal,
+            'tempsTotalFormate' => $tempsTotalFormate,
         ]);
     }
 

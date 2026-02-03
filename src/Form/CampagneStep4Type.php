@@ -102,6 +102,21 @@ class CampagneStep4Type extends AbstractType
                 'help_attr' => [
                     'class' => 'text-xs text-muted mt-1',
                 ],
+            ])
+            // Saisie du temps d'intervention
+            ->add('saisieTempsActivee', CheckboxType::class, [
+                'label' => 'Activer la saisie du temps d\'intervention',
+                'required' => false,
+                'attr' => [
+                    'class' => 'w-5 h-5 rounded border-ink/20 text-primary focus:ring-primary',
+                ],
+                'label_attr' => [
+                    'class' => 'font-medium text-ink',
+                ],
+                'help' => 'Si active, les techniciens devront renseigner la duree de leur intervention en terminant une operation.',
+                'help_attr' => [
+                    'class' => 'text-xs text-muted mt-1',
+                ],
             ]);
     }
 

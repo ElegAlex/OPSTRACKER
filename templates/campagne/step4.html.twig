@@ -308,6 +308,40 @@
                 {# ============================================== #}
                 {# FIN MODULE RESERVATION                         #}
                 {# ============================================== #}
+
+                {# ============================================== #}
+                {# MODULE SUIVI DU TEMPS                          #}
+                {# ============================================== #}
+                <div class="border-t-2 border-ink/10 pt-6 mt-6">
+                    <div class="flex items-center gap-3 mb-2">
+                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <h4 class="font-bold text-ink">Suivi du temps d'intervention</h4>
+                    </div>
+                    <p class="text-sm text-muted mb-4">Permettre le suivi du temps passe sur chaque intervention</p>
+
+                    <div class="flex items-start gap-3 p-4 bg-paper/50 rounded border border-ink/10">
+                        <input type="checkbox"
+                               id="chk_saisie_temps"
+                               name="{{ form.saisieTempsActivee.vars.full_name }}"
+                               value="1"
+                               {% if campagne.saisieTempsActivee %}checked{% endif %}
+                               class="w-5 h-5 mt-0.5 rounded border-ink/30 text-purple-600 focus:ring-purple-500">
+                        <div>
+                            <label for="chk_saisie_temps" class="font-medium text-ink cursor-pointer">
+                                Activer la saisie du temps d'intervention
+                            </label>
+                            <p class="text-sm text-muted mt-1">
+                                Si active, une modale de saisie de duree s'affichera lorsque les techniciens terminent une intervention.
+                                Le temps total sera affiche dans le dashboard et les rapports.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {# ============================================== #}
+                {# FIN MODULE SUIVI TEMPS                         #}
+                {# ============================================== #}
             </div>
 
             <div class="flex justify-between items-center gap-4 pt-6 border-t-2 border-ink/10">

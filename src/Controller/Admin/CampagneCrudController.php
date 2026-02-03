@@ -184,6 +184,15 @@ class CampagneCrudController extends AbstractCrudController
             ->setFormTypeOption('disabled', true)
             ->setHelp('Genere automatiquement via la fonction Partage');
 
+        // Suivi du temps d'intervention
+        yield FormField::addPanel('Suivi du temps')
+            ->setIcon('fa fa-clock')
+            ->collapsible();
+
+        yield BooleanField::new('saisieTempsActivee', 'Saisie temps intervention')
+            ->setHelp('Activer la saisie obligatoire du temps par les techniciens')
+            ->renderAsSwitch(true);
+
         yield DateTimeField::new('createdAt', 'Cree le')
             ->hideOnForm()
             ->hideOnIndex();

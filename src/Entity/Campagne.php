@@ -263,6 +263,13 @@ class Campagne
     #[ORM\Column(type: 'integer', options: ['default' => 1])]
     private int $capaciteParDefaut = 1;
 
+    /**
+     * Active/desactive la saisie du temps d'intervention par les techniciens.
+     * Si active, une modale de saisie de duree s'affichera lors de la cloture d'une operation.
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $saisieTempsActivee = false;
+
     public function __construct()
     {
         $this->segments = new ArrayCollection();
@@ -1095,5 +1102,20 @@ class Campagne
     public function isMultiPlaces(): bool
     {
         return $this->capaciteParDefaut > 1;
+    }
+
+    /**
+     * Verifie si la saisie du temps d'intervention est activee
+     */
+    public function isSaisieTempsActivee(): bool
+    {
+        return $this->saisieTempsActivee;
+    }
+
+    public function setSaisieTempsActivee(bool $saisieTempsActivee): static
+    {
+        $this->saisieTempsActivee = $saisieTempsActivee;
+
+        return $this;
     }
 }

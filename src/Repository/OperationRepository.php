@@ -607,4 +607,68 @@ class OperationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    // ========================================
+    // DUREE D'INTERVENTION - AGREGATIONS
+    // ========================================
+
+    /**
+     * Somme des durees d'intervention pour une campagne
+     */
+    public function sumDureeInterventionByCampagne(Campagne $campagne): int
+    {
+        $result = $this->createQueryBuilder('o')
+            ->select('SUM(o.dureeInterventionMinutes)')
+            ->where('o.campagne = :campagne')
+            ->andWhere('o.dureeInterventionMinutes IS NOT NULL')
+            ->setParameter('campagne', $campagne)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) ($result ?? 0);
+    }
+
+    /**
+     * Somme des durees d'intervention pour un technicien sur une campagne
+     */
+    public function sumDureeInterventionByTechnicienAndCampagne(
+        \App\Entity\Utilisateur $technicien,
+        Campagne $campagne
+    ): int {
+        $result = $this->createQueryBuilder('o')
+            ->select('SUM(o.dureeInterventionMinutes)')
+            ->where('o.campagne = :campagne')
+            ->andWhere('o.technicienAssigne = :technicien')
+            ->andWhere('o.dureeInterventionMinutes IS NOT NULL')
+            ->setParameter('campagne', $campagne)
+            ->setParameter('technicien', $technicien)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) ($result ?? 0);
+    }
+
+    /**
+     * Somme des durees d'intervention groupees par campagne pour un technicien
+     *
+     * @return array<int, int> [campagne_id => total_minutes]
+     */
+    public function sumDureeInterventionGroupedByCampagne(\App\Entity\Utilisateur $technicien): array
+    {
+        $results = $this->createQueryBuilder('o')
+            ->select('IDENTITY(o.campagne) as campagne_id, SUM(o.dureeInterventionMinutes) as total')
+            ->where('o.technicienAssigne = :technicien')
+            ->andWhere('o.dureeInterventionMinutes IS NOT NULL')
+            ->setParameter('technicien', $technicien)
+            ->groupBy('o.campagne')
+            ->getQuery()
+            ->getArrayResult();
+
+        $grouped = [];
+        foreach ($results as $row) {
+            $grouped[(int) $row['campagne_id']] = (int) $row['total'];
+        }
+
+        return $grouped;
+    }
 }

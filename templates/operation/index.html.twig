@@ -176,6 +176,9 @@
            TABLEAU OPERATIONS
            ======================================== #}
         {% if operations|length > 0 %}
+        {# Determiner si on affiche la colonne duree (une seule fois) #}
+        {% set showDureeColumn = campagne.saisieTempsActivee or operations|filter(o => o.dureeInterventionMinutes is not null)|length > 0 %}
+
         <div class="bg-white border-2 border-ink overflow-x-auto">
             <table class="w-full min-w-max">
                 <thead class="bg-paper border-b-2 border-ink">
@@ -193,6 +196,9 @@
                         <th class="text-center px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-24">Checklist</th>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-44">Technicien</th>
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-40">Date/Heure</th>
+                        {% if showDureeColumn %}
+                        <th class="text-center px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-20">Duree</th>
+                        {% endif %}
                         {% if campagne.reservationOuverte %}
                         <th class="text-left px-4 py-3 text-xs font-bold text-ink uppercase tracking-wider w-36">Reserve par</th>
                         {% endif %}
@@ -284,6 +290,22 @@
                                        title="Cliquer pour modifier la date et l'heure">
                             </form>
                         </td>
+
+                        {# Duree - colonne fixe si affichee #}
+                        {% if showDureeColumn %}
+                        <td class="px-4 py-3 text-center w-20">
+                            {% if operation.dureeInterventionMinutes is not null %}
+                                <span class="inline-flex items-center justify-center gap-1 px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700 min-w-[60px]">
+                                    <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    {{ operation.dureeFormatee }}
+                                </span>
+                            {% else %}
+                                <span class="text-xs text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
 
                         {# Reserve par (seulement si reservation ouverte) #}
                         {% if campagne.reservationOuverte %}
