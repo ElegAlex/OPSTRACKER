@@ -45,7 +45,7 @@ class TerrainController extends AbstractController
     /**
      * Liste "Mes interventions" - Vue consolidee multi-campagnes.
      * US-401 : Voir mes interventions du jour
-     * Feature : KPIs + section retards + section aujourd'hui + section a venir
+     * Feature : KPIs + section retards + section aujourd'hui + section a venir + section terminees
      */
     #[Route('', name: 'terrain_index', methods: ['GET'])]
     public function index(): Response
@@ -62,16 +62,20 @@ class TerrainController extends AbstractController
         // Operations a venir (toutes campagnes)
         $operationsAVenir = $this->operationRepository->findAVenirForTechnicien($user->getId(), $today);
 
+        // Operations terminees (30 derniers jours)
+        $operationsTerminees = $this->operationRepository->findTermineesForTechnicien($user->getId());
+
         // KPIs (toutes les operations : retard + aujourd'hui + a venir)
         $kpis = [
             'total' => count($operationsRetard) + count($operationsAujourdhui) + count($operationsAVenir),
             'a_venir' => count($operationsAVenir),
             'a_faire' => count($operationsAujourdhui),
             'retard' => count($operationsRetard),
+            'terminees' => count($operationsTerminees),
         ];
 
         // Mapping campagne -> index de couleur pour différenciation visuelle
-        $toutesOperations = array_merge($operationsRetard, $operationsAujourdhui, $operationsAVenir);
+        $toutesOperations = array_merge($operationsRetard, $operationsAujourdhui, $operationsAVenir, $operationsTerminees);
         $campagneColors = [];
         foreach ($toutesOperations as $op) {
             $campagneId = $op->getCampagne()->getId();
@@ -85,6 +89,7 @@ class TerrainController extends AbstractController
             'operationsRetard' => $operationsRetard,
             'operationsAujourdhui' => $operationsAujourdhui,
             'operationsAVenir' => $operationsAVenir,
+            'operationsTerminees' => $operationsTerminees,
             'today' => $today,
             'campagneColors' => $campagneColors,
         ]);

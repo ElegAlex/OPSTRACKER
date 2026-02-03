@@ -36,7 +36,7 @@
             <p class="text-xl font-bold text-ink">{{ today|format_datetime('full', 'none', locale='fr') }}</p>
         </div>
 
-        <div class="grid grid-cols-4 gap-2">
+        <div class="grid grid-cols-5 gap-2">
             {# Total #}
             <div class="bg-ink/5 p-3 text-center">
                 <p class="text-2xl font-bold text-ink num">{{ kpis.total }}</p>
@@ -59,6 +59,12 @@
             <div class="bg-danger/10 p-3 text-center">
                 <p class="text-2xl font-bold text-danger num">{{ kpis.retard }}</p>
                 <p class="text-[10px] text-danger font-medium uppercase">Retard</p>
+            </div>
+
+            {# Termine #}
+            <div class="bg-success/10 p-3 text-center">
+                <p class="text-2xl font-bold text-success num">{{ kpis.terminees }}</p>
+                <p class="text-[10px] text-success font-medium uppercase">Termine</p>
             </div>
         </div>
     </div>
@@ -216,6 +222,117 @@
                 {% set colorIndex = campagneColors[op.campagne.id]|default(0) %}
                 {% set bgClass = bgPalette[colorIndex % bgPalette|length] %}
                 {{ _self.operation_row(op, 'muted', bgClass) }}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# ==========================================
+       SECTION TERMINE (30 derniers jours)
+       ========================================== #}
+    {% if operationsTerminees|length > 0 %}
+    <div class="mb-6">
+        {# Header section #}
+        <div class="flex items-center gap-2 mb-2 px-1">
+            <div class="w-6 h-6 bg-success flex items-center justify-center">
+                <i data-feather="check-circle" class="w-4 h-4 text-white"></i>
+            </div>
+            <h2 class="font-bold text-success uppercase tracking-wide text-xs">
+                Termine ({{ operationsTerminees|length }})
+            </h2>
+            <span class="text-[10px] text-muted ml-2">30 derniers jours</span>
+        </div>
+
+        {# Liste operations terminees #}
+        <div class="border-2 border-success/20 divide-y divide-ink/10 overflow-hidden">
+            {% for op in operationsTerminees %}
+                {% set colorIndex = campagneColors[op.campagne.id]|default(0) %}
+                {% set bgClass = bgPalette[colorIndex % bgPalette|length] %}
+                <div class="flex items-center {{ bgClass }} border-l-4 border-success min-h-[56px]"
+                     data-controller="duree-edit"
+                     data-duree-edit-minutes-value="{{ op.dureeInterventionMinutes ?? 0 }}">
+
+                    {# DATE - largeur fixe #}
+                    <div class="w-16 shrink-0 px-2 py-3 text-center border-r border-ink/5">
+                        {% if op.datePlanifiee %}
+                        <p class="text-sm font-bold text-success num leading-tight">{{ op.datePlanifiee|date('d') }}</p>
+                        <p class="text-[10px] text-muted">{{ op.datePlanifiee|date('M') }}</p>
+                        {% else %}
+                        <p class="text-xs text-muted">--</p>
+                        {% endif %}
+                    </div>
+
+                    {# STATUT - largeur fixe #}
+                    <div class="w-24 shrink-0 px-2 py-3">
+                        {% include 'terrain/_status_badge.html.twig' with {statut: op.statut} %}
+                    </div>
+
+                    {# CAMPAGNE - largeur fixe #}
+                    <div class="w-28 shrink-0 px-2 py-3 border-r border-ink/5">
+                        <span class="text-[10px] font-semibold text-ink uppercase tracking-wider truncate block">
+                            {{ op.campagne.nom }}
+                        </span>
+                    </div>
+
+                    {# IDENTIFIANT + NOM - flexible #}
+                    <div class="flex-1 min-w-0 px-3 py-3 flex items-center gap-2">
+                        <span class="font-bold text-ink shrink-0">{{ op.displayIdentifier|default('—') }}</span>
+                        {% if op.displayName %}
+                        <span class="text-sm text-muted truncate">{{ op.displayName }}</span>
+                        {% endif %}
+                    </div>
+
+                    {# DUREE - avec edition inline si saisie activee #}
+                    {% if op.campagne.saisieTempsActivee %}
+                    <div class="w-28 shrink-0 px-2 py-3 hidden sm:block">
+                        {# Affichage normal #}
+                        <div data-duree-edit-target="display" class="flex items-center justify-end gap-1">
+                            <i data-feather="clock" class="w-4 h-4 text-purple-500"></i>
+                            <span class="text-sm font-bold text-purple-700">{{ op.dureeFormatee ?? '0min' }}</span>
+                            <button type="button"
+                                    data-action="duree-edit#edit"
+                                    class="ml-1 p-1 text-muted hover:text-purple-600"
+                                    title="Modifier la duree">
+                                <i data-feather="edit-2" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+
+                        {# Formulaire edition inline #}
+                        <form data-duree-edit-target="form"
+                              class="hidden"
+                              method="post"
+                              action="{{ path('terrain_update_duree', {id: op.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('duree' ~ op.id) }}">
+                            <input type="hidden" name="duree_minutes" data-duree-edit-target="total" value="{{ op.dureeInterventionMinutes ?? 0 }}">
+                            <div class="flex items-center gap-1">
+                                <input type="number" min="0" max="99"
+                                       data-duree-edit-target="heures"
+                                       data-action="input->duree-edit#updateTotal"
+                                       class="w-10 px-1 py-1 text-xs border border-ink/20 text-center"
+                                       value="{{ op.dureeInterventionMinutes ? (op.dureeInterventionMinutes // 60) : 0 }}">
+                                <span class="text-xs text-muted">h</span>
+                                <input type="number" min="0" max="59"
+                                       data-duree-edit-target="minutes"
+                                       data-action="input->duree-edit#updateTotal"
+                                       class="w-10 px-1 py-1 text-xs border border-ink/20 text-center"
+                                       value="{{ op.dureeInterventionMinutes ? (op.dureeInterventionMinutes % 60) : 0 }}">
+                                <span class="text-xs text-muted">m</span>
+                                <button type="submit" class="px-2 py-1 bg-success text-white text-xs">
+                                    <i data-feather="check" class="w-3 h-3"></i>
+                                </button>
+                                <button type="button" data-action="duree-edit#cancel" class="px-2 py-1 bg-muted/20 text-muted text-xs">
+                                    <i data-feather="x" class="w-3 h-3"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    {# CHEVRON - lien vers detail #}
+                    <a href="{{ path('terrain_show', {id: op.id}) }}" class="shrink-0 px-3 py-3">
+                        <i data-feather="chevron-right" class="w-5 h-5 text-muted/40"></i>
+                    </a>
+                </div>
             {% endfor %}
         </div>
     </div>

@@ -608,6 +608,32 @@ class OperationRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Trouve les operations terminees pour un technicien (30 derniers jours)
+     *
+     * @return Operation[]
+     */
+    public function findTermineesForTechnicien(int $technicienId, int $limitDays = 30): array
+    {
+        $since = new \DateTimeImmutable("-{$limitDays} days");
+
+        return $this->createQueryBuilder('o')
+            ->join('o.campagne', 'c')
+            ->addSelect('c')
+            ->where('o.technicienAssigne = :technicien')
+            ->andWhere('o.statut = :realise')
+            ->andWhere('o.datePlanifiee >= :since OR o.dureeRenseigneeLe >= :since')
+            ->andWhere('c.statut != :archive')
+            ->setParameter('technicien', $technicienId)
+            ->setParameter('realise', Operation::STATUT_REALISE)
+            ->setParameter('since', $since)
+            ->setParameter('archive', \App\Entity\Campagne::STATUT_ARCHIVEE)
+            ->orderBy('o.datePlanifiee', 'DESC')
+            ->setMaxResults(50)
+            ->getQuery()
+            ->getResult();
+    }
+
     // ========================================
     // DUREE D'INTERVENTION - AGREGATIONS
     // ========================================
