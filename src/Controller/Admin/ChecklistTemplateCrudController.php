@@ -149,6 +149,8 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     /**
      * Page principale : affiche phases et etapes du template.
+     *
+     * @param AdminContext<ChecklistTemplate> $context
      */
     public function gererEtapes(AdminContext $context): Response
     {
@@ -169,6 +171,8 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     /**
      * Ajouter une phase.
+     *
+     * @param AdminContext<ChecklistTemplate> $context
      */
     public function ajouterPhase(AdminContext $context, Request $request): Response
     {
@@ -206,6 +210,8 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     /**
      * Modifier une phase.
+     *
+     * @param AdminContext<ChecklistTemplate> $context
      */
     public function modifierPhase(AdminContext $context, Request $request): Response
     {
@@ -234,6 +240,8 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     /**
      * Supprimer une phase (et ses etapes).
+     *
+     * @param AdminContext<ChecklistTemplate> $context
      */
     public function supprimerPhase(AdminContext $context, Request $request): Response
     {
@@ -264,6 +272,8 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     /**
      * Monter une phase.
+     *
+     * @param AdminContext<ChecklistTemplate> $context
      */
     public function monterPhase(AdminContext $context, Request $request): Response
     {
@@ -298,6 +308,8 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     /**
      * Descendre une phase.
+     *
+     * @param AdminContext<ChecklistTemplate> $context
      */
     public function descendrePhase(AdminContext $context, Request $request): Response
     {
@@ -334,6 +346,8 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     /**
      * Ajouter une etape a une phase.
+     *
+     * @param AdminContext<ChecklistTemplate> $context
      */
     public function ajouterEtape(AdminContext $context, Request $request): Response
     {
@@ -384,6 +398,8 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     /**
      * Modifier une etape.
+     *
+     * @param AdminContext<ChecklistTemplate> $context
      */
     public function modifierEtape(AdminContext $context, Request $request): Response
     {
@@ -422,6 +438,8 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     /**
      * Supprimer une etape.
+     *
+     * @param AdminContext<ChecklistTemplate> $context
      */
     public function supprimerEtape(AdminContext $context, Request $request): Response
     {
@@ -458,6 +476,8 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     /**
      * Monter une etape.
+     *
+     * @param AdminContext<ChecklistTemplate> $context
      */
     public function monterEtape(AdminContext $context, Request $request): Response
     {
@@ -500,6 +520,8 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
     /**
      * Descendre une etape.
+     *
+     * @param AdminContext<ChecklistTemplate> $context
      */
     public function descendreEtape(AdminContext $context, Request $request): Response
     {
