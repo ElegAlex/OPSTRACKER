@@ -1,0 +1,67 @@
+# .dockerignore
+# Fichiers a exclure du contexte de build Docker
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Environnement local
+.env.local
+.env.*.local
+.env.dev
+.env.test
+
+# Node (pas utilise avec Asset Mapper)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Symfony - cache et logs
+var/cache/*
+var/log/*
+var/sessions/*
+
+# IDE
+.idea
+.vscode
+*.sublime-*
+*.swp
+*.swo
+
+# Docker (eviter recursion)
+docker-compose.override.yml
+Dockerfile
+
+# Tests
+tests/
+phpunit.xml
+phpunit.xml.dist
+.phpunit.result.cache
+.php-cs-fixer.cache
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Backups et exports
+*.sql
+*.tar
+*.gz
+backup_*
+backups/
+
+# Divers
+.DS_Store
+Thumbs.db
+*.log
+
+# Fichiers de developpement
+Makefile
+docker-compose.override.yml.dist
+.env.docker

@@ -1,0 +1,16 @@
+#!/bin/sh
+# PHP-FPM Healthcheck script
+set -e
+
+FCGI_CONNECT="${FCGI_CONNECT:-127.0.0.1:9000}"
+
+# Use cgi-fcgi if available, otherwise use simple TCP check
+if command -v cgi-fcgi > /dev/null 2>&1; then
+    SCRIPT_NAME=/ping \
+    SCRIPT_FILENAME=/ping \
+    REQUEST_METHOD=GET \
+    cgi-fcgi -bind -connect "$FCGI_CONNECT" 2>/dev/null | grep -q "pong"
+else
+    # Fallback: simple process check
+    pgrep -x "php-fpm" > /dev/null 2>&1
+fi

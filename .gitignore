@@ -21,6 +21,12 @@
 
 ###> docker ###
 .docker/
+docker-compose.override.yml
+docker/nginx/certs/*.crt
+docker/nginx/certs/*.key
+docker/nginx/certs/*.pem
+!docker/nginx/certs/.gitkeep
+backups/
 ###< docker ###
 
 ###> IDE ###

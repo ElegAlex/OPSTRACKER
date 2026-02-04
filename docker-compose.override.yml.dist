@@ -1,0 +1,75 @@
+# docker-compose.override.yml.dist
+# Copier en docker-compose.override.yml pour le développement local
+# Usage: cp docker-compose.override.yml.dist docker-compose.override.yml
+version: '3.8'
+
+services:
+  # ===========================================
+  # PHP-FPM - Mode développement
+  # ===========================================
+  app:
+    build:
+      target: development  # Stage dev avec Xdebug
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    environment:
+      - APP_ENV=dev
+      - APP_DEBUG=1
+      - XDEBUG_MODE=debug
+    volumes:
+      - .:/var/www/html  # Code source monté (hot reload)
+      - /var/www/html/var  # Exclure var/
+      - /var/www/html/vendor  # Exclure vendor/
+
+  # ===========================================
+  # NGINX - Ports dev alternatifs
+  # ===========================================
+  nginx:
+    ports:
+      - "8081:80"
+    depends_on:
+      - app  # Pas de healthcheck en dev pour démarrage rapide
+
+  # ===========================================
+  # PostgreSQL - Port exposé pour debug
+  # ===========================================
+  postgres:
+    ports:
+      - "5434:5432"
+
+  # ===========================================
+  # Redis - Port exposé pour debug
+  # ===========================================
+  redis:
+    ports:
+      - "6381:6379"
+
+  # ===========================================
+  # Adminer - Interface DB
+  # ===========================================
+  adminer:
+    image: adminer:latest
+    container_name: opstracker_adminer
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    environment:
+      - ADMINER_DEFAULT_SERVER=postgres
+    networks:
+      - opstracker
+    depends_on:
+      - postgres
+
+  # ===========================================
+  # Mailpit - Capture emails en dev
+  # ===========================================
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: opstracker_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"  # UI Web
+      - "1025:1025"  # SMTP
+    networks:
+      - opstracker
