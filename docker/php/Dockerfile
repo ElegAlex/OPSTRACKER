@@ -18,16 +18,13 @@ RUN apk add --no-cache \
     # PostgreSQL
     postgresql-dev \
     postgresql-client \
-    # Intl (requiert icu complet)
+    # Intl (requiert icu)
     icu-dev \
     icu-libs \
-    icu-data-full \
     # ZIP
     libzip-dev \
     zip \
     unzip \
-    # XML (requis par Symfony)
-    libxml2-dev \
     # Git (pour Composer)
     git \
     # Supervisor (optionnel pour workers)
@@ -38,23 +35,17 @@ RUN apk add --no-cache \
     $PHPIZE_DEPS \
     linux-headers
 
-# Extensions PHP (incluant ctype et iconv requis par composer.json)
+# Extensions PHP (seulement celles NON incluses dans l'image de base)
+# Note: ctype, iconv, session, xml, simplexml, tokenizer, pdo sont DEJA inclus
 RUN docker-php-ext-configure intl \
     && docker-php-ext-install -j$(nproc) \
-        pdo \
         pdo_pgsql \
         intl \
         opcache \
-        zip \
-        xml \
-        ctype \
-        iconv \
-        session \
-        simplexml \
-        tokenizer
+        zip
 
-# Redis extension
-RUN pecl install redis-6.0.2 \
+# Redis extension via PECL
+RUN pecl install redis \
     && docker-php-ext-enable redis
 
 # APCu pour cache local
