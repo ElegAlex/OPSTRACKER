@@ -10,6 +10,34 @@ namespace App\Service;
 class CampagneChampService
 {
     /**
+     * Noms des champs systeme (non personnalisables).
+     * Ces champs sont geres par l'application et non par les CampagneChamp.
+     *
+     * @var array<string>
+     */
+    private const NATIVE_FIELDS = [
+        'identifiant',
+        'description',
+        'statut',
+        'segment',
+        'technicien',
+        'date_planifiee',
+        'date_realisation',
+        'notes',
+    ];
+
+    /**
+     * Verifie si un nom de champ correspond a un champ systeme natif.
+     *
+     * @param string $champNom Le nom du champ a verifier
+     * @return bool True si c'est un champ natif
+     */
+    public static function isNativeField(string $champNom): bool
+    {
+        return in_array(strtolower($champNom), self::NATIVE_FIELDS, true);
+    }
+
+    /**
      * Normalise un nom de champ pour creer un identifiant de formulaire valide.
      *
      * Transforme les caracteres accentues et speciaux en equivalents ASCII,

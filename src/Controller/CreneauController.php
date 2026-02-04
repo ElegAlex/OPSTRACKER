@@ -162,8 +162,8 @@ class CreneauController extends AbstractController
                     'debut' => $heureDebut->format('H:i'),
                     'fin' => min($heureFin->format('H:i'), '12:00'),
                 ];
-            } elseif ($debutMinutes >= 12 * 60 && $debutMinutes < 14 * 60) {
-                // Debut pendant la pause, on commence a 14h
+            } elseif ($debutMinutes >= 12 * 60) {
+                // Debut pendant la pause (12h-14h implicite), on commence a 14h
                 $plagesHoraires[] = [
                     'debut' => '14:00',
                     'fin' => $heureFin->format('H:i'),

@@ -210,6 +210,7 @@ class CoordinateurController extends AbstractController
     #[Route('/modifier/{reservation}', name: 'app_coord_modify', methods: ['GET', 'POST'])]
     public function modify(Campagne $campagne, Reservation $reservation, Request $request): Response
     {
+        /** @var Utilisateur $user */
         $user = $this->getUser();
 
         // Verifier que la reservation concerne la bonne campagne
@@ -316,6 +317,7 @@ class CoordinateurController extends AbstractController
     #[Route('/annuler/{reservation}', name: 'app_coord_cancel', methods: ['POST'])]
     public function cancel(Campagne $campagne, Reservation $reservation, Request $request): Response
     {
+        /** @var Utilisateur $user */
         $user = $this->getUser();
 
         if ($reservation->getCampagne()->getId() !== $campagne->getId()) {

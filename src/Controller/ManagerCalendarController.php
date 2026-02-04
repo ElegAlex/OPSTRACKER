@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Campagne;
+use App\Entity\Creneau;
+use App\Entity\Utilisateur;
 use App\Repository\AgentRepository;
 use App\Repository\CreneauRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -168,7 +170,7 @@ class ManagerCalendarController extends AbstractController
     /**
      * Construit le titre de l'evenement pour le calendrier.
      */
-    private function buildEventTitle($creneau, int $totalReservations, int $mesAgentsCount): string
+    private function buildEventTitle(Creneau $creneau, int $totalReservations, int $mesAgentsCount): string
     {
         $title = sprintf(
             '%d/%d places',
@@ -192,6 +194,7 @@ class ManagerCalendarController extends AbstractController
      */
     private function getManagerAgent(): ?\App\Entity\Agent
     {
+        /** @var Utilisateur|null $user */
         $user = $this->getUser();
         if (!$user) {
             return null;

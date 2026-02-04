@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Campagne;
 use App\Entity\Prerequis;
-use App\Repository\CampagneRepository;
 use App\Repository\PrerequisRepository;
 use App\Service\CampagneService;
 use App\Service\DashboardService;
@@ -37,7 +36,6 @@ class DashboardController extends AbstractController
     public function __construct(
         private readonly DashboardService $dashboardService,
         private readonly CampagneService $campagneService,
-        private readonly CampagneRepository $campagneRepository,
         private readonly PrerequisRepository $prerequisRepository,
         private readonly PdfExportService $pdfExportService,
         private readonly DureeInterventionService $dureeService,

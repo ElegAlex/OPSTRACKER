@@ -6,11 +6,11 @@ use App\Entity\Agent;
 use App\Entity\Campagne;
 use App\Entity\Creneau;
 use App\Entity\Reservation;
+use App\Entity\Utilisateur;
 use App\Repository\AgentRepository;
 use App\Repository\CreneauRepository;
 use App\Repository\ReservationRepository;
 use App\Service\ReservationService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -41,7 +41,6 @@ class ManagerBookingController extends AbstractController
         private readonly CreneauRepository $creneauRepository,
         private readonly ReservationRepository $reservationRepository,
         private readonly ReservationService $reservationService,
-        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -146,11 +145,13 @@ class ManagerBookingController extends AbstractController
 
             try {
                 // RG-125, RG-126 : Positionnement par manager avec tracabilite
+                /** @var Utilisateur|null $currentUser */
+                $currentUser = $this->getUser();
                 $reservation = $this->reservationService->reserver(
                     $agent,
                     $creneau,
                     Reservation::TYPE_MANAGER,
-                    $this->getUser()
+                    $currentUser
                 );
 
                 $this->addFlash('success', sprintf(
@@ -421,6 +422,7 @@ class ManagerBookingController extends AbstractController
      */
     private function getManagerAgent(): ?Agent
     {
+        /** @var Utilisateur|null $user */
         $user = $this->getUser();
         if (!$user) {
             return null;
