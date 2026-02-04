@@ -39,7 +39,7 @@ class ReservationExportController extends AbstractController
     {
         $reservations = $this->reservationRepository->findByCampagne($campagne);
 
-        $response = new StreamedResponse(function () use ($reservations, $campagne): void {
+        $response = new StreamedResponse(function () use ($reservations): void {
             // BOM UTF-8 pour Excel
             echo "\xEF\xBB\xBF";
 

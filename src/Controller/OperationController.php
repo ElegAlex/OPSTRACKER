@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Campagne;
 use App\Entity\Operation;
+use App\Entity\Utilisateur;
 use App\Repository\DocumentRepository;
 use App\Repository\SegmentRepository;
 use App\Repository\UtilisateurRepository;
@@ -696,8 +697,10 @@ class OperationController extends AbstractController
             ]);
         }
 
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
         try {
-            $this->checklistService->toggleEtape($instance, $etapeId, $this->getUser());
+            $this->checklistService->toggleEtape($instance, $etapeId, $currentUser);
 
             // Traitement champ de saisie si present
             $valeurChamp = $request->request->get('valeur_champ');

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Document;
 use App\Entity\Operation;
+use App\Entity\Utilisateur;
 use App\Repository\DocumentRepository;
 use App\Repository\OperationRepository;
 use App\Service\ChecklistService;
@@ -50,6 +51,7 @@ class TerrainController extends AbstractController
     #[Route('', name: 'terrain_index', methods: ['GET'])]
     public function index(): Response
     {
+        /** @var Utilisateur $user */
         $user = $this->getUser();
         $today = new \DateTimeImmutable('today');
 
@@ -211,8 +213,10 @@ class TerrainController extends AbstractController
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }
 
+        /** @var Utilisateur $currentUser */
+        $currentUser = $this->getUser();
         try {
-            $this->checklistService->toggleEtape($instance, $etapeId, $this->getUser());
+            $this->checklistService->toggleEtape($instance, $etapeId, $currentUser);
 
             // Traitement champ de saisie si present
             $valeurChamp = $request->request->get('valeur_champ');
@@ -412,8 +416,10 @@ class TerrainController extends AbstractController
 
         // Saisie duree uniquement si activee sur la campagne
         if ($operation->getCampagne()->isSaisieTempsActivee()) {
+            /** @var Utilisateur|null $currentUser */
+            $currentUser = $this->getUser();
             $dureeMinutes = $request->request->getInt('duree_minutes', 0);
-            $operation->setDureeInterventionMinutes($dureeMinutes, $this->getUser());
+            $operation->setDureeInterventionMinutes($dureeMinutes, $currentUser);
         }
 
         $success = $this->operationService->appliquerTransition($operation, 'realiser');
@@ -442,8 +448,10 @@ class TerrainController extends AbstractController
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }
 
+        /** @var Utilisateur|null $currentUser */
+        $currentUser = $this->getUser();
         $dureeMinutes = $request->request->getInt('duree_minutes', 0);
-        $operation->setDureeInterventionMinutes($dureeMinutes, $this->getUser());
+        $operation->setDureeInterventionMinutes($dureeMinutes, $currentUser);
 
         $this->entityManager->flush();
 
@@ -567,47 +575,6 @@ class TerrainController extends AbstractController
 
         $this->addFlash('error', 'Impossible de replanifier cette intervention.');
         return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
-    }
-
-    /**
-     * Groupe les operations par statut pour l'affichage.
-     *
-     * @param Operation[] $operations
-     * @return array<string, Operation[]>
-     */
-    private function groupOperationsByStatus(array $operations): array
-    {
-        $grouped = [
-            'next' => null, // Prochaine intervention (premiere planifiee)
-            Operation::STATUT_PLANIFIE => [],
-            Operation::STATUT_EN_COURS => [],
-            Operation::STATUT_REALISE => [],
-            Operation::STATUT_REPORTE => [],
-            Operation::STATUT_A_REMEDIER => [],
-            Operation::STATUT_A_PLANIFIER => [],
-        ];
-
-        foreach ($operations as $operation) {
-            $statut = $operation->getStatut();
-
-            // Identifier la prochaine intervention (premiere planifiee)
-            if ($statut === Operation::STATUT_PLANIFIE && $grouped['next'] === null) {
-                $grouped['next'] = $operation;
-                continue;
-            }
-
-            // En cours passe en premier
-            if ($statut === Operation::STATUT_EN_COURS && $grouped['next'] === null) {
-                $grouped['next'] = $operation;
-                continue;
-            }
-
-            if (isset($grouped[$statut])) {
-                $grouped[$statut][] = $operation;
-            }
-        }
-
-        return $grouped;
     }
 
     /**
