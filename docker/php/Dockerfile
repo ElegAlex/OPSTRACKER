@@ -1,6 +1,6 @@
 # docker/php/Dockerfile
 # OpsTracker - Dockerfile multi-stage optimisé pour production
-FROM php:8.3-fpm-alpine AS base
+FROM php:8.5-fpm-alpine AS base
 
 # Métadonnées
 LABEL maintainer="CPAM 92 - DSI"
