@@ -34,32 +34,36 @@ class ChampPersonnaliseController extends AbstractController
         $success = false;
 
         if ($request->isMethod('POST')) {
+            /** @var array<int|string, array<string, mixed>> $champsData */
             $champsData = $request->request->all('champs');
             $nouveauxChamps = [];
 
-            if (is_array($champsData)) {
-                foreach ($champsData as $index => $champData) {
-                    // Ignorer les champs vides
-                    if (empty($champData['code']) && empty($champData['label'])) {
-                        continue;
-                    }
-
-                    $champ = [
-                        'code' => trim($champData['code'] ?? ''),
-                        'label' => trim($champData['label'] ?? ''),
-                        'type' => $champData['type'] ?? ChampPersonnaliseService::TYPE_TEXTE_COURT,
-                        'obligatoire' => isset($champData['obligatoire']),
-                        'options' => [],
-                    ];
-
-                    // Traiter les options pour les listes
-                    if ($champ['type'] === ChampPersonnaliseService::TYPE_LISTE) {
-                        $optionsStr = trim($champData['options'] ?? '');
-                        $champ['options'] = $this->champService->parseOptions($optionsStr);
-                    }
-
-                    $nouveauxChamps[] = $champ;
+            foreach ($champsData as $index => $champData) {
+                // S'assurer que $champData est un array
+                if (!is_array($champData)) {
+                    continue;
                 }
+
+                // Ignorer les champs vides
+                if (empty($champData['code']) && empty($champData['label'])) {
+                    continue;
+                }
+
+                $champ = [
+                    'code' => trim($champData['code'] ?? ''),
+                    'label' => trim($champData['label'] ?? ''),
+                    'type' => $champData['type'] ?? ChampPersonnaliseService::TYPE_TEXTE_COURT,
+                    'obligatoire' => isset($champData['obligatoire']),
+                    'options' => [],
+                ];
+
+                // Traiter les options pour les listes
+                if ($champ['type'] === ChampPersonnaliseService::TYPE_LISTE) {
+                    $optionsStr = trim($champData['options'] ?? '');
+                    $champ['options'] = $this->champService->parseOptions($optionsStr);
+                }
+
+                $nouveauxChamps[] = $champ;
             }
 
             // Valider
