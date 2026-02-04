@@ -21,11 +21,12 @@
                 {% endif %}
             </p>
         </div>
-        {% if operation.checklistInstance %}
+        {% set total = operation.campagne.nombreEtapesActives %}
+        {% if total > 0 %}
             <div class="text-right">
                 <p class="text-xs text-muted">Checklist</p>
                 <p class="text-sm font-bold text-ink">
-                    {{ operation.checklistInstance.progression.completed|default(0) }}/{{ operation.checklistInstance.progression.total|default(0) }}
+                    {{ operation.checklistInstance ? operation.checklistInstance.nombreEtapesCochees : 0 }}/{{ total }}
                 </p>
             </div>
         {% endif %}

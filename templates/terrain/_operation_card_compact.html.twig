@@ -16,9 +16,10 @@
     </div>
     <div class="text-right">
         {% include 'terrain/_status_badge.html.twig' with {statut: operation.statut} %}
-        {% if operation.checklistInstance %}
+        {% set total = operation.campagne.nombreEtapesActives %}
+        {% if total > 0 %}
             <p class="text-xs text-muted mt-1">
-                {{ operation.checklistInstance.progression.completed|default(0) }}/{{ operation.checklistInstance.progression.total|default(0) }} ✓
+                {{ operation.checklistInstance ? operation.checklistInstance.nombreEtapesCochees : 0 }}/{{ total }} ✓
             </p>
         {% endif %}
     </div>
