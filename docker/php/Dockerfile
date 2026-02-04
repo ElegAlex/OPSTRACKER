@@ -100,9 +100,8 @@ FROM base AS production
 # Copier l'application buildée
 COPY --from=builder /var/www/html /var/www/html
 
-# Créer les répertoires nécessaires
-RUN mkdir -p var/cache var/log var/sessions var/share uploads \
-    && chown -R www-data:www-data var uploads
+# Nettoyer et recréer var/ avec les bonnes permissions
+RUN rm -rf var && mkdir -p var/cache var/log var/sessions var/share uploads
 
 # Warmup du cache Symfony (en prod)
 RUN php bin/console cache:warmup --env=prod --no-debug || true
@@ -111,8 +110,9 @@ RUN php bin/console cache:warmup --env=prod --no-debug || true
 RUN php bin/console importmap:install --env=prod || true \
     && php bin/console asset-map:compile --env=prod || true
 
-# Permissions
-RUN chmod -R 775 var uploads
+# Permissions (après warmup pour inclure le cache)
+RUN chown -R www-data:www-data var uploads \
+    && chmod -R 775 var uploads
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
