@@ -3,7 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Agent;
-use App\Repository\AgentRepository;
+use Doctrine\ORM\QueryBuilder;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -17,8 +17,6 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\QueryBuilder;
 
 /**
  * CRUD Agent pour EasyAdmin - Sprint 16 (T-1611)
@@ -27,13 +25,11 @@ use Doctrine\ORM\QueryBuilder;
  *
  * Regles metier :
  * - RG-124 : Manager ne voit que les agents de son service (filtre)
+ *
+ * @extends AbstractCrudController<Agent>
  */
 class AgentCrudController extends AbstractCrudController
 {
-    public function __construct(
-        private AgentRepository $agentRepository,
-    ) {
-    }
 
     public static function getEntityFqcn(): string
     {

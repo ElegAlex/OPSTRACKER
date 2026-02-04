@@ -119,6 +119,9 @@ class LoadTestCommand extends Command
         );
     }
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     private function runBenchmarks(SymfonyStyle $io): array
     {
         $io->section('Benchmarks - Mesure des performances');
@@ -239,6 +242,9 @@ class LoadTestCommand extends Command
         ));
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $results
+     */
     private function generateReport(SymfonyStyle $io, array $results): void
     {
         $io->section('Rapport de Performance');

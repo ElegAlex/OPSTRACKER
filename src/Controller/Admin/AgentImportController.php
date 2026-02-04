@@ -110,6 +110,9 @@ class AgentImportController extends AbstractController
         return $response;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function processImport(UploadedFile $file, bool $updateExisting): array
     {
         $handle = fopen($file->getPathname(), 'r');

@@ -13,26 +13,24 @@ ENV APP_DEBUG=0
 ENV COMPOSER_ALLOW_SUPERUSER=1
 ENV COMPOSER_MEMORY_LIMIT=-1
 
-# Dépendances système
+# Dépendances système RUNTIME (restent dans l'image finale)
 RUN apk add --no-cache \
-    # PostgreSQL
-    postgresql-dev \
+    postgresql-libs \
     postgresql-client \
-    # Intl (requiert icu)
-    icu-dev \
     icu-libs \
-    # ZIP
-    libzip-dev \
+    libzip \
     zip \
     unzip \
-    # Git (pour Composer)
     git \
-    # Supervisor (optionnel pour workers)
     supervisor \
-    # fcgi pour healthcheck
-    fcgi \
-    # Build tools (temporaire)
+    fcgi
+
+# Dépendances de BUILD (temporaires, seront supprimées)
+RUN apk add --no-cache --virtual .build-deps \
     $PHPIZE_DEPS \
+    postgresql-dev \
+    icu-dev \
+    libzip-dev \
     linux-headers
 
 # Extensions PHP (seulement celles NON incluses dans l'image de base)
@@ -45,16 +43,16 @@ RUN docker-php-ext-configure intl \
         zip
 
 # Redis extension via PECL
-RUN pecl install redis \
+RUN pecl install redis-6.0.2 \
     && docker-php-ext-enable redis
 
 # APCu pour cache local
 RUN pecl install apcu \
     && docker-php-ext-enable apcu
 
-# Nettoyage pour réduire taille image
-RUN apk del $PHPIZE_DEPS linux-headers \
-    && rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
+# Nettoyage des dépendances de build
+RUN apk del .build-deps \
+    && rm -rf /var/cache/apk/* /tmp/* /var/tmp/* /tmp/pear
 
 # Configuration PHP
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
