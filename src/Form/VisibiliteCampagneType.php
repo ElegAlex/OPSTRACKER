@@ -14,6 +14,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 /**
  * Formulaire de configuration de la visibilite d'une campagne.
  * US-211 / RG-112 : Configurer la visibilite d'une campagne
+ *
+ * @extends AbstractType<Campagne>
  */
 class VisibiliteCampagneType extends AbstractType
 {

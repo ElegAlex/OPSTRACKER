@@ -16,6 +16,8 @@ use Symfony\Component\Validator\Constraints\File;
  * - RG-012 : Max 100 000 lignes, encodage auto-detecte
  * - RG-013 : Fichier .csv uniquement accepte
  * - Creation manuelle : definir les colonnes sans import CSV
+ *
+ * @extends AbstractType<null>
  */
 class CampagneStep2Type extends AbstractType
 {

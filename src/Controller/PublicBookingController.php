@@ -128,13 +128,15 @@ class PublicBookingController extends AbstractController
         $personnes = $this->personnesAutoriseesService->getPersonnesAutorisees($campagne);
 
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('public_booking_identify', $request->request->get('_token'))) {
+            /** @var string|null $csrfToken */
+            $csrfToken = $request->request->get('_token');
+            if (!$this->isCsrfTokenValid('public_booking_identify', $csrfToken)) {
                 $this->addFlash('danger', 'Token CSRF invalide.');
 
                 return $this->redirectToRoute('app_public_booking_identify', ['token' => $token]);
             }
 
-            $identifiant = trim($request->request->get('identifiant', ''));
+            $identifiant = trim((string) $request->request->get('identifiant', ''));
 
             if (empty($identifiant)) {
                 $this->addFlash('danger', 'Veuillez renseigner votre identifiant.');
@@ -192,7 +194,8 @@ class PublicBookingController extends AbstractController
     {
         $campagne = $this->getCampagneByToken($token);
 
-        if (!$campagne || $operation->getCampagne()->getId() !== $campagne->getId()) {
+        $operationCampagne = $operation->getCampagne();
+        if (!$campagne || $operationCampagne === null || $operationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Operation invalide.');
         }
 
@@ -203,7 +206,9 @@ class PublicBookingController extends AbstractController
             return $this->redirectToRoute('app_public_booking_identify', ['token' => $token]);
         }
 
-        if (!$this->isCsrfTokenValid('public_booking_select_' . $operation->getId(), $request->request->get('_token'))) {
+        /** @var string|null $csrfToken */
+        $csrfToken = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('public_booking_select_' . $operation->getId(), $csrfToken)) {
             $this->addFlash('danger', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('app_public_booking_index', ['token' => $token]);
@@ -283,7 +288,8 @@ class PublicBookingController extends AbstractController
     {
         $campagne = $this->getCampagneByToken($token);
 
-        if (!$campagne || $operation->getCampagne()->getId() !== $campagne->getId()) {
+        $operationCampagne = $operation->getCampagne();
+        if (!$campagne || $operationCampagne === null || $operationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Operation non trouvee.');
         }
 
@@ -323,7 +329,9 @@ class PublicBookingController extends AbstractController
             return $this->redirectToRoute('app_public_booking_index', ['token' => $token]);
         }
 
-        if (!$this->isCsrfTokenValid('public_booking_cancel', $request->request->get('_token'))) {
+        /** @var string|null $csrfToken */
+        $csrfToken = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('public_booking_cancel', $csrfToken)) {
             $this->addFlash('danger', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('app_public_booking_index', ['token' => $token]);

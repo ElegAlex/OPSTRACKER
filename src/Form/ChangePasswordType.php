@@ -12,6 +12,8 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
  * Formulaire de changement de mot de passe (T-1004, RG-001)
+ *
+ * @extends AbstractType<null>
  */
 class ChangePasswordType extends AbstractType
 {

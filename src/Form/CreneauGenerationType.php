@@ -22,6 +22,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  * RG-130 : Generation automatique
  * - Skip weekends (samedi=6, dimanche=7)
  * - Skip pause dejeuner (12h-14h)
+ *
+ * @extends AbstractType<null>
  */
 class CreneauGenerationType extends AbstractType
 {

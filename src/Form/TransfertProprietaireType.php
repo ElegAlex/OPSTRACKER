@@ -13,6 +13,8 @@ use Symfony\Component\Validator\Constraints\NotNull;
 /**
  * Formulaire de transfert de propriete d'une campagne.
  * US-210 / RG-111 : Definir le proprietaire d'une campagne
+ *
+ * @extends AbstractType<null>
  */
 class TransfertProprietaireType extends AbstractType
 {

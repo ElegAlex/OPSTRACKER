@@ -95,6 +95,9 @@ class ImportCsvService
     public function detectEncoding(string $filePath): string
     {
         $content = file_get_contents($filePath, false, null, 0, 16384);
+        if ($content === false) {
+            return 'UTF-8';
+        }
 
         // PRIORITE 1 : Detecter le BOM UTF-8
         if (str_starts_with($content, "\xEF\xBB\xBF")) {
@@ -187,10 +190,16 @@ class ImportCsvService
     public function detectSeparator(string $filePath, string $encoding = 'UTF-8'): string
     {
         $content = file_get_contents($filePath, false, null, 0, 8192);
+        if ($content === false) {
+            return ';';
+        }
 
         // Convertir si necessaire
         if ($encoding !== 'UTF-8') {
-            $content = mb_convert_encoding($content, 'UTF-8', $encoding);
+            $converted = mb_convert_encoding($content, 'UTF-8', $encoding);
+            if (is_string($converted)) {
+                $content = $converted;
+            }
         }
 
         // Compter les occurrences de chaque separateur sur les premieres lignes
@@ -234,20 +243,49 @@ class ImportCsvService
 
         if ($encoding !== 'UTF-8') {
             $content = file_get_contents($filePath);
+            if ($content === false) {
+                return [
+                    'headers' => [],
+                    'preview' => [],
+                    'total_lines' => 0,
+                    'encoding' => $encoding,
+                    'separator' => $separator,
+                ];
+            }
             $utf8Content = $this->convertToUtf8($content, $encoding);
 
             // Creer un fichier temporaire UTF-8
             $tempFile = tempnam(sys_get_temp_dir(), 'csv_utf8_');
+            if ($tempFile === false) {
+                return [
+                    'headers' => [],
+                    'preview' => [],
+                    'total_lines' => 0,
+                    'encoding' => $encoding,
+                    'separator' => $separator,
+                ];
+            }
             file_put_contents($tempFile, $utf8Content);
             $workingPath = $tempFile;
         } else {
             // Meme en UTF-8, retirer le BOM si present
             $content = file_get_contents($filePath);
+            if ($content === false) {
+                return [
+                    'headers' => [],
+                    'preview' => [],
+                    'total_lines' => 0,
+                    'encoding' => $encoding,
+                    'separator' => $separator,
+                ];
+            }
             $cleanContent = $this->removeBom($content);
             if ($cleanContent !== $content) {
                 $tempFile = tempnam(sys_get_temp_dir(), 'csv_nobom_');
-                file_put_contents($tempFile, $cleanContent);
-                $workingPath = $tempFile;
+                if ($tempFile !== false) {
+                    file_put_contents($tempFile, $cleanContent);
+                    $workingPath = $tempFile;
+                }
             }
         }
 
@@ -282,7 +320,7 @@ class ImportCsvService
             ];
         } finally {
             // Nettoyer le fichier temporaire
-            if ($tempFile !== null && file_exists($tempFile)) {
+            if (is_string($tempFile) && file_exists($tempFile)) {
                 @unlink($tempFile);
             }
         }
@@ -310,7 +348,8 @@ class ImportCsvService
         foreach (self::MAPPABLE_FIELDS as $field => $config) {
             $mapping[$field] = null;
 
-            foreach ($patterns[$field] ?? [] as $pattern) {
+            $fieldPatterns = $patterns[$field];
+            foreach ($fieldPatterns as $pattern) {
                 foreach ($normalizedHeaders as $index => $header) {
                     if (str_contains($header, $pattern)) {
                         $mapping[$field] = $index;
@@ -352,9 +391,17 @@ class ImportCsvService
 
         if ($encoding !== 'UTF-8') {
             $content = file_get_contents($filePath);
+            if ($content === false) {
+                $result->addError(0, 'file', 'Impossible de lire le fichier.');
+                return $result;
+            }
             $utf8Content = $this->convertToUtf8($content, $encoding);
 
             $tempFile = tempnam(sys_get_temp_dir(), 'csv_import_');
+            if ($tempFile === false) {
+                $result->addError(0, 'file', 'Impossible de créer un fichier temporaire.');
+                return $result;
+            }
             file_put_contents($tempFile, $utf8Content);
             $workingPath = $tempFile;
 
@@ -365,11 +412,17 @@ class ImportCsvService
         } else {
             // Meme en UTF-8, retirer le BOM si present
             $content = file_get_contents($filePath);
+            if ($content === false) {
+                $result->addError(0, 'file', 'Impossible de lire le fichier.');
+                return $result;
+            }
             $cleanContent = $this->removeBom($content);
             if ($cleanContent !== $content) {
                 $tempFile = tempnam(sys_get_temp_dir(), 'csv_nobom_');
-                file_put_contents($tempFile, $cleanContent);
-                $workingPath = $tempFile;
+                if ($tempFile !== false) {
+                    file_put_contents($tempFile, $cleanContent);
+                    $workingPath = $tempFile;
+                }
             }
         }
 
@@ -382,7 +435,7 @@ class ImportCsvService
             // Cache des segments crees (RG-093)
             $segmentsCache = [];
             foreach ($campagne->getSegments() as $segment) {
-                $segmentsCache[mb_strtolower($segment->getNom())] = $segment;
+                $segmentsCache[mb_strtolower((string) $segment->getNom())] = $segment;
             }
 
             $lineNumber = 1; // La ligne 1 est l'en-tete
@@ -441,7 +494,7 @@ class ImportCsvService
             return $result;
         } finally {
             // Nettoyer le fichier temporaire
-            if ($tempFile !== null && file_exists($tempFile)) {
+            if (is_string($tempFile) && file_exists($tempFile)) {
                 @unlink($tempFile);
             }
         }
@@ -452,6 +505,12 @@ class ImportCsvService
      *
      * RG-015 : TOUTES les donnees metier passent par donneesPersonnalisees (JSONB)
      * Plus de champs matricule/nom dedies, tout vient des CampagneChamp.
+     *
+     * @param array<string, string> $record
+     * @param array<int, string> $headers
+     * @param array<string, int|null> $mapping
+     * @param array<string, int> $customFieldsMapping
+     * @param array<string, Segment> $segmentsCache
      */
     private function createOperationFromRecord(
         Campagne $campagne,
@@ -477,7 +536,7 @@ class ImportCsvService
         $donneesPersonnalisees = [];
         if (!empty($customFieldsMapping)) {
             foreach ($customFieldsMapping as $fieldCode => $headerIndex) {
-                if ($headerIndex !== null && isset($values[$headerIndex])) {
+                if (isset($values[$headerIndex])) {
                     $donneesPersonnalisees[$fieldCode] = $values[$headerIndex];
                 }
             }
@@ -558,10 +617,13 @@ class ImportCsvService
 
     /**
      * Recupere une valeur depuis le mapping.
+     *
+     * @param array<int, string> $values
+     * @param array<string, int|null> $mapping
      */
     private function getValueFromMapping(array $values, array $mapping, string $field): ?string
     {
-        if (!isset($mapping[$field]) || $mapping[$field] === null) {
+        if (!array_key_exists($field, $mapping) || $mapping[$field] === null) {
             return null;
         }
 
@@ -575,9 +637,12 @@ class ImportCsvService
     private function normalizeHeader(string $header): string
     {
         $header = mb_strtolower($header);
-        $header = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $header);
-        $header = preg_replace('/[^a-z0-9]/', '', $header);
-        return $header;
+        $converted = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $header);
+        if ($converted === false) {
+            $converted = $header;
+        }
+        $result = preg_replace('/[^a-z0-9]/', '', $converted);
+        return $result ?? $converted;
     }
 
     /**

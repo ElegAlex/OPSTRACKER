@@ -7,7 +7,6 @@ use App\Entity\ChecklistInstance;
 use App\Entity\ChecklistTemplate;
 use App\Entity\Operation;
 use App\Entity\Utilisateur;
-use App\Repository\ChecklistInstanceRepository;
 use App\Repository\ChecklistTemplateRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -34,13 +33,14 @@ class ChecklistService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ChecklistTemplateRepository $templateRepository,
-        private readonly ChecklistInstanceRepository $instanceRepository,
     ) {
     }
 
     /**
      * Cree un nouveau template de checklist.
      * RG-030 : Template = Nom + Version + Etapes ordonnees + Phases optionnelles
+     *
+     * @param array<string, mixed> $etapes
      */
     public function creerTemplate(
         string $nom,
@@ -350,7 +350,11 @@ class ChecklistService
             throw new \InvalidArgumentException('Phase non accessible. Terminez d\'abord la phase precedente.');
         }
 
-        $instance->cocherEtape($etapeId, $utilisateur->getId());
+        $utilisateurId = $utilisateur->getId();
+        if ($utilisateurId === null) {
+            throw new \InvalidArgumentException('L\'utilisateur doit avoir un ID.');
+        }
+        $instance->cocherEtape($etapeId, $utilisateurId);
         $this->entityManager->flush();
 
         return $instance;
@@ -407,7 +411,7 @@ class ChecklistService
      *         completed: int,
      *         is_complete: bool,
      *         is_accessible: bool,
-     *         etapes: array
+     *         etapes: array<int, array{id: string, titre: string, description: ?string, obligatoire: bool, documentId: ?int, champCible: ?string, actif: bool, cochee: bool, cocheeMaisDesactivee: bool}>
      *     }>
      * }
      */
@@ -417,7 +421,7 @@ class ChecklistService
         $campagne = $operation?->getCampagne();
 
         // Nouvelle architecture : lire depuis Campagne.checklistStructure
-        if ($campagne && $campagne->hasChecklistStructure()) {
+        if ($campagne !== null && $campagne->hasChecklistStructure()) {
             return $this->getProgressionFromCampagne($instance, $campagne);
         }
 
@@ -428,6 +432,23 @@ class ChecklistService
     /**
      * Calcule la progression depuis Campagne.checklistStructure (nouvelle architecture)
      * Les etapes desactivees sont EXCLUES du compteur mais incluses dans l'affichage
+     *
+     * @return array{
+     *     total: int,
+     *     completed: int,
+     *     percentage: float,
+     *     is_complete: bool,
+     *     phases: array<string, array{
+     *         id: string,
+     *         nom: string,
+     *         verrouillable: bool,
+     *         total: int,
+     *         completed: int,
+     *         is_complete: bool,
+     *         is_accessible: bool,
+     *         etapes: array<int, array{id: string, titre: string, description: ?string, obligatoire: bool, documentId: ?int, champCible: ?string, actif: bool, cochee: bool, cocheeMaisDesactivee: bool}>
+     *     }>
+     * }
      */
     private function getProgressionFromCampagne(ChecklistInstance $instance, Campagne $campagne): array
     {
@@ -518,6 +539,23 @@ class ChecklistService
 
     /**
      * Calcule la progression depuis le snapshot (retrocompatibilite)
+     *
+     * @return array{
+     *     total: int,
+     *     completed: int,
+     *     percentage: float,
+     *     is_complete: bool,
+     *     phases: array<string, array{
+     *         id: string,
+     *         nom: string,
+     *         verrouillable: bool,
+     *         total: int,
+     *         completed: int,
+     *         is_complete: bool,
+     *         is_accessible: bool,
+     *         etapes: array<int, array{id: string, titre: string, description: ?string, obligatoire: bool, documentId: ?int, champCible: ?string, actif: bool, cochee: bool, cocheeMaisDesactivee: bool}>
+     *     }>
+     * }
      */
     private function getProgressionFromSnapshot(ChecklistInstance $instance): array
     {

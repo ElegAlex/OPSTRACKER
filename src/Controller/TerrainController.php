@@ -56,16 +56,16 @@ class TerrainController extends AbstractController
         $today = new \DateTimeImmutable('today');
 
         // Operations en retard (toutes campagnes)
-        $operationsRetard = $this->operationRepository->findRetardForTechnicien($user->getId());
+        $operationsRetard = $this->operationRepository->findRetardForTechnicien((int) $user->getId());
 
         // Operations aujourd'hui (toutes campagnes)
-        $operationsAujourdhui = $this->operationRepository->findTodayForTechnicien($user->getId(), $today);
+        $operationsAujourdhui = $this->operationRepository->findTodayForTechnicien((int) $user->getId(), $today);
 
         // Operations a venir (toutes campagnes)
-        $operationsAVenir = $this->operationRepository->findAVenirForTechnicien($user->getId(), $today);
+        $operationsAVenir = $this->operationRepository->findAVenirForTechnicien((int) $user->getId(), $today);
 
         // Operations terminees (30 derniers jours)
-        $operationsTerminees = $this->operationRepository->findTermineesForTechnicien($user->getId());
+        $operationsTerminees = $this->operationRepository->findTermineesForTechnicien((int) $user->getId());
 
         // KPIs (toutes les operations : retard + aujourd'hui + a venir)
         $kpis = [
@@ -80,7 +80,11 @@ class TerrainController extends AbstractController
         $toutesOperations = array_merge($operationsRetard, $operationsAujourdhui, $operationsAVenir, $operationsTerminees);
         $campagneColors = [];
         foreach ($toutesOperations as $op) {
-            $campagneId = $op->getCampagne()->getId();
+            $campagne = $op->getCampagne();
+            if ($campagne === null) {
+                continue;
+            }
+            $campagneId = $campagne->getId();
             if (!isset($campagneColors[$campagneId])) {
                 $campagneColors[$campagneId] = count($campagneColors);
             }
@@ -114,7 +118,7 @@ class TerrainController extends AbstractController
         $campagne = $operation->getCampagne();
 
         // Nouvelle architecture : vérifier si la campagne a une structure de checklist
-        if ($campagne->hasChecklistStructure()) {
+        if ($campagne !== null && $campagne->hasChecklistStructure()) {
             $instance = $operation->getChecklistInstance();
             if (!$instance) {
                 $instance = $this->checklistService->creerInstancePourOperation($operation);
@@ -128,10 +132,13 @@ class TerrainController extends AbstractController
         }
 
         // T-1106, T-1107 : Charger les documents de la campagne pour la checklist
-        $documents = $this->documentRepository->findByCampagne($operation->getCampagne()->getId());
         $documentsById = [];
-        foreach ($documents as $doc) {
-            $documentsById[$doc->getId()] = $doc;
+        $operationCampagne = $operation->getCampagne();
+        if ($operationCampagne !== null) {
+            $documents = $this->documentRepository->findByCampagne((int) $operationCampagne->getId());
+            foreach ($documents as $doc) {
+                $documentsById[(int) $doc->getId()] = $doc;
+            }
         }
 
         return $this->render('terrain/show.html.twig', [
@@ -153,14 +160,15 @@ class TerrainController extends AbstractController
     ): Response {
         $this->denyAccessUnlessGranted('edit', $operation);
 
-        if (!$this->isCsrfTokenValid('checklist_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('checklist_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de securite invalide.');
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }
 
         $champCible = $this->getChampCibleForEtape($operation, $etapeId);
         if ($champCible) {
-            $valeur = trim($request->request->get('valeur_champ', ''));
+            $valeurChamp = $request->request->get('valeur_champ', '');
+            $valeur = is_string($valeurChamp) ? trim($valeurChamp) : '';
             $operation->setDonneePersonnalisee($champCible, $valeur);
             $this->entityManager->flush();
             $this->addFlash('success', 'Valeur enregistree.');
@@ -171,10 +179,13 @@ class TerrainController extends AbstractController
             $instance = $operation->getChecklistInstance();
             $progression = $instance ? $this->checklistService->getProgression($instance) : null;
 
-            $documents = $this->documentRepository->findByCampagne($operation->getCampagne()->getId());
             $documentsById = [];
-            foreach ($documents as $doc) {
-                $documentsById[$doc->getId()] = $doc;
+            $operationCampagne = $operation->getCampagne();
+            if ($operationCampagne !== null) {
+                $documents = $this->documentRepository->findByCampagne((int) $operationCampagne->getId());
+                foreach ($documents as $doc) {
+                    $documentsById[(int) $doc->getId()] = $doc;
+                }
             }
 
             return $this->render('terrain/_checklist.html.twig', [
@@ -202,7 +213,7 @@ class TerrainController extends AbstractController
         $this->denyAccessUnlessGranted('edit', $operation);
 
         // Verifier le token CSRF
-        if (!$this->isCsrfTokenValid('checklist_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('checklist_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de securite invalide.');
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }
@@ -220,7 +231,7 @@ class TerrainController extends AbstractController
 
             // Traitement champ de saisie si present
             $valeurChamp = $request->request->get('valeur_champ');
-            if ($valeurChamp !== null) {
+            if ($valeurChamp !== null && is_string($valeurChamp)) {
                 $champCible = $this->getChampCibleForEtape($operation, $etapeId);
                 if ($champCible) {
                     $valeur = trim($valeurChamp);
@@ -237,10 +248,13 @@ class TerrainController extends AbstractController
         $progression = $this->checklistService->getProgression($instance);
 
         // T-1106, T-1107 : Charger les documents pour la checklist
-        $documents = $this->documentRepository->findByCampagne($operation->getCampagne()->getId());
         $documentsById = [];
-        foreach ($documents as $doc) {
-            $documentsById[$doc->getId()] = $doc;
+        $operationCampagne = $operation->getCampagne();
+        if ($operationCampagne !== null) {
+            $documents = $this->documentRepository->findByCampagne((int) $operationCampagne->getId());
+            foreach ($documents as $doc) {
+                $documentsById[(int) $doc->getId()] = $doc;
+            }
         }
 
         // T-605 : Si requete Turbo, retourner uniquement le fragment
@@ -270,7 +284,9 @@ class TerrainController extends AbstractController
         }
 
         // Verifier que le document appartient a la campagne de l'operation
-        if ($document->getCampagne()->getId() !== $operation->getCampagne()->getId()) {
+        $documentCampagne = $document->getCampagne();
+        $operationCampagne = $operation->getCampagne();
+        if ($documentCampagne === null || $operationCampagne === null || $documentCampagne->getId() !== $operationCampagne->getId()) {
             throw $this->createAccessDeniedException('Document non accessible.');
         }
 
@@ -282,15 +298,16 @@ class TerrainController extends AbstractController
         $response = new BinaryFileResponse($filePath);
 
         // PDF : affichage inline, autres : telechargement
+        $documentNom = $document->getNomOriginal() ?? 'document';
         if ($document->getExtension() === 'pdf') {
             $response->setContentDisposition(
                 ResponseHeaderBag::DISPOSITION_INLINE,
-                $document->getNomOriginal()
+                $documentNom
             );
         } else {
             $response->setContentDisposition(
                 ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-                $document->getNomOriginal()
+                $documentNom
             );
         }
 
@@ -312,7 +329,9 @@ class TerrainController extends AbstractController
         }
 
         // Verifier que le document appartient a la campagne de l'operation
-        if ($document->getCampagne()->getId() !== $operation->getCampagne()->getId()) {
+        $documentCampagne = $document->getCampagne();
+        $operationCampagne = $operation->getCampagne();
+        if ($documentCampagne === null || $operationCampagne === null || $documentCampagne->getId() !== $operationCampagne->getId()) {
             throw $this->createAccessDeniedException('Document non accessible.');
         }
 
@@ -324,7 +343,7 @@ class TerrainController extends AbstractController
         $response = new BinaryFileResponse($filePath);
         $response->setContentDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            $document->getNomOriginal()
+            $document->getNomOriginal() ?? 'document'
         );
 
         return $response;
@@ -344,7 +363,7 @@ class TerrainController extends AbstractController
         $this->denyAccessUnlessGranted('edit', $operation);
 
         // Verifier le token CSRF
-        if (!$this->isCsrfTokenValid('transition_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('transition_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de securite invalide.');
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }
@@ -352,7 +371,8 @@ class TerrainController extends AbstractController
         // Recuperer le motif si c'est un report (RG-021)
         $motif = null;
         if ($transition === 'reporter') {
-            $motif = $request->request->get('motif');
+            $motifRaw = $request->request->get('motif');
+            $motif = is_string($motifRaw) ? $motifRaw : null;
         }
 
         // Appliquer la transition
@@ -383,7 +403,7 @@ class TerrainController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $operation);
 
-        if (!$this->isCsrfTokenValid('demarrer_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('demarrer_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de securite invalide.');
             return $this->redirectToRoute('terrain_index');
         }
@@ -409,13 +429,14 @@ class TerrainController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $operation);
 
-        if (!$this->isCsrfTokenValid('terminer_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('terminer_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de securite invalide.');
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }
 
         // Saisie duree uniquement si activee sur la campagne
-        if ($operation->getCampagne()->isSaisieTempsActivee()) {
+        $campagne = $operation->getCampagne();
+        if ($campagne !== null && $campagne->isSaisieTempsActivee()) {
             /** @var Utilisateur|null $currentUser */
             $currentUser = $this->getUser();
             $dureeMinutes = $request->request->getInt('duree_minutes', 0);
@@ -443,7 +464,7 @@ class TerrainController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $operation);
 
-        if (!$this->isCsrfTokenValid('duree' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('duree' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de securite invalide.');
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }
@@ -470,12 +491,13 @@ class TerrainController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $operation);
 
-        if (!$this->isCsrfTokenValid('reporter_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('reporter_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de securite invalide.');
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }
 
-        $motif = $request->request->get('motif');
+        $motifRaw = $request->request->get('motif');
+        $motif = is_string($motifRaw) ? $motifRaw : null;
         $dateStr = $request->request->get('nouvelle_date');
         $heureStr = $request->request->get('nouvelle_heure');
 
@@ -497,7 +519,7 @@ class TerrainController extends AbstractController
             }
         }
 
-        $success = $this->operationService->appliquerTransition($operation, 'reporter', $motif, $nouvelleDatePlanifiee);
+        $success = $this->operationService->appliquerTransition($operation, 'reporter', is_string($motif) ? $motif : null, $nouvelleDatePlanifiee);
 
         if ($success) {
             if ($nouvelleDatePlanifiee !== null) {
@@ -529,12 +551,13 @@ class TerrainController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $operation);
 
-        if (!$this->isCsrfTokenValid('probleme_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('probleme_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de securite invalide.');
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }
 
-        $motif = $request->request->get('motif');
+        $motifRaw = $request->request->get('motif');
+        $motif = is_string($motifRaw) ? $motifRaw : null;
 
         $success = $this->operationService->appliquerTransition($operation, 'remedier', $motif);
 
@@ -558,7 +581,7 @@ class TerrainController extends AbstractController
     {
         $this->denyAccessUnlessGranted('edit', $operation);
 
-        if (!$this->isCsrfTokenValid('replanifier_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('replanifier_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token de securite invalide.');
             return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
         }

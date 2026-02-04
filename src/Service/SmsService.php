@@ -45,7 +45,7 @@ class SmsService
     {
         $agent = $reservation->getAgent();
 
-        if (!$this->canSend($agent)) {
+        if ($agent === null || !$this->canSend($agent)) {
             return false;
         }
 
@@ -60,10 +60,20 @@ class SmsService
         }
 
         $creneau = $reservation->getCreneau();
+        if ($creneau === null) {
+            return false;
+        }
+
+        $date = $creneau->getDate();
+        $heureDebut = $creneau->getHeureDebut();
+        if ($date === null || $heureDebut === null) {
+            return false;
+        }
+
         $message = sprintf(
             '[OpsTracker] Rappel: RDV demain %s a %s. Lieu: %s',
-            $creneau->getDate()->format('d/m'),
-            $creneau->getHeureDebut()->format('H:i'),
+            $date->format('d/m'),
+            $heureDebut->format('H:i'),
             $creneau->getLieu() ?? 'voir email'
         );
 
@@ -77,7 +87,7 @@ class SmsService
     {
         $agent = $reservation->getAgent();
 
-        if (!$this->canSend($agent)) {
+        if ($agent === null || !$this->canSend($agent)) {
             return false;
         }
 
@@ -92,10 +102,20 @@ class SmsService
         }
 
         $creneau = $reservation->getCreneau();
+        if ($creneau === null) {
+            return false;
+        }
+
+        $date = $creneau->getDate();
+        $heureDebut = $creneau->getHeureDebut();
+        if ($date === null || $heureDebut === null) {
+            return false;
+        }
+
         $message = sprintf(
             '[OpsTracker] Confirme: %s a %s. Details par email.',
-            $creneau->getDate()->format('d/m/Y'),
-            $creneau->getHeureDebut()->format('H:i')
+            $date->format('d/m/Y'),
+            $heureDebut->format('H:i')
         );
 
         return $this->send($agent, $message, $reservation, self::TYPE_CONFIRMATION_SMS);
@@ -108,7 +128,7 @@ class SmsService
     {
         $agent = $reservation->getAgent();
 
-        if (!$this->canSend($agent)) {
+        if ($agent === null || !$this->canSend($agent)) {
             return false;
         }
 
@@ -183,7 +203,15 @@ class SmsService
         $this->entityManager->persist($notification);
 
         // Envoyer via le provider
-        $success = $this->provider->send($agent->getTelephone(), $message);
+        $telephone = $agent->getTelephone();
+        if ($telephone === null) {
+            $notification->markAsFailed('Telephone non defini');
+            $this->entityManager->flush();
+
+            return false;
+        }
+
+        $success = $this->provider->send($telephone, $message);
 
         if ($success) {
             $notification->markAsSent();

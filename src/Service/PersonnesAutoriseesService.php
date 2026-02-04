@@ -25,7 +25,7 @@ class PersonnesAutoriseesService
     /**
      * Recupere la liste des personnes autorisees selon le mode de la campagne.
      *
-     * @return array<array{id: string, label: string, service: ?string, site: ?string}>
+     * @return array<int, array{id: string, label: string, service: ?string, site: ?string, email: ?string}>
      */
     public function getPersonnesAutorisees(Campagne $campagne): array
     {
@@ -41,14 +41,16 @@ class PersonnesAutoriseesService
 
     /**
      * Mode import : recupere les agents depuis CampagneAgentAutorise.
+     *
+     * @return array<int, array{id: string, label: string, service: ?string, site: ?string, email: ?string}>
      */
     private function getFromImport(Campagne $campagne): array
     {
         $agents = $this->campagneAgentAutoriseRepository->findByCampagne($campagne);
 
         return array_map(fn ($a) => [
-            'id' => $a->getIdentifiant(),
-            'label' => $a->getNomPrenom(),
+            'id' => (string) $a->getIdentifiant(),
+            'label' => (string) $a->getNomPrenom(),
             'service' => $a->getService(),
             'site' => $a->getSite(),
             'email' => $a->getEmail(),
@@ -57,6 +59,8 @@ class PersonnesAutoriseesService
 
     /**
      * Mode annuaire : recupere les agents depuis la table Agent avec filtres.
+     *
+     * @return array<int, array{id: string, label: string, service: ?string, site: ?string, email: ?string}>
      */
     private function getFromAnnuaire(Campagne $campagne): array
     {

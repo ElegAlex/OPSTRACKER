@@ -49,9 +49,18 @@ class NotificationService
         $agent = $reservation->getAgent();
         $creneau = $reservation->getCreneau();
 
+        if ($agent === null || $creneau === null) {
+            throw new \InvalidArgumentException('Agent et creneau sont obligatoires pour la confirmation.');
+        }
+
+        $date = $creneau->getDate();
+        if ($date === null) {
+            throw new \InvalidArgumentException('Le creneau doit avoir une date.');
+        }
+
         $sujet = sprintf(
             '[OpsTracker] Votre rendez-vous du %s est confirme',
-            $creneau->getDate()->format('d/m/Y')
+            $date->format('d/m/Y')
         );
 
         $contenu = $this->twig->render('emails/confirmation.html.twig', [
@@ -82,6 +91,15 @@ class NotificationService
         $agent = $reservation->getAgent();
         $creneau = $reservation->getCreneau();
 
+        if ($agent === null || $creneau === null) {
+            throw new \InvalidArgumentException('Agent et creneau sont obligatoires pour le rappel.');
+        }
+
+        $date = $creneau->getDate();
+        if ($date === null) {
+            throw new \InvalidArgumentException('Le creneau doit avoir une date.');
+        }
+
         // Verifier si un rappel a deja ete envoye
         if ($this->notificationRepository->hasRappelEnvoye($reservation)) {
             throw new \LogicException('Un rappel a deja ete envoye pour cette reservation.');
@@ -89,7 +107,7 @@ class NotificationService
 
         $sujet = sprintf(
             '[OpsTracker] Rappel : votre rendez-vous du %s',
-            $creneau->getDate()->format('d/m/Y')
+            $date->format('d/m/Y')
         );
 
         $contenu = $this->twig->render('emails/rappel.html.twig', [
@@ -119,9 +137,18 @@ class NotificationService
         $agent = $reservation->getAgent();
         $nouveauCreneau = $reservation->getCreneau();
 
+        if ($agent === null || $nouveauCreneau === null) {
+            throw new \InvalidArgumentException('Agent et creneau sont obligatoires pour la modification.');
+        }
+
+        $ancienneDate = $ancienCreneau->getDate();
+        if ($ancienneDate === null) {
+            throw new \InvalidArgumentException('L\'ancien creneau doit avoir une date.');
+        }
+
         $sujet = sprintf(
             '[OpsTracker] Modification de votre rendez-vous du %s',
-            $ancienCreneau->getDate()->format('d/m/Y')
+            $ancienneDate->format('d/m/Y')
         );
 
         $contenu = $this->twig->render('emails/modification.html.twig', [
@@ -153,6 +180,15 @@ class NotificationService
         $agent = $reservation->getAgent();
         $creneau = $reservation->getCreneau();
 
+        if ($agent === null || $creneau === null) {
+            throw new \InvalidArgumentException('Agent et creneau sont obligatoires pour l\'annulation.');
+        }
+
+        $date = $creneau->getDate();
+        if ($date === null) {
+            throw new \InvalidArgumentException('Le creneau doit avoir une date.');
+        }
+
         // RG-143 : Generer le lien de repositionnement
         $lienRepositionnement = $this->urlGenerator->generate(
             'app_booking_index',
@@ -162,7 +198,7 @@ class NotificationService
 
         $sujet = sprintf(
             '[OpsTracker] Votre rendez-vous du %s a ete annule',
-            $creneau->getDate()->format('d/m/Y')
+            $date->format('d/m/Y')
         );
 
         $contenu = $this->twig->render('emails/annulation.html.twig', [
@@ -280,26 +316,42 @@ class NotificationService
      */
     private function envoyerEmail(Notification $notification): void
     {
+        $agent = $notification->getAgent();
+        if ($agent === null) {
+            $notification->markAsFailed('Agent non defini');
+            $this->entityManager->flush();
+
+            return;
+        }
+
+        $agentEmail = $agent->getEmail();
+        if ($agentEmail === null) {
+            $notification->markAsFailed('Email agent non defini');
+            $this->entityManager->flush();
+
+            return;
+        }
+
         try {
             $email = (new Email())
                 ->from($this->senderEmail)
-                ->to($notification->getAgent()->getEmail())
-                ->subject($notification->getSujet())
-                ->html($notification->getContenu());
+                ->to($agentEmail)
+                ->subject((string) $notification->getSujet())
+                ->html((string) $notification->getContenu());
 
             $this->mailer->send($email);
             $notification->markAsSent();
 
             $this->logger?->info('Email envoye: {type} a {email}', [
                 'type' => $notification->getType(),
-                'email' => $notification->getAgent()->getEmail(),
+                'email' => $agentEmail,
             ]);
         } catch (\Exception $e) {
             $notification->markAsFailed($e->getMessage());
 
             $this->logger?->error('Echec envoi email: {type} a {email} - {error}', [
                 'type' => $notification->getType(),
-                'email' => $notification->getAgent()->getEmail(),
+                'email' => $agentEmail,
                 'error' => $e->getMessage(),
             ]);
         }
@@ -312,14 +364,30 @@ class NotificationService
      */
     private function envoyerEmailAvecIcs(Notification $notification, Reservation $reservation): void
     {
+        $agent = $notification->getAgent();
+        if ($agent === null) {
+            $notification->markAsFailed('Agent non defini');
+            $this->entityManager->flush();
+
+            return;
+        }
+
+        $agentEmail = $agent->getEmail();
+        if ($agentEmail === null) {
+            $notification->markAsFailed('Email agent non defini');
+            $this->entityManager->flush();
+
+            return;
+        }
+
         try {
             $icsContent = $this->icsGenerator->generate($reservation);
 
             $email = (new Email())
                 ->from($this->senderEmail)
-                ->to($notification->getAgent()->getEmail())
-                ->subject($notification->getSujet())
-                ->html($notification->getContenu())
+                ->to($agentEmail)
+                ->subject((string) $notification->getSujet())
+                ->html((string) $notification->getContenu())
                 ->attach($icsContent, 'rdv.ics', 'text/calendar');
 
             $this->mailer->send($email);
@@ -327,14 +395,14 @@ class NotificationService
 
             $this->logger?->info('Email avec ICS envoye: {type} a {email}', [
                 'type' => $notification->getType(),
-                'email' => $notification->getAgent()->getEmail(),
+                'email' => $agentEmail,
             ]);
         } catch (\Exception $e) {
             $notification->markAsFailed($e->getMessage());
 
             $this->logger?->error('Echec envoi email avec ICS: {type} a {email} - {error}', [
                 'type' => $notification->getType(),
-                'email' => $notification->getAgent()->getEmail(),
+                'email' => $agentEmail,
                 'error' => $e->getMessage(),
             ]);
         }

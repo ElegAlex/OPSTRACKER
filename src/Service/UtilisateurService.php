@@ -36,7 +36,7 @@ class UtilisateurService
      * @param string $plainPassword
      * @param string $nom
      * @param string $prenom
-     * @param array $roles
+     * @param list<string> $roles
      * @return Utilisateur
      * @throws \InvalidArgumentException si validation échoue
      */
@@ -59,7 +59,7 @@ class UtilisateurService
         $utilisateur->setEmail($email);
         $utilisateur->setNom($nom);
         $utilisateur->setPrenom($prenom);
-        $utilisateur->setRoles($roles);
+        $utilisateur->setRoles(array_values($roles));
         $utilisateur->setActif(true);
 
         // Hasher le mot de passe
@@ -225,7 +225,7 @@ class UtilisateurService
      *     total_operations: int,
      *     operations_par_statut: array<string, int>,
      *     taux_realisation: float,
-     *     activite_recente: array,
+     *     activite_recente: array<int, mixed>,
      *     derniere_connexion: ?\DateTimeImmutable,
      *     compte_cree_le: ?\DateTimeImmutable
      * }
@@ -238,10 +238,11 @@ class UtilisateurService
         $tauxRealisation = 0.0;
         $activiteRecente = [];
 
-        if ($utilisateur->isTechnicien()) {
-            $totalOperations = $this->operationRepository->countByTechnicien($utilisateur->getId());
-            $operationsParStatut = $this->operationRepository->countByStatutForTechnicien($utilisateur->getId());
-            $activiteRecente = $this->operationRepository->findRecentActivityByTechnicien($utilisateur->getId(), 5);
+        $userId = $utilisateur->getId();
+        if ($utilisateur->isTechnicien() && $userId !== null) {
+            $totalOperations = $this->operationRepository->countByTechnicien($userId);
+            $operationsParStatut = $this->operationRepository->countByStatutForTechnicien($userId);
+            $activiteRecente = $this->operationRepository->findRecentActivityByTechnicien($userId, 5);
 
             // Calculer le taux de realisation
             $realisees = $operationsParStatut[Operation::STATUT_REALISE] ?? 0;
@@ -298,6 +299,8 @@ class UtilisateurService
      * Met a jour les roles d'un utilisateur
      * RG-003 : Roles valides uniquement
      * RG-004 : Un admin ne peut pas se retrograder lui-meme (verifie dans le controller)
+     *
+     * @param list<string> $roles
      */
     public function updateRoles(Utilisateur $utilisateur, array $roles): void
     {
@@ -314,7 +317,7 @@ class UtilisateurService
             }
         }
 
-        $utilisateur->setRoles($roles);
+        $utilisateur->setRoles(array_values($roles));
         $this->entityManager->flush();
     }
 }

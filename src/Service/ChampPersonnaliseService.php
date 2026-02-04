@@ -31,6 +31,8 @@ class ChampPersonnaliseService
 
     /**
      * Retourne la definition d'un champ vide.
+     *
+     * @return array{code: string, label: string, type: string, obligatoire: bool, options: array<int, string>}
      */
     public function creerChampVide(): array
     {
@@ -46,7 +48,8 @@ class ChampPersonnaliseService
     /**
      * Valide la structure d'un champ personnalise.
      *
-     * @return array<string> Liste des erreurs
+     * @param array<string, mixed> $champ
+     * @return array<int, string> Liste des erreurs
      */
     public function validerChamp(array $champ): array
     {
@@ -82,7 +85,7 @@ class ChampPersonnaliseService
     /**
      * Valide tous les champs d'un TypeOperation.
      *
-     * @return array<string> Liste des erreurs
+     * @return array<int, string> Liste des erreurs
      */
     public function validerChampsTypeOperation(TypeOperation $typeOperation): array
     {
@@ -110,6 +113,7 @@ class ChampPersonnaliseService
     /**
      * Valide une valeur par rapport à un champ.
      *
+     * @param array<string, mixed> $champ
      * @return string|null Erreur ou null si valide
      */
     public function validerValeur(array $champ, mixed $valeur): ?string
@@ -141,7 +145,7 @@ class ChampPersonnaliseService
                 break;
 
             case self::TYPE_DATE:
-                if (!$this->estDateValide($valeur)) {
+                if (!$this->estDateValide((string) $valeur)) {
                     return sprintf('Le champ "%s" doit être une date valide (YYYY-MM-DD).', $champ['label']);
                 }
                 break;
@@ -160,12 +164,12 @@ class ChampPersonnaliseService
     /**
      * Valide les données personnalisées d'une opération.
      *
-     * @return array<string> Liste des erreurs
+     * @return array<int, string> Liste des erreurs
      */
     public function validerDonneesOperation(Operation $operation, TypeOperation $typeOperation): array
     {
         $champs = $typeOperation->getChampsPersonnalises() ?? [];
-        $donnees = $operation->getDonnees() ?? [];
+        $donnees = $operation->getDonneesPersonnalisees() ?? [];
         $erreurs = [];
 
         foreach ($champs as $champ) {
@@ -182,6 +186,8 @@ class ChampPersonnaliseService
 
     /**
      * Génère un formulaire HTML pour un champ.
+     *
+     * @param array<string, mixed> $champ
      */
     public function genererInputHtml(array $champ, mixed $valeur, string $prefixNom = ''): string
     {
@@ -255,6 +261,8 @@ class ChampPersonnaliseService
 
     /**
      * Convertit les options d'une liste (string séparé par virgules) en tableau.
+     *
+     * @return array<int, string>
      */
     public function parseOptions(string $optionsString): array
     {
@@ -267,6 +275,8 @@ class ChampPersonnaliseService
 
     /**
      * Convertit un tableau d'options en string.
+     *
+     * @param array<int, string> $options
      */
     public function optionsToString(array $options): string
     {

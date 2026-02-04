@@ -47,7 +47,11 @@ class ExportCsvService
         $columns = $columns ?? array_keys(self::DEFAULT_COLUMNS);
 
         $response = new StreamedResponse(function () use ($campagne, $columns, $filters) {
-            $csv = Writer::createFromStream(fopen('php://output', 'w'));
+            $stream = fopen('php://output', 'w');
+            if ($stream === false) {
+                throw new \RuntimeException('Impossible d\'ouvrir le flux de sortie.');
+            }
+            $csv = Writer::createFromStream($stream);
             $csv->setDelimiter(';');
 
             // En-tetes
@@ -66,7 +70,7 @@ class ExportCsvService
 
         $filename = sprintf(
             'export_%s_%s.csv',
-            $this->slugify($campagne->getNom()),
+            $this->slugify($campagne->getNom() ?? 'campagne'),
             date('Y-m-d_His')
         );
 
@@ -85,7 +89,11 @@ class ExportCsvService
     public function exportMultipleCampagnes(array $campagnes): StreamedResponse
     {
         $response = new StreamedResponse(function () use ($campagnes) {
-            $csv = Writer::createFromStream(fopen('php://output', 'w'));
+            $stream = fopen('php://output', 'w');
+            if ($stream === false) {
+                throw new \RuntimeException('Impossible d\'ouvrir le flux de sortie.');
+            }
+            $csv = Writer::createFromStream($stream);
             $csv->setDelimiter(';');
 
             // En-tetes avec campagne
@@ -139,6 +147,7 @@ class ExportCsvService
     /**
      * Recupere les operations filtrees d'une campagne.
      *
+     * @param array<string, mixed> $filters
      * @return iterable<Operation>
      */
     private function getFilteredOperations(Campagne $campagne, array $filters): iterable
@@ -176,10 +185,16 @@ class ExportCsvService
      */
     private function slugify(string $text): string
     {
-        $text = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
-        $text = preg_replace('/[^a-z0-9]+/', '_', $text);
-        $text = trim($text, '_');
+        $transliterated = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
+        if ($transliterated === false) {
+            $transliterated = $text;
+        }
+        $replaced = preg_replace('/[^a-z0-9]+/', '_', $transliterated);
+        if ($replaced === null) {
+            $replaced = $transliterated;
+        }
+        $trimmed = trim($replaced, '_');
 
-        return $text ?: 'export';
+        return $trimmed !== '' ? $trimmed : 'export';
     }
 }

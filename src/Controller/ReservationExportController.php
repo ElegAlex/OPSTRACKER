@@ -43,7 +43,12 @@ class ReservationExportController extends AbstractController
             // BOM UTF-8 pour Excel
             echo "\xEF\xBB\xBF";
 
-            $csv = Writer::createFromStream(fopen('php://output', 'w'));
+            $stream = fopen('php://output', 'w');
+            if (false === $stream) {
+                return;
+            }
+
+            $csv = Writer::createFromStream($stream);
             $csv->setDelimiter(';');
 
             // En-tetes

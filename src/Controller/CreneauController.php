@@ -54,10 +54,14 @@ class CreneauController extends AbstractController
         // Grouper les creneaux par date
         $creneauxParDate = [];
         foreach ($creneaux as $creneau) {
-            $dateKey = $creneau->getDate()->format('Y-m-d');
+            $date = $creneau->getDate();
+            if ($date === null) {
+                continue;
+            }
+            $dateKey = $date->format('Y-m-d');
             if (!isset($creneauxParDate[$dateKey])) {
                 $creneauxParDate[$dateKey] = [
-                    'date' => $creneau->getDate(),
+                    'date' => $date,
                     'creneaux' => [],
                 ];
             }
@@ -121,7 +125,13 @@ class CreneauController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var array{heure_debut: \DateTimeInterface, heure_fin: \DateTimeInterface, date_debut: \DateTimeInterface, date_fin: \DateTimeInterface, duree_minutes: int, capacite: int, lieu: ?string, segment: mixed}|null $data */
             $data = $form->getData();
+
+            if ($data === null) {
+                $this->addFlash('danger', 'Donnees du formulaire invalides.');
+                return $this->redirectToRoute('app_creneau_generate', ['campagne' => $campagne->getId()]);
+            }
 
             // Preparer les plages horaires (eviter pause dejeuner 12h-14h)
             $heureDebut = $data['heure_debut'];
@@ -205,7 +215,8 @@ class CreneauController extends AbstractController
     public function edit(Campagne $campagne, Creneau $creneau, Request $request): Response
     {
         // Verifier que le creneau appartient a la campagne
-        if ($creneau->getCampagne()->getId() !== $campagne->getId()) {
+        $creneauCampagne = $creneau->getCampagne();
+        if ($creneauCampagne === null || $creneauCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Creneau non trouve dans cette campagne.');
         }
 
@@ -256,11 +267,12 @@ class CreneauController extends AbstractController
     public function delete(Campagne $campagne, Creneau $creneau, Request $request): Response
     {
         // Verifier que le creneau appartient a la campagne
-        if ($creneau->getCampagne()->getId() !== $campagne->getId()) {
+        $creneauCampagne = $creneau->getCampagne();
+        if ($creneauCampagne === null || $creneauCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Creneau non trouve dans cette campagne.');
         }
 
-        if (!$this->isCsrfTokenValid('delete_creneau_' . $creneau->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete_creneau_' . (int) $creneau->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('app_creneau_index', ['campagne' => $campagne->getId()]);
@@ -290,21 +302,31 @@ class CreneauController extends AbstractController
     #[Route('/{id}/dupliquer', name: 'app_creneau_duplicate', methods: ['POST'])]
     public function duplicate(Campagne $campagne, Creneau $creneau, Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('duplicate' . $creneau->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('duplicate' . (int) $creneau->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Token CSRF invalide.');
         }
 
         // Verifier appartenance
-        if ($creneau->getCampagne()->getId() !== $campagne->getId()) {
+        $creneauCampagne = $creneau->getCampagne();
+        if ($creneauCampagne === null || $creneauCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Creneau non trouve dans cette campagne.');
         }
 
         $newCreneau = new Creneau();
         $newCreneau->setCampagne($campagne);
         $newCreneau->setSegment($creneau->getSegment());
-        $newCreneau->setDate($creneau->getDate());
-        $newCreneau->setHeureDebut($creneau->getHeureDebut());
-        $newCreneau->setHeureFin($creneau->getHeureFin());
+        $creneauDate = $creneau->getDate();
+        $creneauHeureDebut = $creneau->getHeureDebut();
+        $creneauHeureFin = $creneau->getHeureFin();
+        if ($creneauDate !== null) {
+            $newCreneau->setDate($creneauDate);
+        }
+        if ($creneauHeureDebut !== null) {
+            $newCreneau->setHeureDebut($creneauHeureDebut);
+        }
+        if ($creneauHeureFin !== null) {
+            $newCreneau->setHeureFin($creneauHeureFin);
+        }
         $newCreneau->setCapacite($creneau->getCapacite());
         $newCreneau->setLieu($creneau->getLieu());
         $newCreneau->setVerrouille(false);

@@ -25,6 +25,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  *
  * Le formulaire est 100% dynamique : tous les champs sont definis
  * par les CampagneChamp de la campagne.
+ *
+ * @extends AbstractType<Operation>
  */
 class OperationType extends AbstractType
 {
@@ -48,6 +50,9 @@ class OperationType extends AbstractType
         if ($campagne && $campagne->getChamps()->count() > 0) {
             foreach ($campagne->getChamps() as $champ) {
                 $champNom = $champ->getNom();
+                if ($champNom === null) {
+                    continue;
+                }
                 $fieldName = CampagneChampService::normalizeFieldName($champNom);
 
                 $builder->add($fieldName, TextType::class, [
@@ -82,7 +87,7 @@ class OperationType extends AbstractType
             ])
             ->add('technicienAssigne', EntityType::class, [
                 'class' => Utilisateur::class,
-                'choice_label' => function (Utilisateur $utilisateur) {
+                'choice_label' => function (Utilisateur $utilisateur): string {
                     return $utilisateur->getPrenom() . ' ' . $utilisateur->getNom();
                 },
                 'label' => 'Technicien assigne',

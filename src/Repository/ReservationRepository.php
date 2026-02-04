@@ -219,11 +219,23 @@ class ReservationRepository extends ServiceEntityRepository
 
         $agentsParDate = [];
         foreach ($results as $reservation) {
-            $dateKey = $reservation->getCreneau()->getDate()->format('Y-m-d');
+            $creneau = $reservation->getCreneau();
+            if ($creneau === null) {
+                continue;
+            }
+            $date = $creneau->getDate();
+            if ($date === null) {
+                continue;
+            }
+            $agent = $reservation->getAgent();
+            if ($agent === null) {
+                continue;
+            }
+            $dateKey = $date->format('Y-m-d');
             if (!isset($agentsParDate[$dateKey])) {
                 $agentsParDate[$dateKey] = [];
             }
-            $agentsParDate[$dateKey][] = $reservation->getAgent();
+            $agentsParDate[$dateKey][] = $agent;
         }
 
         return $agentsParDate;

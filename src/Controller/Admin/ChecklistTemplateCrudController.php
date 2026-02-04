@@ -370,7 +370,7 @@ class ChecklistTemplateCrudController extends AbstractCrudController
                 $newId = $phaseId . '-etape-' . ($maxId + 1);
 
                 $documentId = $request->request->get('documentId');
-                $champCible = trim($request->request->get('champCible', ''));
+                $champCible = trim((string) $request->request->get('champCible', ''));
 
                 $phaseEtapes[] = [
                     'id' => $newId,
@@ -419,7 +419,7 @@ class ChecklistTemplateCrudController extends AbstractCrudController
                         $etape['obligatoire'] = (bool) $request->request->get('obligatoire', false);
                         $documentId = $request->request->get('documentId');
                         $etape['documentId'] = $documentId ? (int) $documentId : null;
-                        $champCible = trim($request->request->get('champCible', ''));
+                        $champCible = trim((string) $request->request->get('champCible', ''));
                         $etape['champCible'] = $champCible !== '' ? $champCible : null;
                         break 2;
                     }

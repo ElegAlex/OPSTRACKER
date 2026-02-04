@@ -45,8 +45,13 @@ class OperationService
      */
     public function getOperationsWithFilters(Campagne $campagne, array $filtres = []): array
     {
+        $campagneId = $campagne->getId();
+        if ($campagneId === null) {
+            return [];
+        }
+
         return $this->operationRepository->findWithFilters(
-            $campagne->getId(),
+            $campagneId,
             $filtres['statut'] ?? null,
             $filtres['segment_id'] ?? null,
             $filtres['technicien_id'] ?? null,
@@ -143,7 +148,12 @@ class OperationService
      */
     public function getStatistiquesParStatut(Campagne $campagne): array
     {
-        $counts = $this->operationRepository->countByStatutForCampagne($campagne->getId());
+        $campagneId = $campagne->getId();
+        if ($campagneId === null) {
+            return [];
+        }
+
+        $counts = $this->operationRepository->countByStatutForCampagne($campagneId);
 
         $icones = [
             Operation::STATUT_A_PLANIFIER => 'clock',
@@ -158,9 +168,9 @@ class OperationService
         foreach (Operation::STATUTS as $statut => $label) {
             $stats[$statut] = [
                 'count' => $counts[$statut] ?? 0,
-                'couleur' => Operation::STATUTS_COULEURS[$statut] ?? 'muted',
+                'couleur' => Operation::STATUTS_COULEURS[$statut],
                 'label' => $label,
-                'icone' => $icones[$statut] ?? 'circle',
+                'icone' => $icones[$statut],
             ];
         }
 
@@ -180,10 +190,20 @@ class OperationService
      */
     public function getStatistiquesParSegment(Campagne $campagne): array
     {
-        $segments = $this->segmentRepository->findByCampagne($campagne->getId());
+        $campagneId = $campagne->getId();
+        if ($campagneId === null) {
+            return [];
+        }
+
+        $segments = $this->segmentRepository->findByCampagne($campagneId);
         $stats = [];
 
         foreach ($segments as $segment) {
+            $segmentId = $segment->getId();
+            if ($segmentId === null) {
+                continue;
+            }
+
             $operations = $segment->getOperations();
             $total = $operations->count();
 
@@ -206,12 +226,12 @@ class OperationService
                 }
             }
 
-            $progression = $total > 0 ? round(($realises / $total) * 100, 1) : 0;
+            $progression = $total > 0 ? round(($realises / $total) * 100, 1) : 0.0;
 
             // En retard si plus de 15% des operations sont reportees ou a remedier
             $tauxRetard = $total > 0 ? ($enRetard / $total) * 100 : 0;
 
-            $stats[$segment->getId()] = [
+            $stats[$segmentId] = [
                 'segment' => $segment,
                 'total' => $total,
                 'par_statut' => $parStatut,
@@ -225,6 +245,8 @@ class OperationService
 
     /**
      * Recupere les statistiques d'un segment specifique.
+     *
+     * @return array{total: int, par_statut: array<string, int>, progression: float, realises: int}
      */
     public function getStatistiquesSegment(Segment $segment): array
     {
@@ -244,7 +266,7 @@ class OperationService
             }
         }
 
-        $progression = $total > 0 ? round(($realises / $total) * 100, 1) : 0;
+        $progression = $total > 0 ? round(($realises / $total) * 100, 1) : 0.0;
 
         return [
             'total' => $total,

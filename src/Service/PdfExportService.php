@@ -71,7 +71,7 @@ class PdfExportService
     public function generateFilename(Campagne $campagne): string
     {
         $date = (new \DateTimeImmutable())->format('Y-m-d');
-        $slug = $this->slugify($campagne->getNom());
+        $slug = $this->slugify($campagne->getNom() ?? 'campagne');
 
         return sprintf('dashboard_%s_%s.pdf', $slug, $date);
     }
@@ -82,12 +82,18 @@ class PdfExportService
     private function slugify(string $text): string
     {
         // Remplacer les caracteres speciaux
-        $text = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
+        $transliterated = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $text);
+        if ($transliterated === false) {
+            $transliterated = $text;
+        }
 
         // Remplacer les espaces et caracteres non-alphanum par des tirets
-        $text = preg_replace('/[^a-z0-9]+/', '-', $text);
+        $slug = preg_replace('/[^a-z0-9]+/', '-', $transliterated);
+        if (!is_string($slug)) {
+            $slug = $transliterated;
+        }
 
         // Supprimer les tirets en debut et fin
-        return trim($text, '-');
+        return trim($slug, '-');
     }
 }

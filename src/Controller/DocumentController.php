@@ -71,7 +71,12 @@ class DocumentController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var array{file: \Symfony\Component\HttpFoundation\File\UploadedFile, type: string, description: ?string}|null $data */
             $data = $form->getData();
+            if ($data === null) {
+                $this->addFlash('danger', 'Donnees du formulaire invalides.');
+                return $this->redirectToRoute('app_document_upload', ['campagneId' => $campagneId]);
+            }
             $file = $data['file'];
 
             try {
@@ -122,7 +127,8 @@ class DocumentController extends AbstractController
         $campagne = $this->getCampagne($campagneId);
 
         // Verifier que le document appartient a la campagne
-        if ($document->getCampagne()->getId() !== $campagne->getId()) {
+        $documentCampagne = $document->getCampagne();
+        if ($documentCampagne === null || $documentCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Document non trouve.');
         }
 
@@ -135,7 +141,7 @@ class DocumentController extends AbstractController
         $response = new BinaryFileResponse($filePath);
         $response->setContentDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            $document->getNomOriginal()
+            $document->getNomOriginal() ?? 'document'
         );
 
         return $response;
@@ -150,7 +156,8 @@ class DocumentController extends AbstractController
         $campagne = $this->getCampagne($campagneId);
 
         // Verifier que le document appartient a la campagne
-        if ($document->getCampagne()->getId() !== $campagne->getId()) {
+        $documentCampagne = $document->getCampagne();
+        if ($documentCampagne === null || $documentCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Document non trouve.');
         }
 
@@ -161,7 +168,7 @@ class DocumentController extends AbstractController
         }
 
         // Verifier le token CSRF
-        if (!$this->isCsrfTokenValid('delete-document-' . $document->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete-document-' . $document->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token de securite invalide.');
             return $this->redirectToRoute('app_document_index', ['campagneId' => $campagneId]);
         }

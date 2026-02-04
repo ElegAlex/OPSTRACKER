@@ -5,6 +5,8 @@ namespace App\Form;
 use App\Entity\Campagne;
 use App\Entity\ChecklistTemplate;
 use App\Entity\TypeOperation;
+use App\Repository\ChecklistTemplateRepository;
+use App\Repository\TypeOperationRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -13,6 +15,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 /**
  * Formulaire de configuration workflow d'une campagne.
  * Permet de modifier le TypeOperation et ChecklistTemplate apres creation.
+ *
+ * @extends AbstractType<Campagne>
  */
 class WorkflowCampagneType extends AbstractType
 {
@@ -28,12 +32,10 @@ class WorkflowCampagneType extends AbstractType
                 'attr' => [
                     'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white',
                 ],
-                'query_builder' => function ($repository) {
-                    return $repository->createQueryBuilder('t')
-                        ->where('t.actif = :actif')
-                        ->setParameter('actif', true)
-                        ->orderBy('t.nom', 'ASC');
-                },
+                'query_builder' => fn(TypeOperationRepository $repository) => $repository->createQueryBuilder('t')
+                    ->where('t.actif = :actif')
+                    ->setParameter('actif', true)
+                    ->orderBy('t.nom', 'ASC'),
             ])
             ->add('checklistTemplate', EntityType::class, [
                 'class' => ChecklistTemplate::class,
@@ -50,12 +52,10 @@ class WorkflowCampagneType extends AbstractType
                 'attr' => [
                     'class' => 'w-full px-4 py-3 border-2 border-ink/20 focus:border-ink focus:outline-none bg-white',
                 ],
-                'query_builder' => function ($repository) {
-                    return $repository->createQueryBuilder('t')
-                        ->where('t.actif = :actif')
-                        ->setParameter('actif', true)
-                        ->orderBy('t.nom', 'ASC');
-                },
+                'query_builder' => fn(ChecklistTemplateRepository $repository) => $repository->createQueryBuilder('t')
+                    ->where('t.actif = :actif')
+                    ->setParameter('actif', true)
+                    ->orderBy('t.nom', 'ASC'),
             ]);
     }
 

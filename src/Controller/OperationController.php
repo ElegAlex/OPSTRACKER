@@ -61,13 +61,13 @@ class OperationController extends AbstractController
 
         $operations = $this->operationService->getOperationsWithFilters($campagne, $filtres);
         $statistiques = $this->operationService->getStatistiquesParStatut($campagne);
-        $segments = $this->segmentRepository->findByCampagne($campagne->getId());
+        $segments = $this->segmentRepository->findByCampagne((int) $campagne->getId());
         $techniciens = $this->utilisateurRepository->findTechniciensActifs();
 
         // Preparer les transitions disponibles pour chaque operation
         $transitions = [];
         foreach ($operations as $operation) {
-            $transitions[$operation->getId()] = $this->operationService->getTransitionsDisponibles($operation);
+            $transitions[(int) $operation->getId()] = $this->operationService->getTransitionsDisponibles($operation);
         }
 
         return $this->render('operation/index.html.twig', [
@@ -147,9 +147,11 @@ class OperationController extends AbstractController
 
             // Colonnes dynamiques
             foreach ($champs as $champ) {
-                if ($champ->getNom() !== $campagne->getColonneDatePlanifiee()
-                    && $champ->getNom() !== $campagne->getColonneHoraire()) {
-                    $row[] = $operation->getDonneePersonnalisee($champ->getNom()) ?? '-';
+                $champNom = $champ->getNom();
+                if ($champNom !== null
+                    && $champNom !== $campagne->getColonneDatePlanifiee()
+                    && $champNom !== $campagne->getColonneHoraire()) {
+                    $row[] = $operation->getDonneePersonnalisee($champNom) ?? '-';
                 }
             }
 
@@ -205,7 +207,7 @@ class OperationController extends AbstractController
 
         $filename = sprintf(
             'operations_campagne_%d_%s.csv',
-            $campagne->getId(),
+            (int) $campagne->getId(),
             (new \DateTime())->format('Y-m-d')
         );
 
@@ -230,12 +232,13 @@ class OperationController extends AbstractController
         Request $request
     ): Response {
         // Verifier que l'operation appartient a la campagne
-        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+        $operationCampagne = $operation->getCampagne();
+        if ($operationCampagne === null || $operationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
         }
 
         // Verifier le token CSRF
-        if (!$this->isCsrfTokenValid('operation_transition_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('operation_transition_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['error' => 'Token CSRF invalide.'], Response::HTTP_FORBIDDEN);
             }
@@ -244,7 +247,8 @@ class OperationController extends AbstractController
         }
 
         // Recuperer le motif de report si present
-        $motif = $request->request->get('motif');
+        $motifRaw = $request->request->get('motif');
+        $motif = is_string($motifRaw) ? $motifRaw : null;
 
         // Gestion speciale pour le report avec date optionnelle
         $nouvelleDatePlanifiee = null;
@@ -308,12 +312,13 @@ class OperationController extends AbstractController
         Request $request
     ): Response {
         // Verifier que l'operation appartient a la campagne
-        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+        $operationCampagne = $operation->getCampagne();
+        if ($operationCampagne === null || $operationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
         }
 
         // Verifier le token CSRF
-        if (!$this->isCsrfTokenValid('operation_assigner_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('operation_assigner_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['error' => 'Token CSRF invalide.'], Response::HTTP_FORBIDDEN);
             }
@@ -344,7 +349,7 @@ class OperationController extends AbstractController
                     'technicien' => $technicien ? [
                         'id' => $technicien->getId(),
                         'nom' => $technicien->getNomComplet(),
-                        'initiales' => strtoupper(substr($technicien->getPrenom(), 0, 1) . substr($technicien->getNom(), 0, 1)),
+                        'initiales' => strtoupper(substr($technicien->getPrenom() ?? '', 0, 1) . substr($technicien->getNom() ?? '', 0, 1)),
                     ] : null,
                 ]);
             }
@@ -373,12 +378,13 @@ class OperationController extends AbstractController
         Request $request
     ): Response {
         // Verifier que l'operation appartient a la campagne
-        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+        $operationCampagne = $operation->getCampagne();
+        if ($operationCampagne === null || $operationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
         }
 
         // Verifier le token CSRF
-        if (!$this->isCsrfTokenValid('operation_segment_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('operation_segment_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['error' => 'Token CSRF invalide.'], Response::HTTP_FORBIDDEN);
             }
@@ -391,7 +397,8 @@ class OperationController extends AbstractController
 
         if ($segmentId !== null && $segmentId !== '' && $segmentId !== '0') {
             $segment = $this->segmentRepository->find((int) $segmentId);
-            if ($segment === null || $segment->getCampagne()->getId() !== $campagne->getId()) {
+            $segmentCampagne = $segment?->getCampagne();
+            if ($segment === null || $segmentCampagne === null || $segmentCampagne->getId() !== $campagne->getId()) {
                 if ($request->isXmlHttpRequest()) {
                     return new JsonResponse(['error' => 'Segment non trouve.'], Response::HTTP_NOT_FOUND);
                 }
@@ -433,7 +440,8 @@ class OperationController extends AbstractController
         EntityManagerInterface $entityManager
     ): Response {
         // Verifier que l'operation appartient a la campagne
-        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+        $operationCampagne = $operation->getCampagne();
+        if ($operationCampagne === null || $operationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
         }
 
@@ -449,8 +457,8 @@ class OperationController extends AbstractController
             foreach ($campagne->getChamps() as $champ) {
                 $champNom = $champ->getNom();
 
-                // Ignorer les champs natifs
-                if (CampagneChampService::isNativeField($champNom)) {
+                // Ignorer les champs sans nom ou natifs
+                if ($champNom === null || CampagneChampService::isNativeField($champNom)) {
                     continue;
                 }
 
@@ -497,12 +505,13 @@ class OperationController extends AbstractController
         EntityManagerInterface $entityManager
     ): Response {
         // Verifier que l'operation appartient a la campagne
-        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+        $operationCampagne = $operation->getCampagne();
+        if ($operationCampagne === null || $operationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
         }
 
         // Verifier le token CSRF
-        if (!$this->isCsrfTokenValid('operation_statut_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('operation_statut_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['error' => 'Token CSRF invalide.'], Response::HTTP_FORBIDDEN);
             }
@@ -515,7 +524,7 @@ class OperationController extends AbstractController
         // Liste des statuts valides
         $validStatuts = array_keys(Operation::STATUTS);
 
-        if (in_array($newStatut, $validStatuts, true)) {
+        if (is_string($newStatut) && in_array($newStatut, $validStatuts, true)) {
             $operation->setStatut($newStatut);
             $entityManager->flush();
 
@@ -550,12 +559,13 @@ class OperationController extends AbstractController
         EntityManagerInterface $entityManager
     ): Response {
         // Verifier que l'operation appartient a la campagne
-        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+        $operationCampagne = $operation->getCampagne();
+        if ($operationCampagne === null || $operationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
         }
 
         // Verifier le token CSRF
-        if (!$this->isCsrfTokenValid('operation_date_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('operation_date_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['error' => 'Token CSRF invalide.'], Response::HTTP_FORBIDDEN);
             }
@@ -565,7 +575,7 @@ class OperationController extends AbstractController
 
         $dateStr = $request->request->get('date_planifiee');
 
-        if ($dateStr !== null && $dateStr !== '') {
+        if ($dateStr !== null && $dateStr !== '' && is_string($dateStr)) {
             try {
                 $date = new \DateTimeImmutable($dateStr);
                 $operation->setDatePlanifiee($date);
@@ -611,13 +621,14 @@ class OperationController extends AbstractController
     public function show(Campagne $campagne, Operation $operation): Response
     {
         // Verifier que l'operation appartient a la campagne
-        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+        $operationCampagne = $operation->getCampagne();
+        if ($operationCampagne === null || $operationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
         }
 
         $transitions = $this->operationService->getTransitionsDisponibles($operation);
         $techniciens = $this->utilisateurRepository->findTechniciensActifs();
-        $segments = $this->segmentRepository->findByCampagne($campagne->getId());
+        $segments = $this->segmentRepository->findByCampagne((int) $campagne->getId());
 
         // Calculer la progression de la checklist si elle existe
         $checklistProgression = null;
@@ -636,17 +647,17 @@ class OperationController extends AbstractController
             }
 
             // Charger les documents de la campagne pour la checklist
-            $documents = $this->documentRepository->findByCampagne($campagne->getId());
+            $documents = $this->documentRepository->findByCampagne((int) $campagne->getId());
             foreach ($documents as $doc) {
-                $documentsById[$doc->getId()] = $doc;
+                $documentsById[(int) $doc->getId()] = $doc;
             }
         } elseif ($operation->getChecklistInstance()) {
             // Fallback : ancienne architecture avec snapshot
             $checklistProgression = $this->checklistService->getProgression($operation->getChecklistInstance());
 
-            $documents = $this->documentRepository->findByCampagne($campagne->getId());
+            $documents = $this->documentRepository->findByCampagne((int) $campagne->getId());
             foreach ($documents as $doc) {
-                $documentsById[$doc->getId()] = $doc;
+                $documentsById[(int) $doc->getId()] = $doc;
             }
         }
 
@@ -675,12 +686,13 @@ class OperationController extends AbstractController
         Request $request
     ): Response {
         // Verifier que l'operation appartient a la campagne
-        if ($operation->getCampagne()->getId() !== $campagne->getId()) {
+        $operationCampagne = $operation->getCampagne();
+        if ($operationCampagne === null || $operationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Operation non trouvee dans cette campagne.');
         }
 
         // Verifier le token CSRF
-        if (!$this->isCsrfTokenValid('checklist_' . $operation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('checklist_' . (int) $operation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token de securite invalide.');
             return $this->redirectToRoute('app_operation_show', [
                 'campagne' => $campagne->getId(),
@@ -704,7 +716,7 @@ class OperationController extends AbstractController
 
             // Traitement champ de saisie si present
             $valeurChamp = $request->request->get('valeur_champ');
-            if ($valeurChamp !== null) {
+            if ($valeurChamp !== null && is_string($valeurChamp)) {
                 $champCible = $this->getChampCibleForEtape($operation, $etapeId);
                 if ($champCible) {
                     $valeur = trim($valeurChamp);
@@ -722,10 +734,10 @@ class OperationController extends AbstractController
         $progression = $this->checklistService->getProgression($instance);
 
         // Charger les documents pour la checklist
-        $documents = $this->documentRepository->findByCampagne($campagne->getId());
+        $documents = $this->documentRepository->findByCampagne((int) $campagne->getId());
         $documentsById = [];
         foreach ($documents as $doc) {
-            $documentsById[$doc->getId()] = $doc;
+            $documentsById[(int) $doc->getId()] = $doc;
         }
 
         // Si requete Turbo, retourner uniquement le fragment

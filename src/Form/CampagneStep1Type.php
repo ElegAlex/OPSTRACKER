@@ -13,6 +13,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 /**
  * Formulaire creation campagne - Etape 1/4 (Infos generales).
  * RG-011 : Nom + Dates (debut/fin) obligatoires
+ *
+ * @extends AbstractType<Campagne>
  */
 class CampagneStep1Type extends AbstractType
 {

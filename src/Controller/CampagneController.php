@@ -81,15 +81,18 @@ class CampagneController extends AbstractController
         $tempsByCampagne = [];
         foreach ($campagnesGroupees as $statut => $data) {
             foreach ($data['campagnes'] as $campagne) {
-                $statsParCampagne[$campagne->getId()] = $this->campagneService->getStatistiquesCampagne($campagne);
+                $campagneId = $campagne->getId();
+                if ($campagneId !== null) {
+                    $statsParCampagne[$campagneId] = $this->campagneService->getStatistiquesCampagne($campagne);
 
-                // Calculer temps total si saisie activee
-                if ($campagne->isSaisieTempsActivee()) {
-                    $minutes = $this->dureeService->getTotalCampagne($campagne);
-                    $tempsByCampagne[$campagne->getId()] = [
-                        'minutes' => $minutes,
-                        'formate' => DureeInterventionService::formatMinutes($minutes),
-                    ];
+                    // Calculer temps total si saisie activee
+                    if ($campagne->isSaisieTempsActivee()) {
+                        $minutes = $this->dureeService->getTotalCampagne($campagne);
+                        $tempsByCampagne[$campagneId] = [
+                            'minutes' => $minutes,
+                            'formate' => DureeInterventionService::formatMinutes($minutes),
+                        ];
+                    }
                 }
             }
         }
@@ -157,7 +160,7 @@ class CampagneController extends AbstractController
                 // RG-013 : Valider le fichier
                 $validation = $this->importCsvService->validateFile($csvFile);
                 if (!$validation['valid']) {
-                    $this->addFlash('danger', $validation['error']);
+                    $this->addFlash('danger', $validation['error'] ?? 'Erreur de validation');
                     return $this->redirectToRoute('app_campagne_step2', ['id' => $campagne->getId()]);
                 }
 
@@ -182,7 +185,10 @@ class CampagneController extends AbstractController
                 // Recuperer les CampagneChamp existants
                 $existingChamps = [];
                 foreach ($campagne->getChamps() as $champ) {
-                    $existingChamps[mb_strtolower($champ->getNom())] = $champ;
+                    $champNom = $champ->getNom();
+                    if ($champNom !== null) {
+                        $existingChamps[mb_strtolower($champNom)] = $champ;
+                    }
                 }
 
                 $ordre = count($existingChamps);
@@ -233,9 +239,10 @@ class CampagneController extends AbstractController
     public function step3(Campagne $campagne, Request $request): Response
     {
         $session = $request->getSession();
+        /** @var string|null $csvFilePath */
         $csvFilePath = $session->get('csv_import_file_' . $campagne->getId());
 
-        if (!$csvFilePath || !file_exists($csvFilePath)) {
+        if (!is_string($csvFilePath) || !file_exists($csvFilePath)) {
             $this->addFlash('danger', 'Aucun fichier CSV trouve. Veuillez recommencer l\'import.');
             return $this->redirectToRoute('app_campagne_step2', ['id' => $campagne->getId()]);
         }
@@ -251,21 +258,25 @@ class CampagneController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var array{csv_encoding: string, csv_separator: string} $data */
             $data = $form->getData();
 
             // Recuperer le mapping des colonnes date/horaire/segment
+            /** @var string|null $colonneDatePlanifiee */
             $colonneDatePlanifiee = $request->request->get('colonne_date_planifiee');
+            /** @var string|null $colonneHoraire */
             $colonneHoraire = $request->request->get('colonne_horaire');
+            /** @var string|null $colonneSegment */
             $colonneSegment = $request->request->get('colonne_segment');
 
             // Sauvegarder le mapping dans la campagne
-            if ($colonneDatePlanifiee) {
+            if (is_string($colonneDatePlanifiee) && $colonneDatePlanifiee !== '') {
                 $campagne->setColonneDatePlanifiee($colonneDatePlanifiee);
             }
-            if ($colonneHoraire) {
+            if (is_string($colonneHoraire) && $colonneHoraire !== '') {
                 $campagne->setColonneHoraire($colonneHoraire);
             }
-            if ($colonneSegment) {
+            if (is_string($colonneSegment) && $colonneSegment !== '') {
                 $campagne->setColonneSegment($colonneSegment);
             }
 
@@ -275,7 +286,10 @@ class CampagneController extends AbstractController
             // Recuperer les CampagneChamp existants
             $existingChamps = [];
             foreach ($campagne->getChamps() as $champ) {
-                $existingChamps[mb_strtolower($champ->getNom())] = $champ;
+                $champNom = $champ->getNom();
+                if ($champNom !== null) {
+                    $existingChamps[mb_strtolower($champNom)] = $champ;
+                }
             }
 
             $ordre = count($existingChamps);
@@ -380,8 +394,9 @@ class CampagneController extends AbstractController
             // Traitement de la reservation publique
             if ($campagne->isReservationOuverte()) {
                 // Traitement du mode de reservation (libre, import, annuaire)
+                /** @var string|null $reservationMode */
                 $reservationMode = $request->request->get('reservation_mode');
-                if ($reservationMode && array_key_exists($reservationMode, Campagne::RESERVATION_MODES)) {
+                if (is_string($reservationMode) && array_key_exists($reservationMode, Campagne::RESERVATION_MODES)) {
                     $campagne->setReservationMode($reservationMode);
                 }
 
@@ -460,7 +475,7 @@ class CampagneController extends AbstractController
         // Detecter le separateur
         $firstLine = fgets($handle);
         rewind($handle);
-        $separator = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
+        $separator = (is_string($firstLine) && substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
 
         $headers = fgetcsv($handle, 0, $separator);
         if (!$headers) {
@@ -468,7 +483,8 @@ class CampagneController extends AbstractController
 
             return;
         }
-        $headers = array_map('strtolower', array_map('trim', $headers));
+        /** @var list<string> $headers */
+        $headers = array_map('strtolower', array_map(fn ($v) => is_string($v) ? trim($v) : '', $headers));
 
         $count = 0;
         while (($row = fgetcsv($handle, 0, $separator)) !== false) {
@@ -546,6 +562,9 @@ class CampagneController extends AbstractController
             $donneesPersonnalisees = [];
             foreach ($campagne->getChamps() as $champ) {
                 $champNom = $champ->getNom();
+                if ($champNom === null) {
+                    continue;
+                }
                 $fieldName = CampagneChampService::normalizeFieldName($champNom);
 
                 if ($form->has($fieldName)) {
@@ -581,7 +600,7 @@ class CampagneController extends AbstractController
     #[Route('/{id}/transition/{transition}', name: 'app_campagne_transition', methods: ['POST'])]
     public function transition(Campagne $campagne, string $transition, Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('campagne_transition_' . $campagne->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('campagne_transition_' . $campagne->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
             return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
         }
@@ -601,7 +620,7 @@ class CampagneController extends AbstractController
     #[Route('/{id}/supprimer', name: 'app_campagne_delete', methods: ['POST'])]
     public function delete(Campagne $campagne, Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('campagne_delete_' . $campagne->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('campagne_delete_' . $campagne->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
             return $this->redirectToRoute('app_campagne_index');
         }
@@ -661,16 +680,21 @@ class CampagneController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var Utilisateur|null $nouveauProprietaire */
             $nouveauProprietaire = $form->get('nouveauProprietaire')->getData();
-            $ancienProprietaire = $campagne->getProprietaire();
+
+            if ($nouveauProprietaire === null) {
+                $this->addFlash('danger', 'Veuillez selectionner un nouveau proprietaire.');
+                return $this->redirectToRoute('app_campagne_proprietaire', ['id' => $campagne->getId()]);
+            }
 
             $campagne->setProprietaire($nouveauProprietaire);
             $this->entityManager->flush();
 
             $this->addFlash('success', sprintf(
                 'Propriete transferee a %s %s.',
-                $nouveauProprietaire->getPrenom(),
-                $nouveauProprietaire->getNom()
+                $nouveauProprietaire->getPrenom() ?? '',
+                $nouveauProprietaire->getNom() ?? ''
             ));
 
             return $this->redirectToRoute('app_dashboard_campagne', ['id' => $campagne->getId()]);
@@ -739,9 +763,12 @@ class CampagneController extends AbstractController
 
         // CAS 2 : Checklist existe - interface de gestion des etapes
         if ($request->isMethod('POST')) {
+            /** @var string|null $action */
             $action = $request->request->get('action');
-            $etapeId = $request->request->get('etape_id');
-            $phaseId = $request->request->get('phase_id');
+            /** @var string $etapeId */
+            $etapeId = $request->request->get('etape_id', '');
+            /** @var string $phaseId */
+            $phaseId = $request->request->get('phase_id', '');
 
             try {
                 switch ($action) {
@@ -756,11 +783,15 @@ class CampagneController extends AbstractController
                         break;
 
                     case 'ajouter':
-                        $titre = trim($request->request->get('titre', ''));
-                        $description = trim($request->request->get('description', '')) ?: null;
+                        /** @var string $titreRaw */
+                        $titreRaw = $request->request->get('titre', '');
+                        /** @var string $descriptionRaw */
+                        $descriptionRaw = $request->request->get('description', '');
+                        $titre = trim($titreRaw);
+                        $description = trim($descriptionRaw) ?: null;
                         $obligatoire = $request->request->getBoolean('obligatoire', true);
 
-                        if ($titre) {
+                        if ($titre !== '') {
                             $checklistService->ajouterEtapeCampagne(
                                 $campagne,
                                 $phaseId,
@@ -775,10 +806,12 @@ class CampagneController extends AbstractController
                         break;
 
                     case 'mapping':
-                        $champCible = trim($request->request->get('champ_cible', ''));
-                        $campagne->setChampCibleForEtape($etapeId, $champCible ?: null);
+                        /** @var string $champCibleRaw */
+                        $champCibleRaw = $request->request->get('champ_cible', '');
+                        $champCible = trim($champCibleRaw);
+                        $campagne->setChampCibleForEtape($etapeId, $champCible !== '' ? $champCible : null);
                         $this->entityManager->flush();
-                        $this->addFlash('success', $champCible ? 'Champ de saisie "'.$champCible.'" configure.' : 'Champ de saisie supprime.');
+                        $this->addFlash('success', $champCible !== '' ? 'Champ de saisie "'.$champCible.'" configure.' : 'Champ de saisie supprime.');
                         break;
                 }
             } catch (\InvalidArgumentException $e) {

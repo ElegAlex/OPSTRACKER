@@ -3,7 +3,6 @@
 namespace App\Security\Voter;
 
 use App\Entity\Campagne;
-use App\Entity\HabilitationCampagne;
 use App\Entity\Utilisateur;
 use App\Repository\HabilitationCampagneRepository;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -14,6 +13,8 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
  *
  * RG-115 : Habilitations granulaires par campagne
  * RG-112 : Visibilite campagne
+ *
+ * @extends Voter<string, Campagne>
  */
 class CampagneVoter extends Voter
 {
@@ -48,7 +49,10 @@ class CampagneVoter extends Voter
             return false;
         }
 
-        /** @var Campagne $campagne */
+        if (!$subject instanceof Campagne) {
+            return false;
+        }
+
         $campagne = $subject;
 
         // Admin a tous les droits

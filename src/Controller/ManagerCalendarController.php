@@ -111,6 +111,9 @@ class ManagerCalendarController extends AbstractController
             $mesAgentsSurCreneau = [];
             foreach ($reservations as $reservation) {
                 $agent = $reservation->getAgent();
+                if ($agent === null) {
+                    continue;
+                }
                 if (in_array($agent->getId(), $mesAgentsIds, true)) {
                     $mesAgentsSurCreneau[] = [
                         'id' => $agent->getId(),
@@ -142,11 +145,19 @@ class ManagerCalendarController extends AbstractController
                 $textColor = '#2e7d32';
             }
 
+            $date = $creneau->getDate();
+            $heureDebut = $creneau->getHeureDebut();
+            $heureFin = $creneau->getHeureFin();
+
+            if ($date === null || $heureDebut === null || $heureFin === null) {
+                continue;
+            }
+
             $events[] = [
                 'id' => 'creneau-' . $creneau->getId(),
                 'title' => $title,
-                'start' => $creneau->getDate()->format('Y-m-d') . 'T' . $creneau->getHeureDebut()->format('H:i:s'),
-                'end' => $creneau->getDate()->format('Y-m-d') . 'T' . $creneau->getHeureFin()->format('H:i:s'),
+                'start' => $date->format('Y-m-d') . 'T' . $heureDebut->format('H:i:s'),
+                'end' => $date->format('Y-m-d') . 'T' . $heureFin->format('H:i:s'),
                 'backgroundColor' => $backgroundColor,
                 'borderColor' => $borderColor,
                 'textColor' => $textColor,
@@ -200,6 +211,11 @@ class ManagerCalendarController extends AbstractController
             return null;
         }
 
-        return $this->agentRepository->findOneByEmail($user->getEmail());
+        $email = $user->getEmail();
+        if ($email === null) {
+            return null;
+        }
+
+        return $this->agentRepository->findOneByEmail($email);
     }
 }

@@ -68,14 +68,20 @@ class ConfigurationService
         $zip = new \ZipArchive();
         $zip->open($zipPath, \ZipArchive::CREATE);
 
-        foreach (glob($tempDir . '/*') as $file) {
-            $zip->addFile($file, basename($file));
+        $files = glob($tempDir . '/*');
+        if ($files !== false) {
+            foreach ($files as $file) {
+                $zip->addFile($file, basename($file));
+            }
         }
 
         $zip->close();
 
         // Nettoyer le dossier temporaire
-        array_map('unlink', glob($tempDir . '/*'));
+        $tempFiles = glob($tempDir . '/*');
+        if ($tempFiles !== false) {
+            array_map('unlink', $tempFiles);
+        }
         rmdir($tempDir);
 
         return $zipPath;
@@ -84,7 +90,7 @@ class ConfigurationService
     /**
      * Importe la configuration depuis un fichier ZIP.
      *
-     * @return array{success: bool, imported: array, errors: array, conflicts: array}
+     * @return array{success: bool, imported: array<string, int>, errors: array<int, string>, conflicts: array<int, string>}
      */
     public function importer(UploadedFile $file, string $mode = self::MODE_CREER_NOUVEAUX): array
     {
@@ -118,7 +124,8 @@ class ConfigurationService
             return $result;
         }
 
-        $metadata = json_decode(file_get_contents($metadataPath), true);
+        $metadataContent = file_get_contents($metadataPath);
+        $metadata = json_decode($metadataContent !== false ? $metadataContent : '{}', true);
         if (!$this->verifierCompatibilite($metadata)) {
             $result['errors'][] = sprintf(
                 'Configuration exportée depuis v%s, version actuelle v%s. Import incompatible.',
@@ -174,6 +181,8 @@ class ConfigurationService
 
     /**
      * Analyse un fichier ZIP sans l'importer.
+     *
+     * @return array{valid: bool, metadata: mixed, content: array<string, int>, errors: array<int, string>}
      */
     public function analyser(UploadedFile $file): array
     {
@@ -200,7 +209,8 @@ class ConfigurationService
         // Lire les métadonnées
         $metadataPath = $tempDir . '/config_metadata.json';
         if (file_exists($metadataPath)) {
-            $result['metadata'] = json_decode(file_get_contents($metadataPath), true);
+            $metadataContent = file_get_contents($metadataPath);
+            $result['metadata'] = json_decode($metadataContent !== false ? $metadataContent : '{}', true);
         }
 
         // Compter les éléments
@@ -229,6 +239,9 @@ class ConfigurationService
         $types = $this->typeOperationRepository->findAll();
 
         $handle = fopen($path, 'w');
+        if ($handle === false) {
+            throw new \RuntimeException(sprintf('Impossible d\'ouvrir le fichier %s en écriture.', $path));
+        }
         fputcsv($handle, ['nom', 'description', 'icone', 'couleur', 'actif', 'champs_personnalises']);
 
         foreach ($types as $type) {
@@ -250,6 +263,9 @@ class ConfigurationService
         $templates = $this->checklistTemplateRepository->findAll();
 
         $handle = fopen($path, 'w');
+        if ($handle === false) {
+            throw new \RuntimeException(sprintf('Impossible d\'ouvrir le fichier %s en écriture.', $path));
+        }
         fputcsv($handle, ['nom', 'description', 'version', 'actif', 'structure']);
 
         foreach ($templates as $template) {
@@ -279,6 +295,9 @@ class ConfigurationService
         }
 
         $handle = fopen($path, 'w');
+        if ($handle === false) {
+            throw new \RuntimeException(sprintf('Impossible d\'ouvrir le fichier %s en écriture.', $path));
+        }
         fputcsv($handle, ['nom', 'couleur']);
 
         foreach ($nomsUniques as $nom) {
@@ -307,24 +326,43 @@ class ConfigurationService
         file_put_contents($path, json_encode($metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 
+    /**
+     * @return array{imported: int, conflicts: array<int, string>, errors: array<int, string>}
+     */
     private function importerTypesOperations(string $path, string $mode): array
     {
         $result = ['imported' => 0, 'conflicts' => [], 'errors' => []];
 
         $handle = fopen($path, 'r');
+        if ($handle === false) {
+            $result['errors'][] = sprintf('Impossible d\'ouvrir le fichier %s.', $path);
+            return $result;
+        }
         $header = fgetcsv($handle);
+        if ($header === false) {
+            fclose($handle);
+            $result['errors'][] = 'Fichier CSV vide ou invalide.';
+            return $result;
+        }
+
+        /** @var array<int, string> $headerTyped */
+        $headerTyped = array_map(fn ($val) => (string) $val, $header);
 
         while (($row = fgetcsv($handle)) !== false) {
-            $data = array_combine($header, $row);
+            if (count($row) !== count($headerTyped)) {
+                continue;
+            }
+            $data = array_combine($headerTyped, $row);
 
-            $existing = $this->typeOperationRepository->findOneBy(['nom' => $data['nom']]);
+            $nom = $data['nom'] ?? '';
+            $existing = $this->typeOperationRepository->findOneBy(['nom' => $nom]);
 
             if ($existing) {
                 if ($mode === self::MODE_IGNORER) {
-                    $result['conflicts'][] = sprintf('Type "%s" ignoré (existe déjà).', $data['nom']);
+                    $result['conflicts'][] = sprintf('Type "%s" ignoré (existe déjà).', $nom);
                     continue;
                 } elseif ($mode === self::MODE_CREER_NOUVEAUX) {
-                    $result['conflicts'][] = sprintf('Type "%s" non importé (existe déjà).', $data['nom']);
+                    $result['conflicts'][] = sprintf('Type "%s" non importé (existe déjà).', $nom);
                     continue;
                 }
                 // MODE_REMPLACER : mettre à jour
@@ -333,12 +371,13 @@ class ConfigurationService
                 $type = new TypeOperation();
             }
 
-            $type->setNom($data['nom']);
-            $type->setDescription($data['description'] ?: null);
-            $type->setIcone($data['icone'] ?: 'settings');
-            $type->setCouleur($data['couleur'] ?: 'primary');
-            $type->setActif($data['actif'] === '1');
-            $type->setChampsPersonnalises(json_decode($data['champs_personnalises'], true) ?: null);
+            $type->setNom($nom);
+            $type->setDescription(($data['description'] ?? '') ?: null);
+            $type->setIcone(($data['icone'] ?? '') ?: 'settings');
+            $type->setCouleur(($data['couleur'] ?? '') ?: 'primary');
+            $type->setActif(($data['actif'] ?? '') === '1');
+            $champsJson = $data['champs_personnalises'] ?? '';
+            $type->setChampsPersonnalises($champsJson !== '' ? (json_decode($champsJson, true) ?: null) : null);
 
             $this->em->persist($type);
             $result['imported']++;
@@ -350,24 +389,43 @@ class ConfigurationService
         return $result;
     }
 
+    /**
+     * @return array{imported: int, conflicts: array<int, string>, errors: array<int, string>}
+     */
     private function importerTemplatesChecklists(string $path, string $mode): array
     {
         $result = ['imported' => 0, 'conflicts' => [], 'errors' => []];
 
         $handle = fopen($path, 'r');
+        if ($handle === false) {
+            $result['errors'][] = sprintf('Impossible d\'ouvrir le fichier %s.', $path);
+            return $result;
+        }
         $header = fgetcsv($handle);
+        if ($header === false) {
+            fclose($handle);
+            $result['errors'][] = 'Fichier CSV vide ou invalide.';
+            return $result;
+        }
+
+        /** @var array<int, string> $headerTyped */
+        $headerTyped = array_map(fn ($val) => (string) $val, $header);
 
         while (($row = fgetcsv($handle)) !== false) {
-            $data = array_combine($header, $row);
+            if (count($row) !== count($headerTyped)) {
+                continue;
+            }
+            $data = array_combine($headerTyped, $row);
 
-            $existing = $this->checklistTemplateRepository->findOneBy(['nom' => $data['nom']]);
+            $nom = $data['nom'] ?? '';
+            $existing = $this->checklistTemplateRepository->findOneBy(['nom' => $nom]);
 
             if ($existing) {
                 if ($mode === self::MODE_IGNORER) {
-                    $result['conflicts'][] = sprintf('Template "%s" ignoré (existe déjà).', $data['nom']);
+                    $result['conflicts'][] = sprintf('Template "%s" ignoré (existe déjà).', $nom);
                     continue;
                 } elseif ($mode === self::MODE_CREER_NOUVEAUX) {
-                    $result['conflicts'][] = sprintf('Template "%s" non importé (existe déjà).', $data['nom']);
+                    $result['conflicts'][] = sprintf('Template "%s" non importé (existe déjà).', $nom);
                     continue;
                 }
                 // MODE_REMPLACER : créer nouvelle version
@@ -377,13 +435,14 @@ class ConfigurationService
                 $template = new ChecklistTemplate();
             }
 
-            $template->setNom($data['nom']);
-            $template->setDescription($data['description'] ?: null);
+            $template->setNom($nom);
+            $template->setDescription(($data['description'] ?? '') ?: null);
             if (!$existing) {
                 $template->setVersion((int) ($data['version'] ?? 1));
             }
-            $template->setActif($data['actif'] === '1');
-            $template->setEtapes(json_decode($data['structure'], true) ?: []);
+            $template->setActif(($data['actif'] ?? '') === '1');
+            $structureJson = $data['structure'] ?? '';
+            $template->setEtapes($structureJson !== '' ? (json_decode($structureJson, true) ?: []) : []);
 
             $this->em->persist($template);
             $result['imported']++;
@@ -395,6 +454,9 @@ class ConfigurationService
         return $result;
     }
 
+    /**
+     * @return array{imported: int, conflicts: array<int, string>, errors: array<int, string>}
+     */
     private function importerSegments(string $path, string $mode): array
     {
         // Les segments sont liés aux campagnes, on ne peut pas les importer globalement
@@ -406,17 +468,23 @@ class ConfigurationService
         ];
     }
 
+    /**
+     * @param array<string, mixed> $metadata
+     */
     private function verifierCompatibilite(array $metadata): bool
     {
         // Pour l'instant, accepter toutes les versions 1.x
         $version = $metadata['version'] ?? '0.0.0';
-        return version_compare($version, '1.0.0', '>=') && version_compare($version, '2.0.0', '<');
+        return version_compare((string) $version, '1.0.0', '>=') && version_compare((string) $version, '2.0.0', '<');
     }
 
     private function compterLignesCsv(string $path): int
     {
         $count = 0;
         $handle = fopen($path, 'r');
+        if ($handle === false) {
+            return 0;
+        }
         fgetcsv($handle); // Skip header
 
         while (fgetcsv($handle) !== false) {
@@ -430,8 +498,11 @@ class ConfigurationService
     private function nettoyerDossier(string $dir): void
     {
         if (is_dir($dir)) {
-            foreach (glob($dir . '/*') as $file) {
-                unlink($file);
+            $files = glob($dir . '/*');
+            if ($files !== false) {
+                foreach ($files as $file) {
+                    unlink($file);
+                }
             }
             rmdir($dir);
         }

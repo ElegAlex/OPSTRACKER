@@ -134,10 +134,16 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
      * Un identifiant visuel pour l'utilisateur.
      *
      * @see UserInterface
+     *
+     * @return non-empty-string
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        if ($this->email === null || $this->email === '') {
+            throw new \LogicException('User identifier (email) cannot be empty.');
+        }
+
+        return $this->email;
     }
 
     /**
@@ -151,7 +157,7 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
         // Garantit que chaque utilisateur a au moins ROLE_USER
         $roles[] = 'ROLE_USER';
 
-        return array_unique($roles);
+        return array_values(array_unique($roles));
     }
 
     /**

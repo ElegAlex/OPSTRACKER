@@ -40,7 +40,7 @@ class SegmentController extends AbstractController
     #[Route('', name: 'app_segment_index', methods: ['GET'])]
     public function index(Campagne $campagne): Response
     {
-        $segments = $this->segmentRepository->findByCampagne($campagne->getId());
+        $segments = $this->segmentRepository->findByCampagne((int) $campagne->getId());
         $statistiques = $this->operationService->getStatistiquesParSegment($campagne);
 
         // Calculer le total des operations sans segment
@@ -127,7 +127,8 @@ class SegmentController extends AbstractController
     public function show(Campagne $campagne, Segment $segment): Response
     {
         // Verifier que le segment appartient a la campagne
-        if ($segment->getCampagne()->getId() !== $campagne->getId()) {
+        $segmentCampagne = $segment->getCampagne();
+        if ($segmentCampagne === null || $segmentCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Segment non trouve dans cette campagne.');
         }
 
@@ -137,7 +138,10 @@ class SegmentController extends AbstractController
         // Preparer les transitions pour chaque operation
         $transitions = [];
         foreach ($operations as $operation) {
-            $transitions[$operation->getId()] = $this->operationService->getTransitionsDisponibles($operation);
+            $operationId = $operation->getId();
+            if ($operationId !== null) {
+                $transitions[$operationId] = $this->operationService->getTransitionsDisponibles($operation);
+            }
         }
 
         return $this->render('segment/show.html.twig', [
@@ -156,7 +160,8 @@ class SegmentController extends AbstractController
     public function edit(Campagne $campagne, Segment $segment, Request $request): Response
     {
         // Verifier que le segment appartient a la campagne
-        if ($segment->getCampagne()->getId() !== $campagne->getId()) {
+        $segmentCampagne = $segment->getCampagne();
+        if ($segmentCampagne === null || $segmentCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Segment non trouve dans cette campagne.');
         }
 
@@ -195,11 +200,12 @@ class SegmentController extends AbstractController
     public function delete(Campagne $campagne, Segment $segment, Request $request): Response
     {
         // Verifier que le segment appartient a la campagne
-        if ($segment->getCampagne()->getId() !== $campagne->getId()) {
+        $segmentCampagne = $segment->getCampagne();
+        if ($segmentCampagne === null || $segmentCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Segment non trouve dans cette campagne.');
         }
 
-        if (!$this->isCsrfTokenValid('delete_segment_' . $segment->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete_segment_' . (int) $segment->getId(), (string) $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse(['error' => 'Token CSRF invalide.'], Response::HTTP_FORBIDDEN);
             }

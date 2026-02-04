@@ -2,7 +2,6 @@
 
 namespace App\Security;
 
-use DH\Auditor\Provider\Doctrine\DoctrineProvider;
 use DH\Auditor\Security\SecurityProviderInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -18,6 +17,9 @@ class AuditSecurityProvider implements SecurityProviderInterface
     ) {
     }
 
+    /**
+     * @return array{user_id: int|null, username: string}
+     */
     public function __invoke(): array
     {
         $user = $this->security->getUser();

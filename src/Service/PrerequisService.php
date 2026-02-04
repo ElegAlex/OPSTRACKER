@@ -52,6 +52,9 @@ class PrerequisService
         $result = [];
         foreach ($segments as $segment) {
             $segmentId = $segment->getId();
+            if ($segmentId === null) {
+                continue;
+            }
             $result[$segmentId] = [
                 'segment' => $segment,
                 'prerequis' => $prerequisParSegment[$segmentId] ?? [],
@@ -93,13 +96,18 @@ class PrerequisService
         ?string $responsable = null,
         ?\DateTimeImmutable $dateCible = null
     ): Prerequis {
+        $campagne = $segment->getCampagne();
+        if ($campagne === null) {
+            throw new \InvalidArgumentException('Le segment doit être associé à une campagne.');
+        }
+
         $prerequis = new Prerequis();
-        $prerequis->setCampagne($segment->getCampagne());
+        $prerequis->setCampagne($campagne);
         $prerequis->setSegment($segment);
         $prerequis->setLibelle($libelle);
         $prerequis->setResponsable($responsable);
         $prerequis->setDateCible($dateCible);
-        $prerequis->setOrdre($this->prerequisRepository->getNextOrdre($segment->getCampagne(), $segment));
+        $prerequis->setOrdre($this->prerequisRepository->getNextOrdre($campagne, $segment));
 
         $this->em->persist($prerequis);
         $this->em->flush();
@@ -147,6 +155,13 @@ class PrerequisService
 
     /**
      * Recupere les donnees completes des prerequis pour l'onglet prerequis
+     *
+     * @return array{
+     *     globaux: array{prerequis: Prerequis[], progression: array{total: int, faits: int, pourcentage: int}},
+     *     parSegment: array<int, array{segment: Segment, prerequis: array<Prerequis>, progression: array{total: int, faits: int, pourcentage: int}}>,
+     *     enRetard: int,
+     *     progressionGenerale: array{total: int, faits: int, pourcentage: int}
+     * }
      */
     public function getDonneesOngletPrerequis(Campagne $campagne): array
     {

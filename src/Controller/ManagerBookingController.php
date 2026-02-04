@@ -66,7 +66,7 @@ class ManagerBookingController extends AbstractController
         $reservationsParAgent = [];
         foreach ($agents as $agent) {
             $reservation = $this->reservationRepository->findByAgentAndCampagne($agent, $campagne);
-            $reservationsParAgent[$agent->getId()] = $reservation;
+            $reservationsParAgent[(int) $agent->getId()] = $reservation;
         }
 
         // Statistiques
@@ -114,7 +114,7 @@ class ManagerBookingController extends AbstractController
 
         // POST : Traiter le positionnement
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('manager_position_' . $agent->getId(), $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('manager_position_' . (int) $agent->getId(), (string) $request->request->get('_token'))) {
                 $this->addFlash('danger', 'Token CSRF invalide.');
 
                 return $this->redirectToRoute('app_manager_position', [
@@ -134,7 +134,8 @@ class ManagerBookingController extends AbstractController
             }
 
             $creneau = $this->creneauRepository->find($creneauId);
-            if (!$creneau || $creneau->getCampagne()->getId() !== $campagne->getId()) {
+            $creneauCampagne = $creneau?->getCampagne();
+            if (!$creneau || $creneauCampagne === null || $creneauCampagne->getId() !== $campagne->getId()) {
                 $this->addFlash('danger', 'Creneau invalide.');
 
                 return $this->redirectToRoute('app_manager_position', [
@@ -154,12 +155,15 @@ class ManagerBookingController extends AbstractController
                     $currentUser
                 );
 
+                $creneauDate = $creneau->getDate();
+                $creneauHeureDebut = $creneau->getHeureDebut();
+                $creneauHeureFin = $creneau->getHeureFin();
                 $this->addFlash('success', sprintf(
                     '%s a ete positionne(e) le %s de %s a %s.',
                     $agent->getNomComplet(),
-                    $creneau->getDate()->format('d/m/Y'),
-                    $creneau->getHeureDebut()->format('H:i'),
-                    $creneau->getHeureFin()->format('H:i')
+                    $creneauDate !== null ? $creneauDate->format('d/m/Y') : '?',
+                    $creneauHeureDebut !== null ? $creneauHeureDebut->format('H:i') : '?',
+                    $creneauHeureFin !== null ? $creneauHeureFin->format('H:i') : '?'
                 ));
 
                 return $this->redirectToRoute('app_manager_agents', ['campagne' => $campagne->getId()]);
@@ -179,14 +183,15 @@ class ManagerBookingController extends AbstractController
         // Filtrer les creneaux verrouilles
         $creneauxParDate = [];
         foreach ($creneauxDisponibles as $creneau) {
-            if ($creneau->isVerrouillePourDate()) {
+            $creneauDate = $creneau->getDate();
+            if ($creneauDate === null || $creneau->isVerrouillePourDate()) {
                 continue;
             }
 
-            $dateKey = $creneau->getDate()->format('Y-m-d');
+            $dateKey = $creneauDate->format('Y-m-d');
             if (!isset($creneauxParDate[$dateKey])) {
                 $creneauxParDate[$dateKey] = [
-                    'date' => $creneau->getDate(),
+                    'date' => $creneauDate,
                     'creneaux' => [],
                 ];
             }
@@ -215,11 +220,15 @@ class ManagerBookingController extends AbstractController
         }
 
         // Verifier que la reservation concerne la bonne campagne
-        if ($reservation->getCampagne()->getId() !== $campagne->getId()) {
+        $reservationCampagne = $reservation->getCampagne();
+        if ($reservationCampagne === null || $reservationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Reservation non trouvee dans cette campagne.');
         }
 
         $agent = $reservation->getAgent();
+        if ($agent === null) {
+            throw $this->createNotFoundException('Agent non trouve pour cette reservation.');
+        }
 
         // RG-124 : Verifier que l'agent appartient au manager
         if ($agent->getManager()?->getId() !== $manager->getId()) {
@@ -228,6 +237,9 @@ class ManagerBookingController extends AbstractController
 
         // RG-123 : Verifier le verrouillage
         $creneauActuel = $reservation->getCreneau();
+        if ($creneauActuel === null) {
+            throw $this->createNotFoundException('Creneau de la reservation non trouve.');
+        }
         if ($creneauActuel->isVerrouillePourDate()) {
             $this->addFlash('danger', 'Ce creneau est verrouille et ne peut plus etre modifie.');
 
@@ -236,7 +248,7 @@ class ManagerBookingController extends AbstractController
 
         // POST : Traiter la modification
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('manager_modify_' . $reservation->getId(), $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('manager_modify_' . (int) $reservation->getId(), (string) $request->request->get('_token'))) {
                 $this->addFlash('danger', 'Token CSRF invalide.');
 
                 return $this->redirectToRoute('app_manager_modify', [
@@ -256,7 +268,8 @@ class ManagerBookingController extends AbstractController
             }
 
             $nouveauCreneau = $this->creneauRepository->find($nouveauCreneauId);
-            if (!$nouveauCreneau || $nouveauCreneau->getCampagne()->getId() !== $campagne->getId()) {
+            $nouveauCreneauCampagne = $nouveauCreneau?->getCampagne();
+            if (!$nouveauCreneau || $nouveauCreneauCampagne === null || $nouveauCreneauCampagne->getId() !== $campagne->getId()) {
                 $this->addFlash('danger', 'Creneau invalide.');
 
                 return $this->redirectToRoute('app_manager_modify', [
@@ -290,14 +303,15 @@ class ManagerBookingController extends AbstractController
 
         $creneauxParDate = [];
         foreach ($creneauxDisponibles as $creneau) {
-            if ($creneau->isVerrouillePourDate() || $creneau->getId() === $creneauActuel->getId()) {
+            $creneauDate = $creneau->getDate();
+            if ($creneauDate === null || $creneau->isVerrouillePourDate() || $creneau->getId() === $creneauActuel->getId()) {
                 continue;
             }
 
-            $dateKey = $creneau->getDate()->format('Y-m-d');
+            $dateKey = $creneauDate->format('Y-m-d');
             if (!isset($creneauxParDate[$dateKey])) {
                 $creneauxParDate[$dateKey] = [
-                    'date' => $creneau->getDate(),
+                    'date' => $creneauDate,
                     'creneaux' => [],
                 ];
             }
@@ -327,25 +341,33 @@ class ManagerBookingController extends AbstractController
         }
 
         // Verifier que la reservation concerne la bonne campagne
-        if ($reservation->getCampagne()->getId() !== $campagne->getId()) {
+        $reservationCampagne = $reservation->getCampagne();
+        if ($reservationCampagne === null || $reservationCampagne->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Reservation non trouvee dans cette campagne.');
         }
 
         $agent = $reservation->getAgent();
+        if ($agent === null) {
+            throw $this->createNotFoundException('Agent non trouve pour cette reservation.');
+        }
 
         // RG-124 : Verifier que l'agent appartient au manager
         if ($agent->getManager()?->getId() !== $manager->getId()) {
             throw $this->createAccessDeniedException('Cet agent n\'est pas dans votre equipe.');
         }
 
-        if (!$this->isCsrfTokenValid('manager_cancel_' . $reservation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('manager_cancel_' . (int) $reservation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('app_manager_agents', ['campagne' => $campagne->getId()]);
         }
 
         // RG-123 : Verifier le verrouillage
-        if ($reservation->getCreneau()->isVerrouillePourDate()) {
+        $creneau = $reservation->getCreneau();
+        if ($creneau === null) {
+            throw $this->createNotFoundException('Creneau de la reservation non trouve.');
+        }
+        if ($creneau->isVerrouillePourDate()) {
             $this->addFlash('danger', 'Ce creneau est verrouille et ne peut plus etre annule.');
 
             return $this->redirectToRoute('app_manager_agents', ['campagne' => $campagne->getId()]);
@@ -429,6 +451,10 @@ class ManagerBookingController extends AbstractController
         }
 
         // On cherche l'agent par email de l'utilisateur connecte
-        return $this->agentRepository->findOneByEmail($user->getEmail());
+        $email = $user->getEmail();
+        if ($email === null) {
+            return null;
+        }
+        return $this->agentRepository->findOneByEmail($email);
     }
 }

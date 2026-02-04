@@ -199,7 +199,8 @@ class SendReminderCommand extends Command
             // En mode dry-run, compter celles eligibles
             $eligibles = 0;
             foreach ($reservations as $reservation) {
-                if ($reservation->getAgent()->canReceiveSms()) {
+                $agent = $reservation->getAgent();
+                if ($agent !== null && $agent->canReceiveSms()) {
                     $eligibles++;
                 }
             }
@@ -219,9 +220,10 @@ class SendReminderCommand extends Command
                     $count++;
                 }
             } catch (\Exception $e) {
+                $agent = $reservation->getAgent();
                 $io->warning(sprintf(
                     'Erreur SMS pour agent %s : %s',
-                    $reservation->getAgent()->getMatricule(),
+                    $agent?->getMatricule() ?? 'inconnu',
                     $e->getMessage()
                 ));
             }

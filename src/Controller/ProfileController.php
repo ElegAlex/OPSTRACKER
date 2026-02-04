@@ -63,7 +63,7 @@ class ProfileController extends AbstractController
         }
 
         // Temps total toutes campagnes
-        $tempsTotal = array_sum(array_column($tempsByCampagne, 'minutes'));
+        $tempsTotal = (int) array_sum(array_column($tempsByCampagne, 'minutes'));
         $tempsTotalFormate = DureeInterventionService::formatMinutes($tempsTotal);
 
         return $this->render('profile/index.html.twig', [
@@ -90,8 +90,15 @@ class ProfileController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
 
+            if (!is_array($data)) {
+                throw new \RuntimeException('Invalid form data');
+            }
+
+            $currentPassword = is_string($data['current_password']) ? $data['current_password'] : '';
+            $newPassword = is_string($data['new_password']) ? $data['new_password'] : '';
+
             // Verifier le mot de passe actuel
-            if (!$this->passwordHasher->isPasswordValid($user, $data['current_password'])) {
+            if (!$this->passwordHasher->isPasswordValid($user, $currentPassword)) {
                 $this->addFlash('danger', 'Le mot de passe actuel est incorrect.');
                 return $this->render('profile/password.html.twig', [
                     'form' => $form->createView(),
@@ -100,7 +107,7 @@ class ProfileController extends AbstractController
 
             try {
                 // RG-001 : Valider et mettre a jour le mot de passe
-                $this->utilisateurService->updatePassword($user, $data['new_password']);
+                $this->utilisateurService->updatePassword($user, $newPassword);
                 $this->addFlash('success', 'Votre mot de passe a ete modifie avec succes.');
                 return $this->redirectToRoute('app_profile');
             } catch (\InvalidArgumentException $e) {

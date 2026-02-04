@@ -73,7 +73,7 @@ class CoordinateurController extends AbstractController
         $reservationsParAgent = [];
         foreach ($agents as $agent) {
             $reservation = $this->reservationRepository->findByAgentAndCampagne($agent, $campagne);
-            $reservationsParAgent[$agent->getId()] = $reservation;
+            $reservationsParAgent[(int) $agent->getId()] = $reservation;
         }
 
         // Statistiques
@@ -101,7 +101,8 @@ class CoordinateurController extends AbstractController
         $user = $this->getUser();
 
         // RG-114 : Verifier que l'agent est dans le perimetre du coordinateur
-        if (!$this->perimetreRepository->hasAccessToServiceAndSite($user, $agent->getService(), $agent->getSite())) {
+        $agentService = $agent->getService();
+        if ($agentService === null || !$this->perimetreRepository->hasAccessToServiceAndSite($user, $agentService, $agent->getSite())) {
             throw $this->createAccessDeniedException('Cet agent n\'est pas dans votre perimetre.');
         }
 
@@ -118,7 +119,7 @@ class CoordinateurController extends AbstractController
 
         // POST : Traiter le positionnement
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('coord_position_' . $agent->getId(), $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('coord_position_' . (int) $agent->getId(), (string) $request->request->get('_token'))) {
                 $this->addFlash('danger', 'Token CSRF invalide.');
 
                 return $this->redirectToRoute('app_coord_position', [
@@ -138,7 +139,7 @@ class CoordinateurController extends AbstractController
             }
 
             $creneau = $this->creneauRepository->find($creneauId);
-            if (!$creneau || $creneau->getCampagne()->getId() !== $campagne->getId()) {
+            if (!$creneau || $creneau->getCampagne()?->getId() !== $campagne->getId()) {
                 $this->addFlash('danger', 'Creneau invalide.');
 
                 return $this->redirectToRoute('app_coord_position', [
@@ -156,12 +157,15 @@ class CoordinateurController extends AbstractController
                     $user
                 );
 
+                $creneauDate = $creneau->getDate();
+                $creneauHeureDebut = $creneau->getHeureDebut();
+                $creneauHeureFin = $creneau->getHeureFin();
                 $this->addFlash('success', sprintf(
                     '%s a ete positionne(e) le %s de %s a %s.',
                     $agent->getNomComplet(),
-                    $creneau->getDate()->format('d/m/Y'),
-                    $creneau->getHeureDebut()->format('H:i'),
-                    $creneau->getHeureFin()->format('H:i')
+                    $creneauDate !== null ? $creneauDate->format('d/m/Y') : '?',
+                    $creneauHeureDebut !== null ? $creneauHeureDebut->format('H:i') : '?',
+                    $creneauHeureFin !== null ? $creneauHeureFin->format('H:i') : '?'
                 ));
 
                 return $this->redirectToRoute('app_coord_agents', ['campagne' => $campagne->getId()]);
@@ -181,14 +185,15 @@ class CoordinateurController extends AbstractController
         // Filtrer les creneaux verrouilles
         $creneauxParDate = [];
         foreach ($creneauxDisponibles as $creneau) {
-            if ($creneau->isVerrouillePourDate()) {
+            $creneauDate = $creneau->getDate();
+            if ($creneauDate === null || $creneau->isVerrouillePourDate()) {
                 continue;
             }
 
-            $dateKey = $creneau->getDate()->format('Y-m-d');
+            $dateKey = $creneauDate->format('Y-m-d');
             if (!isset($creneauxParDate[$dateKey])) {
                 $creneauxParDate[$dateKey] = [
-                    'date' => $creneau->getDate(),
+                    'date' => $creneauDate,
                     'creneaux' => [],
                 ];
             }
@@ -214,19 +219,26 @@ class CoordinateurController extends AbstractController
         $user = $this->getUser();
 
         // Verifier que la reservation concerne la bonne campagne
-        if ($reservation->getCampagne()->getId() !== $campagne->getId()) {
+        if ($reservation->getCampagne()?->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Reservation non trouvee dans cette campagne.');
         }
 
         $agent = $reservation->getAgent();
+        if ($agent === null) {
+            throw $this->createNotFoundException('Agent non trouve pour cette reservation.');
+        }
 
         // RG-114 : Verifier le perimetre
-        if (!$this->perimetreRepository->hasAccessToServiceAndSite($user, $agent->getService(), $agent->getSite())) {
+        $agentService = $agent->getService();
+        if ($agentService === null || !$this->perimetreRepository->hasAccessToServiceAndSite($user, $agentService, $agent->getSite())) {
             throw $this->createAccessDeniedException('Cet agent n\'est pas dans votre perimetre.');
         }
 
         // RG-123 : Verifier le verrouillage
         $creneauActuel = $reservation->getCreneau();
+        if ($creneauActuel === null) {
+            throw $this->createNotFoundException('Creneau non trouve pour cette reservation.');
+        }
         if ($creneauActuel->isVerrouillePourDate()) {
             $this->addFlash('danger', 'Ce creneau est verrouille et ne peut plus etre modifie.');
 
@@ -235,7 +247,7 @@ class CoordinateurController extends AbstractController
 
         // POST : Traiter la modification
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('coord_modify_' . $reservation->getId(), $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('coord_modify_' . (int) $reservation->getId(), (string) $request->request->get('_token'))) {
                 $this->addFlash('danger', 'Token CSRF invalide.');
 
                 return $this->redirectToRoute('app_coord_modify', [
@@ -255,7 +267,7 @@ class CoordinateurController extends AbstractController
             }
 
             $nouveauCreneau = $this->creneauRepository->find($nouveauCreneauId);
-            if (!$nouveauCreneau || $nouveauCreneau->getCampagne()->getId() !== $campagne->getId()) {
+            if (!$nouveauCreneau || $nouveauCreneau->getCampagne()?->getId() !== $campagne->getId()) {
                 $this->addFlash('danger', 'Creneau invalide.');
 
                 return $this->redirectToRoute('app_coord_modify', [
@@ -288,14 +300,15 @@ class CoordinateurController extends AbstractController
 
         $creneauxParDate = [];
         foreach ($creneauxDisponibles as $creneau) {
-            if ($creneau->isVerrouillePourDate() || $creneau->getId() === $creneauActuel->getId()) {
+            $creneauDate = $creneau->getDate();
+            if ($creneauDate === null || $creneau->isVerrouillePourDate() || $creneau->getId() === $creneauActuel->getId()) {
                 continue;
             }
 
-            $dateKey = $creneau->getDate()->format('Y-m-d');
+            $dateKey = $creneauDate->format('Y-m-d');
             if (!isset($creneauxParDate[$dateKey])) {
                 $creneauxParDate[$dateKey] = [
-                    'date' => $creneau->getDate(),
+                    'date' => $creneauDate,
                     'creneaux' => [],
                 ];
             }
@@ -320,25 +333,33 @@ class CoordinateurController extends AbstractController
         /** @var Utilisateur $user */
         $user = $this->getUser();
 
-        if ($reservation->getCampagne()->getId() !== $campagne->getId()) {
+        if ($reservation->getCampagne()?->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Reservation non trouvee dans cette campagne.');
         }
 
         $agent = $reservation->getAgent();
+        if ($agent === null) {
+            throw $this->createNotFoundException('Agent non trouve pour cette reservation.');
+        }
 
         // RG-114 : Verifier le perimetre
-        if (!$this->perimetreRepository->hasAccessToServiceAndSite($user, $agent->getService(), $agent->getSite())) {
+        $agentService = $agent->getService();
+        if ($agentService === null || !$this->perimetreRepository->hasAccessToServiceAndSite($user, $agentService, $agent->getSite())) {
             throw $this->createAccessDeniedException('Cet agent n\'est pas dans votre perimetre.');
         }
 
-        if (!$this->isCsrfTokenValid('coord_cancel_' . $reservation->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('coord_cancel_' . (int) $reservation->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('app_coord_agents', ['campagne' => $campagne->getId()]);
         }
 
         // RG-123 : Verifier le verrouillage
-        if ($reservation->getCreneau()->isVerrouillePourDate()) {
+        $creneau = $reservation->getCreneau();
+        if ($creneau === null) {
+            throw $this->createNotFoundException('Creneau non trouve pour cette reservation.');
+        }
+        if ($creneau->isVerrouillePourDate()) {
             $this->addFlash('danger', 'Ce creneau est verrouille et ne peut plus etre annule.');
 
             return $this->redirectToRoute('app_coord_agents', ['campagne' => $campagne->getId()]);

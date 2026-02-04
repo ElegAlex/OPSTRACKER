@@ -14,6 +14,8 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
  * - Un technicien ne peut voir/modifier que ses operations assignees
  * - Un gestionnaire peut voir/modifier toutes les operations de ses campagnes
  * - Un admin peut tout faire
+ *
+ * @extends Voter<string, Operation>
  */
 class OperationVoter extends Voter
 {
@@ -34,7 +36,10 @@ class OperationVoter extends Voter
             return false;
         }
 
-        /** @var Operation $operation */
+        if (!$subject instanceof Operation) {
+            return false;
+        }
+
         $operation = $subject;
 
         // Les admins ont tous les droits

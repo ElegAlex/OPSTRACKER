@@ -40,10 +40,14 @@ class SearchController extends AbstractController
         // Grouper les resultats par campagne
         $groupedResults = [];
         foreach ($results as $operation) {
-            $campagneId = $operation->getCampagne()->getId();
+            $campagne = $operation->getCampagne();
+            if (null === $campagne) {
+                continue;
+            }
+            $campagneId = $campagne->getId();
             if (!isset($groupedResults[$campagneId])) {
                 $groupedResults[$campagneId] = [
-                    'campagne' => $operation->getCampagne(),
+                    'campagne' => $campagne,
                     'operations' => [],
                 ];
             }
@@ -73,14 +77,15 @@ class SearchController extends AbstractController
 
         $data = [];
         foreach ($results as $operation) {
+            $campagne = $operation->getCampagne();
             $data[] = [
                 'id' => $operation->getId(),
                 'matricule' => $operation->getDisplayIdentifier(),
                 'nom' => $operation->getDisplayName(),
                 'statut' => $operation->getStatutLabel(),
                 'statut_couleur' => $operation->getStatutCouleur(),
-                'campagne' => $operation->getCampagne()->getNom(),
-                'campagne_id' => $operation->getCampagne()->getId(),
+                'campagne' => $campagne?->getNom(),
+                'campagne_id' => $campagne?->getId(),
             ];
         }
 

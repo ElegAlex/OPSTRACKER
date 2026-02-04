@@ -98,7 +98,7 @@ class PrerequisController extends AbstractController
         $this->checkNotReadOnly($campagne);
 
         $segment = $this->segmentRepository->find($segmentId);
-        if (!$segment || $segment->getCampagne()->getId() !== $campagneId) {
+        if (!$segment || $segment->getCampagne()?->getId() !== $campagneId) {
             throw $this->createNotFoundException('Segment non trouve');
         }
 
@@ -114,7 +114,7 @@ class PrerequisController extends AbstractController
 
             $this->prerequisRepository->save($prerequis, true);
 
-            $this->addFlash('success', sprintf('Prerequis ajoute pour %s.', $segment->getNom()));
+            $this->addFlash('success', sprintf('Prerequis ajoute pour %s.', (string) $segment->getNom()));
 
             return $this->redirectToRoute('app_prerequis_index', ['campagneId' => $campagneId]);
         }
@@ -164,7 +164,7 @@ class PrerequisController extends AbstractController
         $this->checkNotReadOnly($campagne);
         $this->checkPrerequisBelongsToCampagne($prerequis, $campagne);
 
-        $nouveauStatut = $request->request->get('statut');
+        $nouveauStatut = $request->request->getString('statut');
         if (!array_key_exists($nouveauStatut, Prerequis::STATUTS)) {
             throw $this->createNotFoundException('Statut invalide');
         }
@@ -200,7 +200,7 @@ class PrerequisController extends AbstractController
         $this->checkNotReadOnly($campagne);
         $this->checkPrerequisBelongsToCampagne($prerequis, $campagne);
 
-        if ($this->isCsrfTokenValid('delete' . $prerequis->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $prerequis->getId(), $request->request->getString('_token'))) {
             $this->prerequisService->supprimer($prerequis);
             $this->addFlash('success', 'Prerequis supprime.');
         }
@@ -243,7 +243,7 @@ class PrerequisController extends AbstractController
 
     private function checkPrerequisBelongsToCampagne(Prerequis $prerequis, Campagne $campagne): void
     {
-        if ($prerequis->getCampagne()->getId() !== $campagne->getId()) {
+        if ($prerequis->getCampagne()?->getId() !== $campagne->getId()) {
             throw $this->createNotFoundException('Prerequis non trouve dans cette campagne');
         }
     }

@@ -140,6 +140,10 @@ class AgentCrudController extends AbstractCrudController
     public function toggleActif(): \Symfony\Component\HttpFoundation\Response
     {
         $context = $this->getContext();
+        if ($context === null) {
+            throw $this->createNotFoundException('Contexte admin non disponible');
+        }
+
         $entityId = $context->getRequest()->query->get('entityId');
 
         $entityManager = $this->container->get('doctrine')->getManager();
@@ -155,6 +159,11 @@ class AgentCrudController extends AbstractCrudController
         $status = $agent->isActif() ? 'active' : 'desactive';
         $this->addFlash('success', sprintf('Agent %s %s avec succes.', $agent->getNomComplet(), $status));
 
-        return $this->redirect($context->getReferrer());
+        $referrer = $context->getReferrer();
+        if ($referrer === null) {
+            return $this->redirectToRoute('admin');
+        }
+
+        return $this->redirect($referrer);
     }
 }

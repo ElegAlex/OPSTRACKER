@@ -43,6 +43,9 @@ class ReservationService
         ?Utilisateur $positionnePar = null
     ): Reservation {
         $campagne = $creneau->getCampagne();
+        if ($campagne === null) {
+            throw new \LogicException('Le creneau n\'est associe a aucune campagne.');
+        }
 
         // RG-121 : Verifier l'unicite agent/campagne
         $existante = $this->reservationRepository->findByAgentAndCampagne($agent, $campagne);
@@ -123,6 +126,9 @@ class ReservationService
 
         // Sauvegarder l'ancien creneau pour la notification
         $ancienCreneau = $reservation->getCreneau();
+        if ($ancienCreneau === null) {
+            throw new \LogicException('La reservation n\'a pas de creneau associe.');
+        }
 
         $reservation->setCreneau($nouveauCreneau);
         $this->entityManager->flush();

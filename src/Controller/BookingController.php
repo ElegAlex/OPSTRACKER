@@ -69,7 +69,7 @@ class BookingController extends AbstractController
         $reservationExistante = $this->reservationRepository->findByAgentAndCampagne($agent, $campagne);
 
         // T-2008 / RG-135 : Recuperer le segment de l'agent par son site
-        $segment = $this->segmentRepository->findByCampagneAndSite($campagne->getId(), $agent->getSite());
+        $segment = $this->segmentRepository->findByCampagneAndSite((int) $campagne->getId(), $agent->getSite());
 
         // RG-120 : Recuperer les creneaux disponibles filtres par segment
         $creneauxDisponibles = $this->creneauRepository->findDisponibles($campagne, $segment);
@@ -82,10 +82,14 @@ class BookingController extends AbstractController
                 continue;
             }
 
-            $dateKey = $creneau->getDate()->format('Y-m-d');
+            $creneauDate = $creneau->getDate();
+            if ($creneauDate === null) {
+                continue;
+            }
+            $dateKey = $creneauDate->format('Y-m-d');
             if (!isset($creneauxParDate[$dateKey])) {
                 $creneauxParDate[$dateKey] = [
-                    'date' => $creneau->getDate(),
+                    'date' => $creneauDate,
                     'creneaux' => [],
                 ];
             }
@@ -112,7 +116,7 @@ class BookingController extends AbstractController
     {
         $agent = $this->getAgentByToken($token);
 
-        if (!$this->isCsrfTokenValid('booking_select_' . $creneau->getId(), $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('booking_select_' . (int) $creneau->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('app_booking_index', ['token' => $token]);
@@ -187,7 +191,7 @@ class BookingController extends AbstractController
             return $this->redirectToRoute('app_booking_index', ['token' => $token]);
         }
 
-        if (!$this->isCsrfTokenValid('booking_cancel', $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('booking_cancel', (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('app_booking_confirm', ['token' => $token]);
@@ -195,6 +199,9 @@ class BookingController extends AbstractController
 
         // RG-123 : Verifier le verrouillage
         $creneau = $reservation->getCreneau();
+        if ($creneau === null) {
+            throw $this->createNotFoundException('Creneau de la reservation introuvable.');
+        }
         if ($creneau->isVerrouillePourDate()) {
             $this->addFlash('danger', 'Ce creneau est verrouille et ne peut plus etre annule.');
 
@@ -231,6 +238,9 @@ class BookingController extends AbstractController
 
         // RG-123 : Verifier le verrouillage du creneau actuel
         $creneauActuel = $reservation->getCreneau();
+        if ($creneauActuel === null) {
+            throw $this->createNotFoundException('Creneau de la reservation introuvable.');
+        }
         if ($creneauActuel->isVerrouillePourDate()) {
             $this->addFlash('danger', 'Ce creneau est verrouille et ne peut plus etre modifie.');
 
@@ -239,7 +249,7 @@ class BookingController extends AbstractController
 
         // POST : Traiter la modification
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('booking_modify', $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('booking_modify', (string) $request->request->get('_token'))) {
                 $this->addFlash('danger', 'Token CSRF invalide.');
 
                 return $this->redirectToRoute('app_booking_modify', ['token' => $token]);
@@ -253,7 +263,7 @@ class BookingController extends AbstractController
             }
 
             $nouveauCreneau = $this->creneauRepository->find($nouveauCreneauId);
-            if (!$nouveauCreneau || $nouveauCreneau->getCampagne()->getId() !== $campagne->getId()) {
+            if (!$nouveauCreneau || $nouveauCreneau->getCampagne()?->getId() !== $campagne->getId()) {
                 $this->addFlash('danger', 'Creneau invalide.');
 
                 return $this->redirectToRoute('app_booking_modify', ['token' => $token]);
@@ -277,14 +287,15 @@ class BookingController extends AbstractController
         // Filtrer les creneaux verrouilles et exclure le creneau actuel
         $creneauxParDate = [];
         foreach ($creneauxDisponibles as $creneau) {
-            if ($creneau->isVerrouillePourDate() || $creneau->getId() === $creneauActuel->getId()) {
+            $creneauDate = $creneau->getDate();
+            if ($creneauDate === null || $creneau->isVerrouillePourDate() || $creneau->getId() === $creneauActuel->getId()) {
                 continue;
             }
 
-            $dateKey = $creneau->getDate()->format('Y-m-d');
+            $dateKey = $creneauDate->format('Y-m-d');
             if (!isset($creneauxParDate[$dateKey])) {
                 $creneauxParDate[$dateKey] = [
-                    'date' => $creneau->getDate(),
+                    'date' => $creneauDate,
                     'creneaux' => [],
                 ];
             }
@@ -350,13 +361,19 @@ class BookingController extends AbstractController
             throw $this->createNotFoundException('Reservation non trouvee.');
         }
 
+        $creneau = $reservation->getCreneau();
+        if ($creneau === null) {
+            throw $this->createNotFoundException('Creneau de la reservation introuvable.');
+        }
+
         $icsContent = $this->icsGenerator->generate($reservation);
 
+        $creneauDate = $creneau->getDate();
         $response = new Response($icsContent);
         $response->headers->set('Content-Type', 'text/calendar; charset=utf-8');
         $disposition = $response->headers->makeDisposition(
             ResponseHeaderBag::DISPOSITION_ATTACHMENT,
-            sprintf('rdv-%s-%s.ics', $campagne->getNom(), $reservation->getCreneau()->getDate()->format('Y-m-d'))
+            sprintf('rdv-%s-%s.ics', $campagne->getNom(), $creneauDate !== null ? $creneauDate->format('Y-m-d') : 'unknown')
         );
         $response->headers->set('Content-Disposition', $disposition);
 
@@ -404,18 +421,19 @@ class BookingController extends AbstractController
         $agent = $this->getAgentByToken($token);
 
         if ($request->isMethod('POST')) {
-            if (!$this->isCsrfTokenValid('sms_optin', $request->request->get('_token'))) {
+            if (!$this->isCsrfTokenValid('sms_optin', (string) $request->request->get('_token'))) {
                 $this->addFlash('danger', 'Token CSRF invalide.');
                 return $this->redirectToRoute('app_booking_sms_optin', ['token' => $token]);
             }
 
             // Recuperer les donnees du formulaire
             $smsOptIn = $request->request->getBoolean('sms_optin');
+            /** @var string|null $telephone */
             $telephone = $request->request->get('telephone');
 
             // Mettre a jour le telephone si fourni
             if (!empty($telephone)) {
-                $agent->setTelephone($telephone);
+                $agent->setTelephone((string) $telephone);
             }
 
             // Mettre a jour l'opt-in

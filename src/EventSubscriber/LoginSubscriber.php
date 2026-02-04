@@ -61,6 +61,9 @@ class LoginSubscriber implements EventSubscriberInterface
 
         try {
             $userBadge = $passport->getBadge(\Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge::class);
+            if ($userBadge === null) {
+                return;
+            }
             $email = $userBadge->getUserIdentifier();
         } catch (\Exception) {
             return;

@@ -28,6 +28,8 @@ class IcsGenerator
 
     /**
      * Genere le contenu ICS pour une reservation
+     *
+     * @throws \InvalidArgumentException Si la reservation n'est pas complete
      */
     public function generate(Reservation $reservation): string
     {
@@ -35,10 +37,22 @@ class IcsGenerator
         $agent = $reservation->getAgent();
         $campagne = $reservation->getCampagne();
 
+        if ($creneau === null || $agent === null || $campagne === null) {
+            throw new \InvalidArgumentException('La reservation doit avoir un creneau, un agent et une campagne.');
+        }
+
+        $date = $creneau->getDate();
+        $heureDebut = $creneau->getHeureDebut();
+        $heureFin = $creneau->getHeureFin();
+
+        if ($date === null || $heureDebut === null || $heureFin === null) {
+            throw new \InvalidArgumentException('Le creneau doit avoir une date, une heure de debut et une heure de fin.');
+        }
+
         // Construire les dates au format ICS
-        $dateStr = $creneau->getDate()->format('Ymd');
-        $dtStart = $dateStr . 'T' . $creneau->getHeureDebut()->format('His');
-        $dtEnd = $dateStr . 'T' . $creneau->getHeureFin()->format('His');
+        $dateStr = $date->format('Ymd');
+        $dtStart = $dateStr . 'T' . $heureDebut->format('His');
+        $dtEnd = $dateStr . 'T' . $heureFin->format('His');
 
         // UID unique pour l'evenement
         $uid = sprintf('%d-%s@%s', $reservation->getId(), uniqid(), $this->domain);
@@ -98,15 +112,29 @@ class IcsGenerator
 
     /**
      * Genere un ICS d'annulation pour une reservation
+     *
+     * @throws \InvalidArgumentException Si la reservation n'est pas complete
      */
     public function generateCancellation(Reservation $reservation): string
     {
         $creneau = $reservation->getCreneau();
         $campagne = $reservation->getCampagne();
 
-        $dateStr = $creneau->getDate()->format('Ymd');
-        $dtStart = $dateStr . 'T' . $creneau->getHeureDebut()->format('His');
-        $dtEnd = $dateStr . 'T' . $creneau->getHeureFin()->format('His');
+        if ($creneau === null || $campagne === null) {
+            throw new \InvalidArgumentException('La reservation doit avoir un creneau et une campagne.');
+        }
+
+        $date = $creneau->getDate();
+        $heureDebut = $creneau->getHeureDebut();
+        $heureFin = $creneau->getHeureFin();
+
+        if ($date === null || $heureDebut === null || $heureFin === null) {
+            throw new \InvalidArgumentException('Le creneau doit avoir une date, une heure de debut et une heure de fin.');
+        }
+
+        $dateStr = $date->format('Ymd');
+        $dtStart = $dateStr . 'T' . $heureDebut->format('His');
+        $dtEnd = $dateStr . 'T' . $heureFin->format('His');
 
         $uid = sprintf('%d@%s', $reservation->getId(), $this->domain);
         $dtstamp = (new \DateTime())->format('Ymd\THis\Z');

@@ -110,9 +110,14 @@ class HabilitationController extends AbstractController
 
         $this->em->flush();
 
+        $utilisateur = $habilitation->getUtilisateur();
+        if (!$utilisateur) {
+            throw new \RuntimeException('Utilisateur non trouvé pour cette habilitation.');
+        }
+
         $this->addFlash('success', sprintf(
             'Habilitation mise à jour pour %s.',
-            $habilitation->getUtilisateur()->getNomComplet()
+            $utilisateur->getNomComplet()
         ));
 
         return $this->redirectToRoute('app_campagne_habilitations', ['id' => $campagne->getId()]);
@@ -132,12 +137,17 @@ class HabilitationController extends AbstractController
         }
 
         // Verification CSRF
-        if (!$this->isCsrfTokenValid('delete_habilitation_' . $habilitationId, $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('delete_habilitation_' . $habilitationId, (string) $request->request->get('_token'))) {
             $this->addFlash('danger', 'Token CSRF invalide.');
             return $this->redirectToRoute('app_campagne_habilitations', ['id' => $campagne->getId()]);
         }
 
-        $nomUtilisateur = $habilitation->getUtilisateur()->getNomComplet();
+        $utilisateur = $habilitation->getUtilisateur();
+        if (!$utilisateur) {
+            throw new \RuntimeException('Utilisateur non trouvé pour cette habilitation.');
+        }
+
+        $nomUtilisateur = $utilisateur->getNomComplet();
         $this->em->remove($habilitation);
         $this->em->flush();
 
@@ -155,13 +165,18 @@ class HabilitationController extends AbstractController
     {
         $habilitationsExistantes = $this->habilitationRepository->findByCampagne($campagne);
         $utilisateursHabilites = array_map(
-            fn(HabilitationCampagne $h) => $h->getUtilisateur()->getId(),
+            function (HabilitationCampagne $h): ?int {
+                $utilisateur = $h->getUtilisateur();
+                return $utilisateur?->getId();
+            },
             $habilitationsExistantes
         );
+        $utilisateursHabilites = array_filter($utilisateursHabilites, fn ($id) => $id !== null);
 
         // Ajouter le proprietaire
-        if ($campagne->getProprietaire()) {
-            $utilisateursHabilites[] = $campagne->getProprietaire()->getId();
+        $proprietaire = $campagne->getProprietaire();
+        if ($proprietaire) {
+            $utilisateursHabilites[] = $proprietaire->getId();
         }
 
         $tous = $this->utilisateurRepository->findBy(['actif' => true], ['nom' => 'ASC', 'prenom' => 'ASC']);

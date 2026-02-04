@@ -273,23 +273,23 @@ class Agent
         }
 
         // Normaliser : supprimer espaces, tirets, points, parentheses
-        $normalized = preg_replace('/[\s\-\.\(\)]/', '', $telephone);
+        $normalized = preg_replace('/[\s\-\.\(\)]/', '', $telephone) ?? '';
 
         // Supprimer tous les caracteres non numeriques sauf le +
-        $normalized = preg_replace('/[^0-9+]/', '', $normalized);
+        $normalized = preg_replace('/[^0-9+]/', '', $normalized) ?? '';
 
         // Convertir format francais mobile 06/07 → +33
-        if (preg_match('/^0([67]\d{8})$/', $normalized, $matches)) {
+        if (preg_match('/^0([67]\d{8})$/', $normalized, $matches) === 1) {
             $normalized = '+33' . $matches[1];
         }
 
         // Ajouter + si commence par indicatif 33 sans +
-        if (preg_match('/^33([67]\d{8})$/', $normalized, $matches)) {
+        if (preg_match('/^33([67]\d{8})$/', $normalized, $matches) === 1) {
             $normalized = '+33' . $matches[1];
         }
 
         // FINDING-004 : Valider format E.164 strict
-        if (!preg_match('/^\+[1-9]\d{6,14}$/', $normalized)) {
+        if (preg_match('/^\+[1-9]\d{6,14}$/', $normalized) !== 1) {
             throw new \InvalidArgumentException(
                 sprintf('Numero de telephone invalide: "%s". Format attendu: +33612345678 (E.164)', $telephone)
             );

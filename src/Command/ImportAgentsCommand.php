@@ -63,7 +63,7 @@ class ImportAgentsCommand extends Command
 
             return Command::FAILURE;
         }
-        $headers = array_map('strtolower', array_map('trim', $headers));
+        $headers = array_map('strtolower', array_map(fn($v) => trim((string) $v), $headers));
 
         $io->info('Colonnes detectees : ' . implode(', ', $headers));
 
@@ -81,7 +81,7 @@ class ImportAgentsCommand extends Command
                 continue;
             }
 
-            $data = array_combine($headers, array_map('trim', $row));
+            $data = array_combine($headers, array_map(fn($v) => trim((string) $v), $row));
 
             // Verifier les champs obligatoires
             $matricule = $data['matricule'] ?? null;

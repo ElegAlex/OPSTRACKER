@@ -73,6 +73,9 @@ class AgentImportController extends AbstractController
     {
         $response = new StreamedResponse(function () {
             $handle = fopen('php://output', 'w');
+            if ($handle === false) {
+                return;
+            }
 
             // BOM UTF-8 pour Excel
             fwrite($handle, "\xEF\xBB\xBF");
@@ -123,6 +126,11 @@ class AgentImportController extends AbstractController
         // Detecter le separateur
         $firstLine = fgets($handle);
         rewind($handle);
+        if ($firstLine === false) {
+            fclose($handle);
+
+            return ['success' => false, 'message' => 'Fichier CSV vide ou illisible.'];
+        }
         $separator = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
 
         // Headers
@@ -132,7 +140,7 @@ class AgentImportController extends AbstractController
 
             return ['success' => false, 'message' => 'Fichier CSV vide ou invalide.'];
         }
-        $headers = array_map('strtolower', array_map('trim', $headers));
+        $headers = array_map('strtolower', array_map(fn ($v) => trim((string) $v), $headers));
 
         // Verifier colonnes obligatoires
         $required = ['matricule', 'email', 'nom', 'prenom'];
@@ -160,7 +168,7 @@ class AgentImportController extends AbstractController
                 continue;
             }
 
-            $data = array_combine($headers, array_map('trim', $row));
+            $data = array_combine($headers, array_map(fn ($v) => trim((string) $v), $row));
 
             // Verifier champs obligatoires
             if (empty($data['matricule']) || empty($data['email']) || empty($data['nom']) || empty($data['prenom'])) {

@@ -14,6 +14,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * Formulaire pour creer/modifier un prerequis.
  *
  * RG-090 : Prerequis avec libelle, responsable, date cible (optionnelle)
+ *
+ * @extends AbstractType<Prerequis>
  */
 class PrerequisType extends AbstractType
 {

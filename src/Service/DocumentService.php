@@ -59,7 +59,7 @@ class DocumentService
 
         // Recuperer les metadonnees AVANT le move() (le fichier temp est supprime apres)
         $originalName = $file->getClientOriginalName();
-        $mimeType = $file->getClientMimeType() ?? 'application/octet-stream';
+        $mimeType = $file->getClientMimeType();
         $size = $file->getSize();
 
         // Generer un nom de fichier unique
@@ -117,7 +117,11 @@ class DocumentService
      */
     public function getDocumentsByCampagne(Campagne $campagne): array
     {
-        return $this->documentRepository->findByCampagne($campagne->getId());
+        $campagneId = $campagne->getId();
+        if ($campagneId === null) {
+            return [];
+        }
+        return $this->documentRepository->findByCampagne($campagneId);
     }
 
     /**
@@ -125,7 +129,11 @@ class DocumentService
      */
     public function getFilePath(Document $document): string
     {
-        return $this->getUploadPath($document->getCampagne()) . '/' . $document->getNomFichier();
+        $campagne = $document->getCampagne();
+        if ($campagne === null) {
+            throw new \InvalidArgumentException('Le document doit être associé à une campagne.');
+        }
+        return $this->getUploadPath($campagne) . '/' . $document->getNomFichier();
     }
 
     /**
@@ -151,10 +159,14 @@ class DocumentService
      */
     public function getStatistiques(Campagne $campagne): array
     {
+        $campagneId = $campagne->getId();
+        if ($campagneId === null) {
+            return ['total' => 0, 'par_type' => [], 'taille_totale' => 0];
+        }
         return [
-            'total' => $this->documentRepository->countByCampagne($campagne->getId()),
-            'par_type' => $this->documentRepository->countByTypeForCampagne($campagne->getId()),
-            'taille_totale' => $this->documentRepository->getTailleTotaleByCampagne($campagne->getId()),
+            'total' => $this->documentRepository->countByCampagne($campagneId),
+            'par_type' => $this->documentRepository->countByTypeForCampagne($campagneId),
+            'taille_totale' => $this->documentRepository->getTailleTotaleByCampagne($campagneId),
         ];
     }
 

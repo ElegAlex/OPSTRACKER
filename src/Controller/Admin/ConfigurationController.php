@@ -59,7 +59,7 @@ class ConfigurationController extends AbstractController
     public function import(Request $request): Response
     {
         $file = $request->files->get('config_file');
-        $mode = $request->request->get('mode', ConfigurationService::MODE_CREER_NOUVEAUX);
+        $mode = (string) $request->request->get('mode', ConfigurationService::MODE_CREER_NOUVEAUX);
 
         if (!$file) {
             $this->addFlash('danger', 'Aucun fichier sélectionné.');

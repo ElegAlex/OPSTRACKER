@@ -14,6 +14,8 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 /**
  * Formulaire d'upload de document (T-1006, RG-050)
+ *
+ * @extends AbstractType<null>
  */
 class DocumentUploadType extends AbstractType
 {

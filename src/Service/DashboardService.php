@@ -44,7 +44,11 @@ class DashboardService
      */
     public function getKpiCampagne(Campagne $campagne): array
     {
-        $counts = $this->operationRepository->countByStatutForCampagne($campagne->getId());
+        $campagneId = $campagne->getId();
+        if ($campagneId === null) {
+            throw new \InvalidArgumentException('Campagne must have an ID');
+        }
+        $counts = $this->operationRepository->countByStatutForCampagne($campagneId);
         $total = array_sum($counts);
 
         // Compteurs du jour
@@ -124,7 +128,11 @@ class DashboardService
      */
     public function getProgressionParSegment(Campagne $campagne): array
     {
-        $segments = $this->segmentRepository->findByCampagne($campagne->getId());
+        $campagneId = $campagne->getId();
+        if ($campagneId === null) {
+            throw new \InvalidArgumentException('Campagne must have an ID');
+        }
+        $segments = $this->segmentRepository->findByCampagne($campagneId);
         $result = [];
 
         foreach ($segments as $segment) {
@@ -191,15 +199,19 @@ class DashboardService
 
             $timestamp = $operation->getDateRealisation()
                 ?? $operation->getUpdatedAt()
-                ?? $operation->getCreatedAt();
+                ?? $operation->getCreatedAt()
+                ?? new \DateTimeImmutable();
 
             $technicien = $operation->getTechnicienAssigne();
+            $technicienDisplay = $technicien !== null
+                ? $technicien->getPrenom() . ' ' . substr($technicien->getNom() ?? '', 0, 1) . '.'
+                : null;
 
             $result[] = [
                 'operation' => $operation,
                 'type' => $type,
                 'timestamp' => $timestamp,
-                'technicien' => $technicien?->getPrenom() . ' ' . substr($technicien?->getNom() ?? '', 0, 1) . '.',
+                'technicien' => $technicienDisplay,
             ];
         }
 
@@ -210,7 +222,9 @@ class DashboardService
      * Recupere les statistiques de l'equipe assignee a une campagne.
      *
      * @return array<int, array{
-     *     technicien: \App\Entity\Utilisateur,
+     *     id: int|null,
+     *     prenom: string|null,
+     *     nom: string|null,
      *     initiales: string,
      *     assignees: int,
      *     realisees: int,
@@ -280,6 +294,7 @@ class DashboardService
      * T-1307 : Dashboard global avec filtrage par statut de campagne
      *
      * @param string[]|null $statutsFilter Statuts de campagne a afficher (null = tous les actifs)
+     * @return array{campagnes: array<int, array{campagne: Campagne, kpi: array<string, mixed>, segments_count: int, techniciens_count: int}>, totaux: array{campagnes: int, operations: int, realise: int, planifie: int, reporte: int, a_remedier: int, progression: float}, filtres: string[]|null}
      */
     public function getDashboardGlobal(?array $statutsFilter = null): array
     {
@@ -304,8 +319,12 @@ class DashboardService
         ];
 
         foreach ($campagnes as $campagne) {
+            $campagneId = $campagne->getId();
+            if ($campagneId === null) {
+                continue;
+            }
             $kpi = $this->getKpiCampagne($campagne);
-            $segments = $this->segmentRepository->findByCampagne($campagne->getId());
+            $segments = $this->segmentRepository->findByCampagne($campagneId);
             $techniciens = $this->countTechniciensAssignes($campagne);
 
             $campagnesData[] = [
@@ -336,6 +355,8 @@ class DashboardService
     /**
      * Recupere les donnees pour un refresh Turbo Stream.
      * T-704 : Temps reel
+     *
+     * @return array{kpi: array<string, mixed>, segments: array<int, array<string, mixed>>, activite: array<int, array<string, mixed>>, timestamp: \DateTimeImmutable}
      */
     public function getRefreshData(Campagne $campagne): array
     {

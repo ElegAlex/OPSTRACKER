@@ -69,9 +69,17 @@ class PrerequisRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
 
+        /** @var array<int, Prerequis[]> $result */
         $result = [];
         foreach ($prerequis as $p) {
-            $segmentId = $p->getSegment()->getId();
+            $segment = $p->getSegment();
+            if ($segment === null) {
+                continue;
+            }
+            $segmentId = $segment->getId();
+            if ($segmentId === null) {
+                continue;
+            }
             if (!isset($result[$segmentId])) {
                 $result[$segmentId] = [];
             }
@@ -174,7 +182,7 @@ class PrerequisRepository extends ServiceEntityRepository
      */
     public function countEnRetard(Campagne $campagne): int
     {
-        return $this->createQueryBuilder('p')
+        $result = $this->createQueryBuilder('p')
             ->select('COUNT(p.id)')
             ->where('p.campagne = :campagne')
             ->andWhere('p.statut != :fait')
@@ -185,6 +193,8 @@ class PrerequisRepository extends ServiceEntityRepository
             ->setParameter('today', new \DateTimeImmutable('today'))
             ->getQuery()
             ->getSingleScalarResult();
+
+        return (int) $result;
     }
 
     /**
@@ -206,7 +216,7 @@ class PrerequisRepository extends ServiceEntityRepository
 
         $maxOrdre = $qb->getQuery()->getSingleScalarResult();
 
-        return ($maxOrdre ?? 0) + 1;
+        return ((int) $maxOrdre) + 1;
     }
 
     public function save(Prerequis $entity, bool $flush = false): void

@@ -16,6 +16,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 /**
  * Formulaire creation campagne - Etape 4/4 (Workflow & Template).
  * RG-014 : Association TypeOperation + ChecklistTemplate
+ *
+ * @extends AbstractType<Campagne>
  */
 class CampagneStep4Type extends AbstractType
 {

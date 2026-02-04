@@ -68,7 +68,12 @@ class AuditController extends AbstractController
     {
         $page = max(1, $request->query->getInt('page', 1));
 
-        $historique = $this->auditService->getHistoriqueCampagne($campagne->getId(), $page);
+        $campagneId = $campagne->getId();
+        if (null === $campagneId) {
+            throw $this->createNotFoundException('Campagne non trouvee');
+        }
+
+        $historique = $this->auditService->getHistoriqueCampagne($campagneId, $page);
 
         return $this->render('audit/campagne.html.twig', [
             'campagne' => $campagne,
@@ -84,9 +89,14 @@ class AuditController extends AbstractController
     {
         $page = max(1, $request->query->getInt('page', 1));
 
+        $operationId = $operation->getId();
+        if (null === $operationId) {
+            throw $this->createNotFoundException('Operation non trouvee');
+        }
+
         $historique = $this->auditService->getHistorique(
             'App\Entity\Operation',
-            $operation->getId(),
+            $operationId,
             $page
         );
 

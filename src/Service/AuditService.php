@@ -28,7 +28,7 @@ class AuditService
      * @param int $page Numero de page (commence a 1)
      * @param int $pageSize Nombre d'elements par page
      *
-     * @return array{entries: array, total: int, page: int, pageSize: int, totalPages: int}
+     * @return array{entries: array<int, array<string, mixed>>, total: int, page: int, pageSize: int, totalPages: int}
      */
     public function getHistorique(string $entityClass, int $entityId, int $page = 1, int $pageSize = 20): array
     {
@@ -56,6 +56,8 @@ class AuditService
 
     /**
      * Recupere l'historique d'une campagne avec toutes ses operations.
+     *
+     * @return array{entries: array<int, array<string, mixed>>, total: int, page: int, pageSize: int, totalPages: int}
      */
     public function getHistoriqueCampagne(int $campagneId, int $page = 1, int $pageSize = 20): array
     {
@@ -69,6 +71,8 @@ class AuditService
      * @param \DateTimeInterface|null $dateFin
      * @param string|null $entityType Type d'entite a filtrer
      * @param string|null $utilisateur Email de l'utilisateur
+     *
+     * @return array{entries: array<int, array<string, mixed>>, total: int, page: int, pageSize: int, totalPages: int, entityTypes: array<int, string>}
      */
     public function getHistoriqueGlobal(
         ?\DateTimeInterface $dateDebut = null,
@@ -151,6 +155,9 @@ class AuditService
 
     /**
      * Formate les entrees d'audit pour l'affichage.
+     *
+     * @param array<int, \DH\Auditor\Model\Entry> $entries
+     * @return array<int, array<string, mixed>>
      */
     private function formatEntries(array $entries): array
     {
@@ -163,6 +170,10 @@ class AuditService
         return $formatted;
     }
 
+    /**
+     * @param array<int, array{entry: \DH\Auditor\Model\Entry, entityClass: string}> $entries
+     * @return array<int, array<string, mixed>>
+     */
     private function formatEntriesWithClass(array $entries): array
     {
         $formatted = [];
@@ -176,9 +187,13 @@ class AuditService
         return $formatted;
     }
 
-    private function formatEntry($entry): array
+    /**
+     * @param \DH\Auditor\Model\Entry $entry
+     * @return array<string, mixed>
+     */
+    private function formatEntry(\DH\Auditor\Model\Entry $entry): array
     {
-        $diffs = $entry->getDiffs() ?? [];
+        $diffs = $entry->getDiffs();
 
         return [
             'id' => $entry->getId(),
@@ -194,6 +209,10 @@ class AuditService
         ];
     }
 
+    /**
+     * @param array<string, array{old?: mixed, new?: mixed}> $diffs
+     * @return array<int, array{field: string, fieldCode: string, old: string, new: string}>
+     */
     private function formatDiffs(array $diffs): array
     {
         $formatted = [];
@@ -210,7 +229,7 @@ class AuditService
         return $formatted;
     }
 
-    private function formatValue($value): string
+    private function formatValue(mixed $value): string
     {
         if ($value === null) {
             return '(vide)';
@@ -221,7 +240,7 @@ class AuditService
         }
 
         if (is_array($value)) {
-            return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+            return (string) json_encode($value, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         }
 
         if ($value instanceof \DateTimeInterface) {

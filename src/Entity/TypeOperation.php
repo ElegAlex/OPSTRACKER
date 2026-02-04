@@ -86,6 +86,8 @@ class TypeOperation
      *   },
      *   ...
      * ]
+     *
+     * @var array<int, array<string, mixed>>|null
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $champsPersonnalises = null;
@@ -182,11 +184,17 @@ class TypeOperation
         return self::COULEURS[$this->couleur] ?? $this->couleur;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>|null
+     */
     public function getChampsPersonnalises(): ?array
     {
         return $this->champsPersonnalises;
     }
 
+    /**
+     * @param array<int, array<string, mixed>>|null $champsPersonnalises
+     */
     public function setChampsPersonnalises(?array $champsPersonnalises): static
     {
         $this->champsPersonnalises = $champsPersonnalises;

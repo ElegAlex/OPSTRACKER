@@ -18,6 +18,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  * Formulaire pour la creation/edition d'un creneau.
  *
  * Champs : date, heureDebut, heureFin, capacite, lieu, segment (optionnel)
+ *
+ * @extends AbstractType<Creneau>
  */
 class CreneauType extends AbstractType
 {

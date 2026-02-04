@@ -66,7 +66,8 @@ class ShareController extends AbstractController
     public function generateLink(Campagne $campagne, Request $request): Response
     {
         // CSRF protection
-        if (!$this->isCsrfTokenValid('share' . $campagne->getId(), $request->request->get('_token'))) {
+        $token = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('share' . $campagne->getId(), is_string($token) ? $token : null)) {
             throw $this->createAccessDeniedException('Token CSRF invalide');
         }
 
@@ -97,7 +98,8 @@ class ShareController extends AbstractController
     public function revokeLink(Campagne $campagne, Request $request): Response
     {
         // CSRF protection
-        if (!$this->isCsrfTokenValid('revoke' . $campagne->getId(), $request->request->get('_token'))) {
+        $token = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('revoke' . $campagne->getId(), is_string($token) ? $token : null)) {
             throw $this->createAccessDeniedException('Token CSRF invalide');
         }
 

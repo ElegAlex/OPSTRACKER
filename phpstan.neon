@@ -8,6 +8,7 @@ parameters:
         - src
     excludePaths:
         - src/DataFixtures
+        - src/Service/Sms/OvhSmsProvider.php
     symfony:
         containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
     doctrine:

@@ -28,6 +28,8 @@ class CreneauService
 
     /**
      * RG-130 : Cree un creneau manuellement
+     *
+     * @param array<string, mixed> $data
      */
     public function creer(Campagne $campagne, array $data): Creneau
     {
@@ -49,6 +51,8 @@ class CreneauService
 
     /**
      * RG-130 : Genere automatiquement une plage de creneaux
+     *
+     * @param array<array{debut: string, fin: string}> $heuresParJour
      *
      * @return Creneau[]
      */
@@ -87,6 +91,10 @@ class CreneauService
                 $heureDebut = \DateTime::createFromFormat('H:i', $plage['debut']);
                 $heureFin = \DateTime::createFromFormat('H:i', $plage['fin']);
 
+                if ($heureDebut === false || $heureFin === false) {
+                    continue;
+                }
+
                 while ($heureDebut < $heureFin) {
                     $slotFin = clone $heureDebut;
                     $slotFin->modify("+{$dureeMinutes} minutes");
@@ -121,6 +129,8 @@ class CreneauService
 
     /**
      * RG-133 : Modifie un creneau (notification agents si reservations)
+     *
+     * @param array<string, mixed> $data
      */
     public function modifier(Creneau $creneau, array $data): Creneau
     {
@@ -215,6 +225,8 @@ class CreneauService
 
     /**
      * Retourne les statistiques de remplissage pour une campagne
+     *
+     * @return array<string, mixed>
      */
     public function getStatistiquesRemplissage(Campagne $campagne): array
     {

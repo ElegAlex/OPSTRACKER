@@ -8,7 +8,6 @@ use App\Entity\Operation;
 use App\Entity\TypeOperation;
 use App\Entity\Utilisateur;
 use App\Repository\CampagneRepository;
-use App\Repository\OperationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\Workflow\WorkflowInterface;
@@ -26,7 +25,6 @@ class CampagneService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly CampagneRepository $campagneRepository,
-        private readonly OperationRepository $operationRepository,
         #[Target('campagne')]
         private readonly WorkflowInterface $campagneWorkflow,
     ) {
@@ -48,7 +46,7 @@ class CampagneService
                 'campagnes' => $campagnes,
                 'count' => count($campagnes),
                 'label' => $label,
-                'couleur' => Campagne::STATUTS_COULEURS[$statut] ?? 'muted',
+                'couleur' => Campagne::STATUTS_COULEURS[$statut],
             ];
         }
 
@@ -71,7 +69,7 @@ class CampagneService
                 'campagnes' => $campagnes,
                 'count' => count($campagnes),
                 'label' => $label,
-                'couleur' => Campagne::STATUTS_COULEURS[$statut] ?? 'muted',
+                'couleur' => Campagne::STATUTS_COULEURS[$statut],
             ];
         }
 
@@ -135,6 +133,8 @@ class CampagneService
 
     /**
      * Recupere les transitions disponibles pour une campagne.
+     *
+     * @return array<int, string>
      */
     public function getTransitionsDisponibles(Campagne $campagne): array
     {
@@ -257,7 +257,7 @@ class CampagneService
      * Retourne les donnees pour le graphique d'evolution (format Chart.js).
      * Affiche le cumul des realisations sur les 14 derniers jours.
      *
-     * @return array{labels: string[], datasets: array[]}
+     * @return array{labels: string[], datasets: array<int, array<string, mixed>>}
      */
     public function getEvolutionTemporelle(Campagne $campagne): array
     {
@@ -281,9 +281,28 @@ class CampagneService
         $dateFin = $campagne->getDateFin();
         $aujourd_hui = new \DateTimeImmutable();
 
+        if ($dateDebut === null || $dateFin === null) {
+            return [
+                'labels' => [],
+                'datasets' => [
+                    [
+                        'label' => 'Operations realisees',
+                        'data' => [],
+                        'borderColor' => '#059669',
+                        'backgroundColor' => 'rgba(5, 150, 105, 0.1)',
+                        'fill' => true,
+                        'tension' => 0.3,
+                        'pointRadius' => 3,
+                        'pointBackgroundColor' => '#059669',
+                    ],
+                ],
+            ];
+        }
+
         // Limiter a la periode de la campagne, max 14 jours
-        $debut = max($dateDebut, $aujourd_hui->modify('-13 days'));
-        $fin = min($dateFin, $aujourd_hui);
+        $debutPeriode = $aujourd_hui->modify('-13 days');
+        $debut = $dateDebut > $debutPeriode ? $dateDebut : $debutPeriode;
+        $fin = $dateFin < $aujourd_hui ? $dateFin : $aujourd_hui;
 
         $periode = new \DatePeriod($debut, new \DateInterval('P1D'), $fin->modify('+1 day'));
 
@@ -314,7 +333,7 @@ class CampagneService
     /**
      * Retourne les donnees pour le graphique de repartition par statut (format Chart.js).
      *
-     * @return array{labels: string[], datasets: array[]}
+     * @return array{labels: string[], datasets: array<int, array<string, mixed>>}
      */
     public function getRepartitionStatuts(Campagne $campagne): array
     {
@@ -349,7 +368,7 @@ class CampagneService
         ];
 
         foreach ($parStatut as $statut => $count) {
-            if ($count > 0 && isset($statutConfig[$statut])) {
+            if ($count > 0 && array_key_exists($statut, $statutConfig)) {
                 $labels[] = $statutConfig[$statut]['label'];
                 $data[] = $count;
                 $colors[] = $statutConfig[$statut]['color'];

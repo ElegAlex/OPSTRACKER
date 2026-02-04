@@ -24,6 +24,9 @@ class CampagneSegmentSubscriber implements EventSubscriberInterface
         ];
     }
 
+    /**
+     * @param AfterEntityUpdatedEvent<object> $event
+     */
     public function onAfterEntityUpdated(AfterEntityUpdatedEvent $event): void
     {
         $entity = $event->getEntityInstance();

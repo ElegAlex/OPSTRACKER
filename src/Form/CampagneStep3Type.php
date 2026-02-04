@@ -12,6 +12,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
  *
  * RG-015 : TOUTES les colonnes CSV deviennent des CampagneChamp
  * Plus de mapping manuel - import automatique
+ *
+ * @extends AbstractType<null>
  */
 class CampagneStep3Type extends AbstractType
 {

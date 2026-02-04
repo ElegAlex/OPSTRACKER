@@ -56,13 +56,22 @@ class CampagneChampService
         // Translitteration des accents (ex: e -> e, c -> c)
         if (function_exists('transliterator_transliterate')) {
             $normalized = transliterator_transliterate('Any-Latin; Latin-ASCII', $champNom);
+            if ($normalized === false) {
+                $normalized = $champNom;
+            }
         } else {
             // Fallback si intl n'est pas disponible
             $normalized = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $champNom);
+            if ($normalized === false) {
+                $normalized = $champNom;
+            }
         }
 
         // Remplacer tous les caracteres non-alphanumeriques par underscore
         $normalized = preg_replace('/[^a-zA-Z0-9_]/', '_', $normalized);
+        if ($normalized === null) {
+            $normalized = $champNom;
+        }
 
         return 'champ_' . $normalized;
     }

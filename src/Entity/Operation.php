@@ -596,6 +596,9 @@ class Operation
         return $this->reserveParInfos;
     }
 
+    /**
+     * @param array<string, string>|null $reserveParInfos
+     */
     public function setReserveParInfos(?array $reserveParInfos): static
     {
         $this->reserveParInfos = $reserveParInfos;

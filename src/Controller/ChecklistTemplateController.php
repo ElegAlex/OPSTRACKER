@@ -75,7 +75,7 @@ class ChecklistTemplateController extends AbstractController
             $phasesData = $request->request->all('phases');
 
             // Validation
-            if (empty($nom)) {
+            if (!is_string($nom) || $nom === '') {
                 $this->addFlash('danger', 'Le nom du template est obligatoire.');
                 return $this->redirectToRoute('app_template_edit', ['id' => $template->getId()]);
             }
@@ -87,7 +87,7 @@ class ChecklistTemplateController extends AbstractController
 
             // Mettre a jour les donnees
             $template->setNom($nom);
-            $template->setDescription($description);
+            $template->setDescription(is_string($description) ? $description : null);
 
             // Reconstruire la structure des phases
             $etapes = ['phases' => []];
@@ -154,14 +154,14 @@ class ChecklistTemplateController extends AbstractController
             $nom = $request->request->get('nom');
             $description = $request->request->get('description');
 
-            if (empty($nom)) {
+            if (!is_string($nom) || $nom === '') {
                 $this->addFlash('danger', 'Le nom du template est obligatoire.');
                 return $this->redirectToRoute('app_template_new');
             }
 
             $template = new ChecklistTemplate();
             $template->setNom($nom);
-            $template->setDescription($description);
+            $template->setDescription(is_string($description) ? $description : null);
             $template->setVersion(1);
             $template->setActif(true);
 
@@ -195,7 +195,8 @@ class ChecklistTemplateController extends AbstractController
     #[Route('/{id}/toggle', name: 'app_template_toggle', methods: ['POST'])]
     public function toggle(ChecklistTemplate $template, Request $request): Response
     {
-        if (!$this->isCsrfTokenValid('template_toggle_' . $template->getId(), $request->request->get('_token'))) {
+        $token = $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('template_toggle_' . $template->getId(), is_string($token) ? $token : null)) {
             $this->addFlash('danger', 'Token CSRF invalide.');
             return $this->redirectToRoute('app_template_index');
         }

@@ -248,6 +248,10 @@ class UtilisateurCrudController extends AbstractCrudController
     public function toggleActif(): Response
     {
         $context = $this->getContext();
+        if ($context === null) {
+            throw $this->createNotFoundException('Contexte admin non disponible');
+        }
+
         $entityId = $context->getRequest()->query->get('entityId');
 
         $entityManager = $this->container->get('doctrine')->getManager();
@@ -261,7 +265,8 @@ class UtilisateurCrudController extends AbstractCrudController
         $currentUser = $this->security->getUser();
         if ($currentUser instanceof Utilisateur && $currentUser->getId() === $utilisateur->getId()) {
             $this->addFlash('danger', 'Vous ne pouvez pas vous desactiver vous-meme.');
-            return $this->redirect($context->getReferrer());
+            $referrer = $context->getReferrer();
+            return $this->redirect($referrer ?? $this->generateUrl('admin'));
         }
 
         // RG-005 : Conservation historique - on desactive seulement, pas de suppression
@@ -270,7 +275,9 @@ class UtilisateurCrudController extends AbstractCrudController
         $status = $utilisateur->isActif() ? 'active' : 'desactive';
         $this->addFlash('success', sprintf('Utilisateur %s %s avec succes.', $utilisateur->getNomComplet(), $status));
 
-        return $this->redirect($context->getReferrer());
+        $referrer = $context->getReferrer();
+
+        return $this->redirect($referrer ?? $this->generateUrl('admin'));
     }
 
     /**
@@ -279,6 +286,10 @@ class UtilisateurCrudController extends AbstractCrudController
     public function unlock(): Response
     {
         $context = $this->getContext();
+        if ($context === null) {
+            throw $this->createNotFoundException('Contexte admin non disponible');
+        }
+
         $entityId = $context->getRequest()->query->get('entityId');
 
         $entityManager = $this->container->get('doctrine')->getManager();
@@ -291,7 +302,9 @@ class UtilisateurCrudController extends AbstractCrudController
         $this->utilisateurService->unlock($utilisateur);
         $this->addFlash('success', sprintf('Compte de %s deverrouille avec succes.', $utilisateur->getNomComplet()));
 
-        return $this->redirect($context->getReferrer());
+        $referrer = $context->getReferrer();
+
+        return $this->redirect($referrer ?? $this->generateUrl('admin'));
     }
 
     /**
@@ -300,6 +313,10 @@ class UtilisateurCrudController extends AbstractCrudController
     public function viewStats(): Response
     {
         $context = $this->getContext();
+        if ($context === null) {
+            throw $this->createNotFoundException('Contexte admin non disponible');
+        }
+
         $entityId = $context->getRequest()->query->get('entityId');
 
         $entityManager = $this->container->get('doctrine')->getManager();
