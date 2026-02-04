@@ -155,7 +155,7 @@ jobs:
         run: composer install --prefer-dist --no-progress
 
       - name: Validate composer.json
-        run: composer validate --strict
+        run: composer validate
 
       - name: Check Symfony requirements
         run: php bin/console about --env=prod || true

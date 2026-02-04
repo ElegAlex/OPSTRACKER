@@ -115,6 +115,8 @@ class Campagne
      * Structure de la checklist propre a cette campagne (JSON)
      * Architecture retroactive : les modifications impactent toutes les operations immediatement
      * Structure: {phases: [{id, nom, ordre, verrouillable, etapes: [{id, titre, description, ordre, obligatoire, documentId, actif, disabledAt}]}], sourceTemplateId, sourceTemplateVersion}
+     *
+     * @var array<string, mixed>|null
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $checklistStructure = null;
@@ -122,6 +124,8 @@ class Campagne
     /**
      * Mapping etapes checklist -> CampagneChamp pour saisie terrain
      * Format: { "etape-uuid-1": "NumeroInventaire", "etape-uuid-2": "Bureau" }
+     *
+     * @var array<string, string>|null
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $checklistMapping = null;
@@ -222,6 +226,8 @@ class Campagne
     /**
      * Filtres pour le mode annuaire (JSON).
      * Format: { "services": ["RH", "Compta"], "sites": ["Siege"], "roles": ["manager"], "typesContrat": ["CDI"] }
+     *
+     * @var array<string, array<string>>|null
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $reservationFiltresAnnuaire = null;
@@ -467,13 +473,18 @@ class Campagne
     }
 
     /**
-     * Structure de la checklist propre a cette campagne
+     * Structure de la checklist propre a cette campagne.
+     *
+     * @return array<string, mixed>|null
      */
     public function getChecklistStructure(): ?array
     {
         return $this->checklistStructure;
     }
 
+    /**
+     * @param array<string, mixed>|null $checklistStructure
+     */
     public function setChecklistStructure(?array $checklistStructure): static
     {
         $this->checklistStructure = $checklistStructure;
@@ -492,13 +503,18 @@ class Campagne
     }
 
     /**
-     * Mapping etapes -> CampagneChamp pour saisie terrain
+     * Mapping etapes -> CampagneChamp pour saisie terrain.
+     *
+     * @return array<string, string>|null
      */
     public function getChecklistMapping(): ?array
     {
         return $this->checklistMapping;
     }
 
+    /**
+     * @param array<string, string>|null $checklistMapping
+     */
     public function setChecklistMapping(?array $checklistMapping): static
     {
         $this->checklistMapping = $checklistMapping;
@@ -536,7 +552,7 @@ class Campagne
      * Retourne les phases avec uniquement les etapes actives
      * Utilise pour l'affichage et le calcul de progression
      *
-     * @return array<int, array{id: string, nom: string, ordre: int, verrouillable: bool, etapes: array}>
+     * @return array<int, array{id: string, nom: string, ordre: int, verrouillable: bool, etapes: array<int, array<string, mixed>>}>
      */
     public function getPhasesActives(): array
     {
@@ -971,13 +987,18 @@ class Campagne
     }
 
     /**
-     * Filtres pour le mode annuaire
+     * Filtres pour le mode annuaire.
+     *
+     * @return array<string, array<string>>|null
      */
     public function getReservationFiltresAnnuaire(): ?array
     {
         return $this->reservationFiltresAnnuaire;
     }
 
+    /**
+     * @param array<string, array<string>>|null $filtres
+     */
     public function setReservationFiltresAnnuaire(?array $filtres): static
     {
         $this->reservationFiltresAnnuaire = $filtres;

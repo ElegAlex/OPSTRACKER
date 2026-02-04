@@ -578,46 +578,6 @@ class TerrainController extends AbstractController
     }
 
     /**
-     * Calcule les statistiques du jour pour le technicien.
-     *
-     * @param Operation[] $operations
-     * @return array{total: int, realise: int, planifie: int, reporte: int, en_cours: int}
-     */
-    private function calculateDayStats(array $operations): array
-    {
-        $stats = [
-            'total' => count($operations),
-            'realise' => 0,
-            'planifie' => 0,
-            'reporte' => 0,
-            'en_cours' => 0,
-            'a_remedier' => 0,
-        ];
-
-        foreach ($operations as $operation) {
-            switch ($operation->getStatut()) {
-                case Operation::STATUT_REALISE:
-                    $stats['realise']++;
-                    break;
-                case Operation::STATUT_PLANIFIE:
-                    $stats['planifie']++;
-                    break;
-                case Operation::STATUT_REPORTE:
-                    $stats['reporte']++;
-                    break;
-                case Operation::STATUT_EN_COURS:
-                    $stats['en_cours']++;
-                    break;
-                case Operation::STATUT_A_REMEDIER:
-                    $stats['a_remedier']++;
-                    break;
-            }
-        }
-
-        return $stats;
-    }
-
-    /**
      * Recupere le champCible d'une etape depuis le mapping de la campagne.
      */
     private function getChampCibleForEtape(Operation $operation, string $etapeId): ?string
