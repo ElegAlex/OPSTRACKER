@@ -3,7 +3,17 @@
 [![CI](https://github.com/ElegAlex/OPSTRACKER/actions/workflows/ci.yml/badge.svg)](https://github.com/ElegAlex/OPSTRACKER/actions/workflows/ci.yml)
 [![Docker](https://github.com/ElegAlex/OPSTRACKER/actions/workflows/docker-build.yml/badge.svg)](https://github.com/ElegAlex/OPSTRACKER/actions/workflows/docker-build.yml)
 
-Application de suivi des operations IT pour les organisations - Pilotage des campagnes de migration et deploiement en temps reel.
+> Gestion d'operations IT pour les organisations - Pilotage des campagnes de migration et deploiement en temps reel.
+
+## Installation rapide (Linux - 1 commande)
+
+```bash
+curl -sL https://raw.githubusercontent.com/ElegAlex/OPSTRACKER/main/scripts/quick-install.sh | bash
+```
+
+Installe automatiquement Docker, configure tout, et demarre l'application.
+
+**Autres OS / Installation manuelle** : Voir ci-dessous ou [documentation complete](docs/DOCKER.md)
 
 ## Quick Start (Docker)
 
