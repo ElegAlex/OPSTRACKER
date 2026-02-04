@@ -230,26 +230,31 @@
                         </td>
                         {% endif %}
 
-                        {# Statut avec select inline - modale pour report #}
+                        {# Statut avec select inline - modale partagee pour report #}
                         <td class="px-4 py-3">
-                            <div>
-                                <form action="{{ path('app_operation_update_statut', {campagne: campagne.id, id: operation.id}) }}"
-                                      method="post"
-                                      class="inline-block">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('operation_statut_' ~ operation.id) }}">
-                                    <select name="statut"
-                                            data-previous="{{ operation.statut }}"
-                                            onchange="handleStatutChange(this, {{ operation.id }})"
-                                            class="select-inline text-xs px-2 py-1 border border-ink/10 focus:border-ink bg-{{ operation.statutCouleur }}/10 text-{{ operation.statutCouleur }} font-bold uppercase tracking-wider min-w-[120px]">
-                                        {% for statut, label in constant('App\\Entity\\Operation::STATUTS') %}
-                                        <option value="{{ statut }}" {{ operation.statut == statut ? 'selected' : '' }}>{{ label }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </form>
-
-                                {# Modale de report inline #}
-                                {% include 'operation/_modal_reporter_inline.html.twig' with {operation: operation, campagne: campagne} %}
-                            </div>
+                            <form id="form-statut-{{ operation.id }}"
+                                  action="{{ path('app_operation_update_statut', {campagne: campagne.id, id: operation.id}) }}"
+                                  method="post"
+                                  class="inline-block">
+                                <input type="hidden" name="_token" value="{{ csrf_token('operation_statut_' ~ operation.id) }}">
+                                <select name="statut"
+                                        data-previous="{{ operation.statut }}"
+                                        data-operation-id="{{ operation.id }}"
+                                        data-operation-nom="{{ operation.displayName|default(operation.displayIdentifier)|default('') }}"
+                                        data-operation-date="{{ operation.datePlanifiee ? operation.datePlanifiee|date('Y-m-d') : '' }}"
+                                        data-operation-heure="{{ operation.datePlanifiee ? operation.datePlanifiee|date('H:i') : '09:00' }}"
+                                        data-operation-date-initiale="{{ operation.datePlanifieeInitiale ? operation.datePlanifieeInitiale|format_datetime('medium', 'short', locale='fr') : '' }}"
+                                        data-operation-nb-reports="{{ operation.nombreReports|default(0) }}"
+                                        data-operation-motif="{{ operation.motifReport|default('') }}"
+                                        data-reporter-url="{{ path('app_operation_transition', {campagne: campagne.id, id: operation.id, transition: 'reporter'}) }}"
+                                        data-csrf-token="{{ csrf_token('operation_transition_' ~ operation.id) }}"
+                                        onchange="handleStatutChange(this)"
+                                        class="select-inline text-xs px-2 py-1 border border-ink/10 focus:border-ink bg-{{ operation.statutCouleur }}/10 text-{{ operation.statutCouleur }} font-bold uppercase tracking-wider min-w-[120px]">
+                                    {% for statut, label in constant('App\\Entity\\Operation::STATUTS') %}
+                                    <option value="{{ statut }}" {{ operation.statut == statut ? 'selected' : '' }}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
                         </td>
 
                         {# Checklist progression #}
@@ -389,6 +394,84 @@
 
     </div>
 </div>
+
+{# ============================================= #}
+{# MODALE UNIQUE DE REPORT (partagee)            #}
+{# ============================================= #}
+<div id="modal-reporter-shared"
+     class="hidden fixed inset-0 bg-ink/50 z-50 items-center justify-center p-4"
+     onclick="if(event.target === this) closeReporterModal()">
+    <div class="bg-white border-2 border-ink w-full max-w-md" onclick="event.stopPropagation()">
+
+        {# Header #}
+        <div class="px-6 py-4 border-b-2 border-ink/10">
+            <h3 class="text-lg font-bold text-ink flex items-center gap-2">
+                <i data-feather="pause-circle" class="w-5 h-5 text-warning"></i>
+                Reporter : <span id="modal-reporter-nom" class="ml-1"></span>
+            </h3>
+        </div>
+
+        {# Body #}
+        <form id="modal-reporter-form" method="POST" class="p-6">
+            <input type="hidden" name="_token" id="modal-reporter-token" value="">
+
+            {# Info RDV actuel #}
+            <div id="modal-reporter-info-rdv" class="mb-4 p-3 bg-primary/10 border border-primary/20 hidden">
+                <p class="text-sm text-ink">
+                    <strong>RDV actuel :</strong> <span id="modal-reporter-date-actuelle"></span>
+                </p>
+                <p id="modal-reporter-historique" class="text-xs text-muted mt-1 hidden"></p>
+            </div>
+
+            {# Motif #}
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-ink mb-2">
+                    Motif du report <span class="text-muted text-xs">(optionnel)</span>
+                </label>
+                <textarea name="motif"
+                          id="modal-reporter-motif"
+                          rows="2"
+                          class="w-full px-3 py-2 border-2 border-ink/20 focus:border-warning outline-none text-sm"
+                          placeholder="Agent absent, materiel indisponible..."></textarea>
+            </div>
+
+            {# Nouvelle date #}
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-ink mb-2">
+                    Nouveau creneau <span class="text-muted text-xs">(optionnel)</span>
+                </label>
+                <p class="text-xs text-muted mb-2">
+                    Si non renseigne, l'operation passera en "A replanifier".
+                </p>
+                <div class="flex gap-2">
+                    <input type="date"
+                           name="nouvelle_date"
+                           id="modal-reporter-nouvelle-date"
+                           min="{{ 'now'|date('Y-m-d') }}"
+                           class="flex-1 px-3 py-2 border-2 border-ink/20 focus:border-warning outline-none text-sm">
+                    <input type="time"
+                           name="nouvelle_heure"
+                           id="modal-reporter-nouvelle-heure"
+                           value="09:00"
+                           class="w-28 px-3 py-2 border-2 border-ink/20 focus:border-warning outline-none text-sm">
+                </div>
+            </div>
+
+            {# Boutons #}
+            <div class="flex gap-3 pt-4 border-t border-ink/10">
+                <button type="button"
+                        onclick="closeReporterModal()"
+                        class="flex-1 px-4 py-2 text-sm font-medium text-muted border-2 border-ink/10 hover:border-ink hover:text-ink transition-colors">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="flex-1 px-4 py-2 text-sm font-semibold text-white bg-warning hover:bg-warning/90 transition-colors">
+                    Confirmer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block javascripts %}
@@ -438,11 +521,11 @@ function initModals() {
     });
 }
 
-// === STATUT REPORT MODAL ===
+// === STATUT REPORT MODAL (modale partagee) ===
 /**
- * Gere le changement de statut avec modale pour les reports
+ * Gere le changement de statut avec modale partagee pour les reports
  */
-function handleStatutChange(select, operationId) {
+function handleStatutChange(select) {
     const newValue = select.value;
     const previousValue = select.dataset.previous;
 
@@ -451,15 +534,8 @@ function handleStatutChange(select, operationId) {
         // Annuler le changement dans le select
         select.value = previousValue;
 
-        // Ouvrir la modale
-        const modal = document.getElementById('modal-reporter-' + operationId);
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            // Focus sur le textarea
-            const textarea = modal.querySelector('textarea');
-            if (textarea) textarea.focus();
-        }
+        // Ouvrir la modale partagee
+        openReporterModal(select);
     } else {
         // Changement normal - soumettre le formulaire
         select.dataset.previous = newValue;
@@ -468,15 +544,85 @@ function handleStatutChange(select, operationId) {
 }
 
 /**
- * Ferme une modale de report
+ * Ouvre la modale partagee et la remplit avec les donnees de l'operation
  */
-function closeReporterModal(operationId) {
-    const modal = document.getElementById('modal-reporter-' + operationId);
+function openReporterModal(select) {
+    const modal = document.getElementById('modal-reporter-shared');
+    const form = document.getElementById('modal-reporter-form');
+
+    // Recuperer les donnees depuis les data-attributes
+    const operationId = select.dataset.operationId;
+    const nom = select.dataset.operationNom;
+    const dateActuelle = select.dataset.operationDate;
+    const heureActuelle = select.dataset.operationHeure;
+    const dateInitiale = select.dataset.operationDateInitiale;
+    const nbReports = parseInt(select.dataset.operationNbReports) || 0;
+    const motif = select.dataset.operationMotif;
+    const reporterUrl = select.dataset.reporterUrl;
+    const csrfToken = select.dataset.csrfToken;
+
+    // Remplir le formulaire
+    form.action = reporterUrl;
+    document.getElementById('modal-reporter-token').value = csrfToken;
+
+    // Remplir les infos
+    document.getElementById('modal-reporter-nom').textContent = nom || '#' + operationId;
+    document.getElementById('modal-reporter-motif').value = motif || '';
+    document.getElementById('modal-reporter-nouvelle-date').value = '';
+    document.getElementById('modal-reporter-nouvelle-heure').value = heureActuelle || '09:00';
+
+    // Afficher info RDV actuel si existe
+    const infoRdv = document.getElementById('modal-reporter-info-rdv');
+    const dateActuelleSpan = document.getElementById('modal-reporter-date-actuelle');
+    const historique = document.getElementById('modal-reporter-historique');
+
+    if (dateActuelle) {
+        infoRdv.classList.remove('hidden');
+        // Formater la date pour affichage
+        const dateObj = new Date(dateActuelle + 'T' + (heureActuelle || '09:00'));
+        dateActuelleSpan.textContent = dateObj.toLocaleDateString('fr-FR', {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+
+        // Historique des reports
+        if (nbReports > 0 && dateInitiale) {
+            historique.classList.remove('hidden');
+            historique.textContent = 'Date initiale : ' + dateInitiale + ' — ' + nbReports + ' report' + (nbReports > 1 ? 's' : '');
+        } else {
+            historique.classList.add('hidden');
+        }
+    } else {
+        infoRdv.classList.add('hidden');
+    }
+
+    // Afficher la modale
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    // Focus sur le champ motif
+    setTimeout(function() {
+        document.getElementById('modal-reporter-motif').focus();
+    }, 100);
+}
+
+/**
+ * Ferme la modale partagee
+ */
+function closeReporterModal() {
+    const modal = document.getElementById('modal-reporter-shared');
     if (modal) {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
 }
+
+// Fermer avec Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeReporterModal();
+    }
+});
 
 // === INIT ===
 function initAllInteractions() {
