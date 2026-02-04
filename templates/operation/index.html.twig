@@ -534,9 +534,9 @@ function handleStatutChange(select) {
         return;
     }
 
-    // Si on CHANGE vers reporte (depuis un autre statut), ouvrir la modale
-    // Note: reporter n'est possible que depuis 'planifie' ou 'en_cours'
-    if (newValue === 'reporte' && (previousValue === 'planifie' || previousValue === 'en_cours')) {
+    // Si on selectionne "reporte", TOUJOURS ouvrir la modale
+    // Le backend validera si la transition est possible
+    if (newValue === 'reporte') {
         // Annuler le changement dans le select
         select.value = previousValue;
 
