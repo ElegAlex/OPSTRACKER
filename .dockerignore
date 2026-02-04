@@ -31,7 +31,7 @@ var/sessions/*
 
 # Docker (eviter recursion)
 docker-compose.override.yml
-Dockerfile
+# Note: NE PAS ignorer docker/php/Dockerfile car il est reference par docker-compose
 
 # Tests
 tests/

@@ -5,41 +5,53 @@ FROM php:8.3-fpm-alpine AS base
 # Métadonnées
 LABEL maintainer="CPAM 92 - DSI"
 LABEL description="OpsTracker - Gestion d'opérations IT"
-LABEL version="2.1"
+LABEL version="2.2"
 
 # Variables d'environnement
 ENV APP_ENV=prod
 ENV APP_DEBUG=0
 ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV COMPOSER_MEMORY_LIMIT=-1
 
 # Dépendances système
 RUN apk add --no-cache \
     # PostgreSQL
     postgresql-dev \
     postgresql-client \
-    # Intl
+    # Intl (requiert icu complet)
     icu-dev \
     icu-libs \
+    icu-data-full \
     # ZIP
     libzip-dev \
     zip \
     unzip \
-    # Build tools
-    $PHPIZE_DEPS \
+    # XML (requis par Symfony)
+    libxml2-dev \
     # Git (pour Composer)
     git \
     # Supervisor (optionnel pour workers)
     supervisor \
     # fcgi pour healthcheck
-    fcgi
+    fcgi \
+    # Build tools (temporaire)
+    $PHPIZE_DEPS \
+    linux-headers
 
-# Extensions PHP
+# Extensions PHP (incluant ctype et iconv requis par composer.json)
 RUN docker-php-ext-configure intl \
     && docker-php-ext-install -j$(nproc) \
+        pdo \
         pdo_pgsql \
         intl \
         opcache \
-        zip
+        zip \
+        xml \
+        ctype \
+        iconv \
+        session \
+        simplexml \
+        tokenizer
 
 # Redis extension
 RUN pecl install redis-6.0.2 \
@@ -49,9 +61,9 @@ RUN pecl install redis-6.0.2 \
 RUN pecl install apcu \
     && docker-php-ext-enable apcu
 
-# Nettoyage
-RUN apk del $PHPIZE_DEPS \
-    && rm -rf /var/cache/apk/* /tmp/*
+# Nettoyage pour réduire taille image
+RUN apk del $PHPIZE_DEPS linux-headers \
+    && rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
 # Configuration PHP
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/app.ini
@@ -73,7 +85,8 @@ WORKDIR /var/www/html
 FROM base AS builder
 
 # Copier composer.json d'abord (cache layer)
-COPY composer.json composer.lock symfony.lock ./
+COPY composer.json composer.lock ./
+COPY symfony.lock* ./
 
 # Installer dépendances PHP (sans scripts, sans dev)
 RUN composer install \
@@ -81,13 +94,14 @@ RUN composer install \
     --no-scripts \
     --no-autoloader \
     --prefer-dist \
-    --no-progress
+    --no-progress \
+    --no-interaction
 
 # Copier le reste du code
 COPY . .
 
 # Générer autoloader optimisé
-RUN composer dump-autoload --optimize --classmap-authoritative
+RUN composer dump-autoload --optimize --classmap-authoritative --no-dev
 
 # ============================================
 # STAGE PRODUCTION
