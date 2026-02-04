@@ -43,6 +43,8 @@ class ChecklistInstance
     /**
      * @deprecated Utiliser Campagne.checklistStructure a la place
      * Conserve pour retrocompatibilite pendant la migration
+     *
+     * @var array<string, mixed>|null
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $snapshot = null;
@@ -50,6 +52,8 @@ class ChecklistInstance
     /**
      * @deprecated Utiliser etapesCochees a la place
      * Conserve pour retrocompatibilite pendant la migration
+     *
+     * @var array<string, mixed>
      */
     #[ORM\Column(type: Types::JSON)]
     private array $progression = [];
@@ -65,6 +69,8 @@ class ChecklistInstance
      *   }
      * }
      * Note: Si l'etape est decochee, elle est supprimee de ce tableau
+     *
+     * @var array<string, array{dateCoche: string, utilisateurId: int}>
      */
     #[ORM\Column(type: Types::JSON)]
     private array $etapesCochees = [];
@@ -110,6 +116,8 @@ class ChecklistInstance
 
     /**
      * @deprecated Utiliser Campagne.checklistStructure a la place
+     *
+     * @return array<string, mixed>|null
      */
     public function getSnapshot(): ?array
     {
@@ -118,6 +126,8 @@ class ChecklistInstance
 
     /**
      * @deprecated Utiliser Campagne.checklistStructure a la place
+     *
+     * @param array<string, mixed>|null $snapshot
      */
     public function setSnapshot(?array $snapshot): static
     {
@@ -140,7 +150,8 @@ class ChecklistInstance
 
     /**
      * @deprecated Utiliser Campagne.checklistStructure a la place
-     * @return array<array>
+     *
+     * @return array<int, array<string, mixed>>
      */
     public function getPhases(): array
     {
@@ -149,6 +160,8 @@ class ChecklistInstance
 
     /**
      * @deprecated Utiliser getEtapesCochees() a la place
+     *
+     * @return array<string, mixed>
      */
     public function getProgression(): array
     {
@@ -157,6 +170,8 @@ class ChecklistInstance
 
     /**
      * @deprecated Utiliser setEtapesCochees() a la place
+     *
+     * @param array<string, mixed> $progression
      */
     public function setProgression(array $progression): static
     {
@@ -166,7 +181,9 @@ class ChecklistInstance
     }
 
     /**
-     * Retourne les etapes cochees avec leurs metadonnees
+     * Retourne les etapes cochees avec leurs metadonnees.
+     *
+     * @return array<string, array{dateCoche: string, utilisateurId: int}>
      */
     public function getEtapesCochees(): array
     {
@@ -174,7 +191,7 @@ class ChecklistInstance
     }
 
     /**
-     * Retourne uniquement les IDs des etapes cochees
+     * Retourne uniquement les IDs des etapes cochees.
      *
      * @return string[]
      */
@@ -183,6 +200,9 @@ class ChecklistInstance
         return array_keys($this->etapesCochees);
     }
 
+    /**
+     * @param array<string, array{dateCoche: string, utilisateurId: int}> $etapesCochees
+     */
     public function setEtapesCochees(array $etapesCochees): static
     {
         $this->etapesCochees = $etapesCochees;
