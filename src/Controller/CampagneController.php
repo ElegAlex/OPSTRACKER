@@ -56,6 +56,7 @@ class CampagneController extends AbstractController
         private readonly PersonnesAutoriseesService $personnesAutoriseesService,
         private readonly \App\Service\SegmentSyncService $segmentSyncService,
         private readonly DureeInterventionService $dureeService,
+        private readonly ChecklistService $checklistService,
     ) {
     }
 
@@ -410,6 +411,14 @@ class CampagneController extends AbstractController
             $newCapacite = $campagne->getCapaciteParDefaut();
             foreach ($campagne->getOperations() as $operation) {
                 $operation->setCapacite($newCapacite);
+            }
+
+            // RG-030 : Copier la structure du template checklist si sélectionné
+            if ($campagne->getChecklistTemplate() && !$campagne->hasChecklistStructure()) {
+                $this->checklistService->copierTemplateVersCampagne(
+                    $campagne,
+                    $campagne->getChecklistTemplate()
+                );
             }
 
             $this->entityManager->flush();
