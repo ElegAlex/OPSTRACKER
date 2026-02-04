@@ -1,8 +1,38 @@
 # OpsTracker
 
+[![CI](https://github.com/ElegAlex/OPSTRACKER/actions/workflows/ci.yml/badge.svg)](https://github.com/ElegAlex/OPSTRACKER/actions/workflows/ci.yml)
+[![Docker](https://github.com/ElegAlex/OPSTRACKER/actions/workflows/docker-build.yml/badge.svg)](https://github.com/ElegAlex/OPSTRACKER/actions/workflows/docker-build.yml)
+
 Application de suivi des operations IT pour les organisations - Pilotage des campagnes de migration et deploiement en temps reel.
 
-**Version:** 0.1.0-mvp
+## Quick Start (Docker)
+
+```bash
+# 1. Cloner
+git clone https://github.com/ElegAlex/OPSTRACKER.git
+cd OPSTRACKER
+
+# 2. Configurer
+cp .env.docker .env.local
+# Editer .env.local (APP_SECRET, DB_PASSWORD)
+
+# 3. Lancer
+make install
+
+# 4. Acceder : http://localhost
+```
+
+Documentation complete: [docs/DOCKER.md](docs/DOCKER.md)
+
+## Images Docker
+
+```bash
+# Derniere version stable
+docker pull ghcr.io/elegalex/opstracker:latest
+
+# Version specifique
+docker pull ghcr.io/elegalex/opstracker:v2.1.0
+```
 
 ## Fonctionnalites
 
@@ -13,28 +43,24 @@ Application de suivi des operations IT pour les organisations - Pilotage des cam
 
 ## Prerequis
 
-- Docker et Docker Compose
+- Docker 24.0+ et Docker Compose 2.20+
 - Git
+- Make (optionnel mais recommande)
 
 ## Installation rapide
 
 ```bash
-# Cloner le projet
-git clone <repository-url>
-cd opstracker
+# Avec Makefile (recommande)
+make install
 
-# Lancer les conteneurs
+# Ou manuellement
 docker compose up -d
-
-# Installer les dependances PHP
-docker compose exec php composer install
-
-# Creer la base de donnees et executer les migrations
-docker compose exec php php bin/console doctrine:database:create --if-not-exists
-docker compose exec php php bin/console doctrine:migrations:migrate --no-interaction
+docker compose exec app composer install
+docker compose exec app php bin/console doctrine:migrations:migrate --no-interaction
 
 # (Optionnel) Charger les donnees de demo
-docker compose exec php php bin/console doctrine:fixtures:load --no-interaction
+make db-fixtures
+# ou: docker compose exec app php bin/console doctrine:fixtures:load --no-interaction
 ```
 
 ## Acces a l'application
@@ -85,26 +111,23 @@ opstracker/
 ## Commandes utiles
 
 ```bash
-# Demarrer l'environnement
+# Avec Makefile
+make start          # Demarrer
+make stop           # Arreter
+make logs           # Voir les logs
+make test           # Executer les tests
+make cache-clear    # Vider le cache
+make shell          # Acceder au shell PHP
+make db-migrate     # Migrations
+make db-backup      # Sauvegarder la BDD
+make deploy         # Mise a jour production
+make help           # Voir toutes les commandes
+
+# Sans Makefile
 docker compose up -d
-
-# Arreter l'environnement
 docker compose down
-
-# Voir les logs
 docker compose logs -f
-
-# Executer les tests
-docker compose exec php php bin/phpunit
-
-# Vider le cache
-docker compose exec php php bin/console cache:clear
-
-# Creer une migration
-docker compose exec php php bin/console make:migration
-
-# Acceder au shell PHP
-docker compose exec php bash
+docker compose exec app php bin/phpunit
 ```
 
 ## Tests

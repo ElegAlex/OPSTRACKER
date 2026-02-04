@@ -1,0 +1,70 @@
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog
+        id: changelog
+        uses: orhun/git-cliff-action@v3
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        continue-on-error: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: |
+            ## OpsTracker ${{ github.ref_name }}
+
+            ### Installation Docker
+
+            \`\`\`bash
+            # Telecharger l'image
+            docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+
+            # Ou utiliser docker-compose
+            git clone https://github.com/${{ github.repository }}.git
+            cd opstracker
+            git checkout ${{ github.ref_name }}
+            make install
+            \`\`\`
+
+            ### Changelog
+
+            ${{ steps.changelog.outputs.content }}
+
+            ### Images disponibles
+
+            | Tag | Description |
+            |-----|-------------|
+            | \`${{ github.ref_name }}\` | Cette version |
+            | \`latest\` | Derniere version stable |
+
+            ---
+            Documentation: [docs/DOCKER.md](docs/DOCKER.md)
+
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-rc') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+          generate_release_notes: true
