@@ -67,6 +67,8 @@ class ChecklistTemplate
      *     }
      *   ]
      * }
+     *
+     * @var array<string, mixed>
      */
     #[ORM\Column(type: Types::JSON)]
     #[Assert\NotNull(message: 'La structure des etapes est obligatoire.')]
@@ -146,11 +148,17 @@ class ChecklistTemplate
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getEtapes(): array
     {
         return $this->etapes;
     }
 
+    /**
+     * @param array<string, mixed> $etapes
+     */
     public function setEtapes(array $etapes): static
     {
         $this->etapes = $etapes;
@@ -159,9 +167,9 @@ class ChecklistTemplate
     }
 
     /**
-     * Retourne les phases du template
+     * Retourne les phases du template.
      *
-     * @return array<array>
+     * @return array<int, array<string, mixed>>
      */
     public function getPhases(): array
     {

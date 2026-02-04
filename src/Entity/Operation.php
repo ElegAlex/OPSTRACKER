@@ -75,6 +75,8 @@ class Operation
      * RG-015 : TOUTES les donnees personnalisees en JSONB
      * Contient toutes les valeurs definies par les CampagneChamp
      * Ex: {"Matricule": "MAT-001", "Nom": "Jean Dupont", "Bureau": "A123"}
+     *
+     * @var array<string, mixed>|null
      */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['jsonb' => true])]
     private ?array $donneesPersonnalisees = null;
@@ -178,6 +180,8 @@ class Operation
     /**
      * Informations completes sur la personne ayant reserve (JSON)
      * Structure : { "identifiant": "A018", "nomPrenom": "Louise Fournier", "service": "Prestations", "email": "..." }
+     *
+     * @var array<string, string>|null
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $reserveParInfos = null;
@@ -241,11 +245,17 @@ class Operation
         return in_array($this->statut, self::STATUTS_FINAUX, true);
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getDonneesPersonnalisees(): ?array
     {
         return $this->donneesPersonnalisees;
     }
 
+    /**
+     * @param array<string, mixed>|null $donneesPersonnalisees
+     */
     public function setDonneesPersonnalisees(?array $donneesPersonnalisees): static
     {
         $this->donneesPersonnalisees = $donneesPersonnalisees;
@@ -548,7 +558,7 @@ class Operation
      * Reserve l'operation pour une personne
      *
      * @param string $identifiant Identifiant de la personne
-     * @param array|null $infos Informations completes (nomPrenom, service, email, etc.)
+     * @param array<string, string>|null $infos Informations completes (nomPrenom, service, email, etc.)
      */
     public function reserver(string $identifiant, ?array $infos = null): static
     {
@@ -577,7 +587,9 @@ class Operation
     }
 
     /**
-     * Informations completes sur la personne ayant reserve
+     * Informations completes sur la personne ayant reserve.
+     *
+     * @return array<string, string>|null
      */
     public function getReserveParInfos(): ?array
     {
