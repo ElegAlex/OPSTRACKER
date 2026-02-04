@@ -12,6 +12,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
  *
  * Utilise principalement dans le CollectionField de CampagneCrudController
  * pour la gestion inline des champs/colonnes d'une campagne.
+ *
+ * @extends AbstractCrudController<CampagneChamp>
  */
 class CampagneChampCrudController extends AbstractCrudController
 {

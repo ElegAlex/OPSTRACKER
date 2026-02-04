@@ -28,6 +28,8 @@ use Symfony\Component\HttpFoundation\Response;
  * RG-030 : Template = Nom + Version + Etapes ordonnees + Phases optionnelles
  *
  * Inclut les actions custom pour gerer phases et etapes (ex-ChecklistEtapesController).
+ *
+ * @extends AbstractCrudController<ChecklistTemplate>
  */
 class ChecklistTemplateCrudController extends AbstractCrudController
 {

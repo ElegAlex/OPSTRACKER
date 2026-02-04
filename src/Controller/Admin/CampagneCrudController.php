@@ -27,6 +27,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
  * T-306 : CRUD Campagne EasyAdmin
  * RG-010 : 5 statuts campagne
  * RG-011 : Nom + Dates obligatoires
+ *
+ * @extends AbstractCrudController<Campagne>
  */
 class CampagneCrudController extends AbstractCrudController
 {

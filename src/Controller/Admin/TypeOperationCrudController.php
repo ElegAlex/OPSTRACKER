@@ -24,6 +24,8 @@ use Symfony\Component\HttpFoundation\Response;
  * CRUD EasyAdmin pour TypeOperation.
  * T-305 / US-801 : Creer un type d'operation
  * RG-060 : Type = Nom + Description + Icone + Couleur
+ *
+ * @extends AbstractCrudController<TypeOperation>
  */
 class TypeOperationCrudController extends AbstractCrudController
 {

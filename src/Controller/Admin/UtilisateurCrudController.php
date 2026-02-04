@@ -29,6 +29,8 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
  * CRUD Utilisateurs - Reserve aux administrateurs.
+ *
+ * @extends AbstractCrudController<Utilisateur>
  */
 #[IsGranted('ROLE_ADMIN')]
 class UtilisateurCrudController extends AbstractCrudController

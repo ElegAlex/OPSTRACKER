@@ -14,7 +14,7 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
-  # Docker
+  # Docker - avec ignore pour PHP non stable
   - package-ecosystem: "docker"
     directory: "/docker/php"
     schedule:
@@ -24,6 +24,10 @@ updates:
       - "docker"
     commit-message:
       prefix: "chore(deps)"
+    ignore:
+      # Ignorer PHP 8.4+ jusqu'a ce qu'on soit prets
+      - dependency-name: "php"
+        versions: [">=8.4"]
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
