@@ -9,7 +9,6 @@ use App\Entity\ChecklistTemplate;
 use App\Entity\Operation;
 use App\Entity\TypeOperation;
 use App\Repository\CampagneRepository;
-use App\Repository\OperationRepository;
 use App\Service\CampagneService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,7 +20,6 @@ class CampagneServiceTest extends TestCase
 {
     private EntityManagerInterface&MockObject $entityManager;
     private CampagneRepository&MockObject $campagneRepository;
-    private OperationRepository&MockObject $operationRepository;
     private WorkflowInterface&MockObject $campagneWorkflow;
     private CampagneService $service;
 
@@ -29,13 +27,11 @@ class CampagneServiceTest extends TestCase
     {
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->campagneRepository = $this->createMock(CampagneRepository::class);
-        $this->operationRepository = $this->createMock(OperationRepository::class);
         $this->campagneWorkflow = $this->createMock(WorkflowInterface::class);
 
         $this->service = new CampagneService(
             $this->entityManager,
             $this->campagneRepository,
-            $this->operationRepository,
             $this->campagneWorkflow,
         );
     }
