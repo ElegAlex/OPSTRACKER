@@ -12,7 +12,7 @@
 ### 1. Cloner le depot
 
 ```bash
-git clone https://github.com/cpam92/opstracker.git
+git clone https://github.com/ElegAlex/OPSTRACKER.git
 cd opstracker
 ```
 
@@ -226,6 +226,5 @@ make logs-db     # PostgreSQL
 
 ## Support
 
-- **Documentation** : https://github.com/cpam92/opstracker/wiki
-- **Issues** : https://github.com/cpam92/opstracker/issues
-- **Contact DSI CPAM 92** : dsi@cpam92.cnamts.fr
+- **Documentation** : https://github.com/ElegAlex/OPSTRACKER/wiki
+- **Issues** : https://github.com/ElegAlex/OPSTRACKER/issues

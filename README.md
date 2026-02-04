@@ -31,7 +31,7 @@ Documentation complete: [docs/DOCKER.md](docs/DOCKER.md)
 docker pull ghcr.io/elegalex/opstracker:latest
 
 # Version specifique
-docker pull ghcr.io/elegalex/opstracker:v2.1.0
+docker pull ghcr.io/elegalex/opstracker:v2.3.0
 ```
 
 ## Fonctionnalites
