@@ -143,10 +143,10 @@ RUN curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.alpine.sh' 
     && apk add --no-cache symfony-cli
 
 # Xdebug pour le debug
-RUN apk add --no-cache $PHPIZE_DEPS \
+RUN apk add --no-cache $PHPIZE_DEPS linux-headers \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
-    && apk del $PHPIZE_DEPS
+    && apk del $PHPIZE_DEPS linux-headers
 
 # Config PHP dev
 RUN echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
