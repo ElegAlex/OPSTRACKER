@@ -61,6 +61,8 @@ echo -e "${GREEN}✓ Systeme : $DISTRO${NC}"
 
 echo -e "${YELLOW}[2/7] Verification de Docker...${NC}"
 
+NEED_NEWGRP=false
+
 if command -v docker &>/dev/null; then
     DOCKER_VERSION=$(docker --version | cut -d' ' -f3 | tr -d ',')
     echo -e "${GREEN}✓ Docker deja installe (v$DOCKER_VERSION)${NC}"
@@ -105,9 +107,9 @@ else
 
     # Ajouter l'utilisateur au groupe docker
     sudo usermod -aG docker $USER
+    NEED_NEWGRP=true
 
     echo -e "${GREEN}✓ Docker installe${NC}"
-    echo -e "${YELLOW}  Note: Vous devrez peut-etre vous deconnecter/reconnecter pour utiliser docker sans sudo${NC}"
 fi
 
 # =============================================================================
@@ -116,14 +118,26 @@ fi
 
 echo -e "${YELLOW}[3/7] Verification de Docker Compose...${NC}"
 
-if docker compose version &>/dev/null; then
-    COMPOSE_VERSION=$(docker compose version --short)
+# Fonction pour executer docker (avec ou sans sudo)
+docker_cmd() {
+    if $NEED_NEWGRP || ! docker info &>/dev/null 2>&1; then
+        sudo docker "$@"
+    else
+        docker "$@"
+    fi
+}
+
+docker_compose_cmd() {
+    if $NEED_NEWGRP || ! docker info &>/dev/null 2>&1; then
+        sudo docker compose "$@"
+    else
+        docker compose "$@"
+    fi
+}
+
+if docker_cmd compose version &>/dev/null; then
+    COMPOSE_VERSION=$(docker_cmd compose version --short)
     echo -e "${GREEN}✓ Docker Compose disponible (v$COMPOSE_VERSION)${NC}"
-elif sudo docker compose version &>/dev/null; then
-    COMPOSE_VERSION=$(sudo docker compose version --short)
-    echo -e "${GREEN}✓ Docker Compose disponible (v$COMPOSE_VERSION) - via sudo${NC}"
-    # Utiliser sudo pour docker si necessaire
-    DOCKER_CMD="sudo docker"
 else
     echo -e "${RED}❌ Docker Compose non disponible.${NC}"
     echo "   Reessayez apres redemarrage ou relancez le script."
@@ -137,6 +151,16 @@ if ! command -v git &>/dev/null; then
         sudo apt-get install -y -qq git
     else
         sudo $PKG_MANAGER install -y -q git
+    fi
+fi
+
+# Verifier make
+if ! command -v make &>/dev/null; then
+    echo -e "${YELLOW}  Installation de make...${NC}"
+    if [[ "$PKG_MANAGER" == "apt" ]]; then
+        sudo apt-get install -y -qq make
+    else
+        sudo $PKG_MANAGER install -y -q make
     fi
 fi
 
@@ -156,7 +180,7 @@ if [[ -d "$INSTALL_DIR" ]]; then
         cd /
         if [[ -f "$INSTALL_DIR/docker-compose.yml" ]]; then
             cd "$INSTALL_DIR"
-            docker compose down -v --remove-orphans 2>/dev/null || sudo docker compose down -v --remove-orphans 2>/dev/null || true
+            docker_compose_cmd down -v --remove-orphans 2>/dev/null || true
             cd /
         fi
         sudo rm -rf "$INSTALL_DIR"
@@ -182,17 +206,31 @@ echo -e "${YELLOW}[5/7] Configuration...${NC}"
 APP_SECRET=$(openssl rand -hex 16)
 DB_PASSWORD=$(openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24)
 
-# Creer .env.local a partir de .env.docker
-cp .env.docker .env.local
+# Creer .env a partir de .env.docker avec les valeurs personnalisees
+cat > .env << EOF
+# .env - Configuration OpsTracker (generee par quick-install.sh)
+APP_ENV=prod
+APP_DEBUG=0
+APP_SECRET=$APP_SECRET
 
-# Remplacer les valeurs par defaut
-sed -i "s/APP_SECRET=.*/APP_SECRET=$APP_SECRET/" .env.local
-sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=$DB_PASSWORD/" .env.local
+# Base de donnees
+DB_NAME=opstracker
+DB_USER=opstracker
+DB_PASSWORD=$DB_PASSWORD
 
-# Copier docker-compose.override.yml si disponible
-if [[ -f "docker-compose.override.yml.dist" ]]; then
-    cp docker-compose.override.yml.dist docker-compose.override.yml
-fi
+# Symfony
+DATABASE_URL="postgresql://opstracker:$DB_PASSWORD@postgres:5432/opstracker?serverVersion=17"
+MESSENGER_TRANSPORT_DSN=doctrine://default?auto_setup=0
+MAILER_DSN=null://null
+
+# Router
+DEFAULT_URI=http://localhost
+
+# Options
+NGINX_PORT=80
+SMS_ENABLED=false
+SMS_PROVIDER=log
+EOF
 
 echo -e "${GREEN}✓ Configuration generee (secrets aleatoires)${NC}"
 
@@ -200,18 +238,51 @@ echo -e "${GREEN}✓ Configuration generee (secrets aleatoires)${NC}"
 # 6. INSTALLATION
 # =============================================================================
 
-echo -e "${YELLOW}[6/7] Installation (peut prendre quelques minutes)...${NC}"
+echo -e "${YELLOW}[6/7] Installation (peut prendre plusieurs minutes)...${NC}"
 
-# Utiliser make install ou docker compose directement
-if [[ -f "Makefile" ]] && command -v make &>/dev/null; then
-    make install
-else
-    docker compose build --no-cache
-    docker compose up -d
-    echo "  Attente du demarrage de PostgreSQL..."
-    sleep 15
-    docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction
+# Build de l'image Docker (inclut composer install, tailwind, assets)
+echo "  Construction de l'image Docker..."
+docker_compose_cmd build --no-cache
+
+# Demarrage des conteneurs
+echo "  Demarrage des services..."
+docker_compose_cmd up -d
+
+# Attente que PostgreSQL soit pret (via healthcheck)
+echo "  Attente de PostgreSQL..."
+RETRIES=30
+until docker_compose_cmd exec -T postgres pg_isready -U opstracker -d opstracker &>/dev/null || [ $RETRIES -eq 0 ]; do
+    echo -n "."
+    sleep 2
+    RETRIES=$((RETRIES-1))
+done
+echo ""
+
+if [ $RETRIES -eq 0 ]; then
+    echo -e "${RED}❌ PostgreSQL n'a pas demarre a temps.${NC}"
+    docker_compose_cmd logs postgres
+    exit 1
 fi
+
+# Attente que l'application soit prete
+echo "  Attente de l'application..."
+RETRIES=30
+until docker_compose_cmd exec -T app php-fpm-healthcheck &>/dev/null || [ $RETRIES -eq 0 ]; do
+    echo -n "."
+    sleep 2
+    RETRIES=$((RETRIES-1))
+done
+echo ""
+
+if [ $RETRIES -eq 0 ]; then
+    echo -e "${RED}❌ L'application n'a pas demarre a temps.${NC}"
+    docker_compose_cmd logs app
+    exit 1
+fi
+
+# Executer les migrations
+echo "  Execution des migrations..."
+docker_compose_cmd exec -T app php bin/console doctrine:migrations:migrate --no-interaction
 
 echo -e "${GREEN}✓ OpsTracker installe et demarre${NC}"
 
@@ -233,10 +304,10 @@ echo ""
 if [[ "$ADMIN_PASSWORD" != "$ADMIN_PASSWORD_CONFIRM" ]]; then
     echo -e "${RED}❌ Les mots de passe ne correspondent pas.${NC}"
     echo "   Vous pourrez creer le compte plus tard avec :"
-    echo "   docker compose exec app php bin/console app:create-admin"
+    echo "   cd $INSTALL_DIR && docker compose exec app php bin/console app:create-admin"
 else
-    # Creer le compte admin via expect ou directement si possible
-    docker compose exec -T app php bin/console app:create-admin "$ADMIN_EMAIL" "$ADMIN_NOM" "$ADMIN_PRENOM" <<EOF
+    # Creer le compte admin
+    docker_compose_cmd exec -T app php bin/console app:create-admin "$ADMIN_EMAIL" "$ADMIN_NOM" "$ADMIN_PRENOM" <<EOF
 $ADMIN_PASSWORD
 $ADMIN_PASSWORD
 EOF
@@ -272,5 +343,11 @@ echo -e "  ${GREEN}Redemarrer :${NC}      cd $INSTALL_DIR && docker compose up -
 echo ""
 if [[ -n "$ADMIN_EMAIL" ]]; then
     echo -e "  ${YELLOW}Connexion :${NC}       $ADMIN_EMAIL"
+    echo ""
+fi
+
+if $NEED_NEWGRP; then
+    echo -e "${YELLOW}Note: Docker a ete installe. Deconnectez-vous et reconnectez-vous${NC}"
+    echo -e "${YELLOW}      pour utiliser docker sans sudo.${NC}"
     echo ""
 fi

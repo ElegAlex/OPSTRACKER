@@ -1,6 +1,5 @@
 # docker-compose.yml
 # OpsTracker - Configuration Docker principale
-version: '3.8'
 
 services:
   # ===========================================
@@ -50,8 +49,8 @@ services:
       - SMS_PROVIDER=${SMS_PROVIDER:-log}
     volumes:
       - uploads:/var/www/html/uploads
-      - var_data:/var/www/html/var
-      - share_data:/var/www/html/var/share
+      - var_log:/var/www/html/var/log
+      - var_sessions:/var/www/html/var/sessions
     depends_on:
       postgres:
         condition: service_healthy
@@ -117,9 +116,9 @@ volumes:
     driver: local
   uploads:
     driver: local
-  var_data:
+  var_log:
     driver: local
-  share_data:
+  var_sessions:
     driver: local
   nginx_logs:
     driver: local

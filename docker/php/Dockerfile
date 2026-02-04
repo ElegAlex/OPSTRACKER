@@ -106,7 +106,10 @@ RUN rm -rf var && mkdir -p var/cache var/log var/sessions var/share uploads
 # Warmup du cache Symfony (en prod)
 RUN php bin/console cache:warmup --env=prod --no-debug || true
 
-# Asset Mapper - installer les assets
+# Tailwind CSS - compiler les styles
+RUN php bin/console tailwind:build --minify --env=prod || true
+
+# Asset Mapper - installer et compiler les assets
 RUN php bin/console importmap:install --env=prod || true \
     && php bin/console asset-map:compile --env=prod || true
 

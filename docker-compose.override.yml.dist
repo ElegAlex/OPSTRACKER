@@ -1,7 +1,6 @@
 # docker-compose.override.yml.dist
 # Copier en docker-compose.override.yml pour le développement local
 # Usage: cp docker-compose.override.yml.dist docker-compose.override.yml
-version: '3.8'
 
 services:
   # ===========================================
