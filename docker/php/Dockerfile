@@ -42,8 +42,8 @@ RUN docker-php-ext-configure intl \
         opcache \
         zip
 
-# Redis extension via PECL
-RUN pecl install redis-6.0.2 \
+# Redis extension via PECL (>=6.1 requis par symfony/cache)
+RUN pecl install redis-6.1.0 \
     && docker-php-ext-enable redis
 
 # APCu pour cache local

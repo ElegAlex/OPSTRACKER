@@ -91,33 +91,34 @@ class ChecklistTemplateController extends AbstractController
 
             // Reconstruire la structure des phases
             $etapes = ['phases' => []];
-            if (is_array($phasesData)) {
-                foreach ($phasesData as $index => $phaseData) {
-                    $phase = [
-                        'id' => 'phase-' . ($index + 1),
-                        'nom' => $phaseData['nom'] ?? 'Phase ' . ($index + 1),
-                        'ordre' => $index + 1,
-                        'verrouillable' => isset($phaseData['verrouillable']),
-                        'etapes' => [],
-                    ];
+            foreach ($phasesData as $index => $phaseData) {
+                if (!is_array($phaseData)) {
+                    continue;
+                }
+                $phase = [
+                    'id' => 'phase-' . ($index + 1),
+                    'nom' => $phaseData['nom'] ?? 'Phase ' . ($index + 1),
+                    'ordre' => $index + 1,
+                    'verrouillable' => isset($phaseData['verrouillable']),
+                    'etapes' => [],
+                ];
 
-                    if (isset($phaseData['etapes']) && is_array($phaseData['etapes'])) {
-                        foreach ($phaseData['etapes'] as $etapeIndex => $etapeData) {
-                            if (!empty($etapeData['titre'])) {
-                                $phase['etapes'][] = [
-                                    'id' => $phase['id'] . '-etape-' . ($etapeIndex + 1),
-                                    'titre' => $etapeData['titre'],
-                                    'description' => $etapeData['description'] ?? null,
-                                    'ordre' => $etapeIndex + 1,
-                                    'obligatoire' => isset($etapeData['obligatoire']),
-                                    'documentId' => !empty($etapeData['documentId']) ? (int)$etapeData['documentId'] : null,
-                                ];
-                            }
+                if (isset($phaseData['etapes']) && is_array($phaseData['etapes'])) {
+                    foreach ($phaseData['etapes'] as $etapeIndex => $etapeData) {
+                        if (!empty($etapeData['titre'])) {
+                            $phase['etapes'][] = [
+                                'id' => $phase['id'] . '-etape-' . ($etapeIndex + 1),
+                                'titre' => $etapeData['titre'],
+                                'description' => $etapeData['description'] ?? null,
+                                'ordre' => $etapeIndex + 1,
+                                'obligatoire' => isset($etapeData['obligatoire']),
+                                'documentId' => !empty($etapeData['documentId']) ? (int)$etapeData['documentId'] : null,
+                            ];
                         }
                     }
-
-                    $etapes['phases'][] = $phase;
                 }
+
+                $etapes['phases'][] = $phase;
             }
 
             $template->setEtapes($etapes);

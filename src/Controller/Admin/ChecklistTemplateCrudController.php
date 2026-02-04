@@ -223,7 +223,7 @@ class ChecklistTemplateCrudController extends AbstractCrudController
 
         foreach ($etapes['phases'] as &$phase) {
             if ($phase['id'] === $phaseId) {
-                $phase['nom'] = $request->request->get('nom', $phase['nom']);
+                $phase['nom'] = $request->request->get('nom') ?? $phase['nom'];
                 $phase['verrouillable'] = (bool) $request->request->get('verrouillable', false);
                 break;
             }
@@ -414,7 +414,7 @@ class ChecklistTemplateCrudController extends AbstractCrudController
             if ($phase['id'] === $phaseId) {
                 foreach ($phase['etapes'] as &$etape) {
                     if ($etape['id'] === $etapeId) {
-                        $etape['titre'] = $request->request->get('titre', $etape['titre']);
+                        $etape['titre'] = $request->request->get('titre') ?? $etape['titre'];
                         $etape['description'] = $request->request->get('description') ?: null;
                         $etape['obligatoire'] = (bool) $request->request->get('obligatoire', false);
                         $documentId = $request->request->get('documentId');

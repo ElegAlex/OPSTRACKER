@@ -6,6 +6,7 @@ use App\Entity\Campagne;
 use App\Entity\CampagneAgentAutorise;
 use App\Entity\CampagneChamp;
 use App\Entity\Operation;
+use App\Entity\Utilisateur;
 use App\Form\CampagneStep1Type;
 use App\Form\CampagneStep2Type;
 use App\Form\CampagneStep3Type;
@@ -14,7 +15,6 @@ use App\Form\OperationType;
 use App\Form\TransfertProprietaireType;
 use App\Form\VisibiliteCampagneType;
 use App\Form\WorkflowCampagneType;
-use App\Repository\CampagneRepository;
 use App\Repository\ChecklistTemplateRepository;
 use App\Service\CampagneChampService;
 use App\Service\CampagneService;
@@ -49,7 +49,6 @@ class CampagneController extends AbstractController
 {
     public function __construct(
         private readonly CampagneService $campagneService,
-        private readonly CampagneRepository $campagneRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly ImportCsvService $importCsvService,
         private readonly ExportCsvService $exportCsvService,
@@ -68,6 +67,7 @@ class CampagneController extends AbstractController
     #[Route('', name: 'app_campagne_index', methods: ['GET'])]
     public function index(): Response
     {
+        /** @var Utilisateur $currentUser */
         $currentUser = $this->getUser();
         // RG-003 : Admin et Gestionnaire voient toutes les campagnes
         $hasFullAccess = $this->isGranted('ROLE_ADMIN') || $this->isGranted('ROLE_GESTIONNAIRE');
@@ -117,7 +117,9 @@ class CampagneController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             // RG-111 : Le createur est automatiquement proprietaire
-            $campagne->setProprietaire($this->getUser());
+            /** @var Utilisateur $user */
+            $user = $this->getUser();
+            $campagne->setProprietaire($user);
 
             $this->entityManager->persist($campagne);
             $this->entityManager->flush();
@@ -385,7 +387,7 @@ class CampagneController extends AbstractController
 
                 // Mode annuaire : sauvegarder les filtres
                 if ($reservationMode === Campagne::RESERVATION_MODE_ANNUAIRE) {
-                    $filtres = $request->request->all('filtres_annuaire') ?? [];
+                    $filtres = $request->request->all('filtres_annuaire');
                     // Nettoyer les filtres vides
                     $filtres = array_filter($filtres, fn ($v) => !empty($v));
                     $campagne->setReservationFiltresAnnuaire($filtres ?: null);

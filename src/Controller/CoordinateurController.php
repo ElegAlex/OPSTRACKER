@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Agent;
 use App\Entity\Campagne;
 use App\Entity\Reservation;
+use App\Entity\Utilisateur;
 use App\Repository\AgentRepository;
 use App\Repository\CoordinateurPerimetreRepository;
 use App\Repository\CreneauRepository;
@@ -48,6 +49,7 @@ class CoordinateurController extends AbstractController
     #[Route('/agents', name: 'app_coord_agents', methods: ['GET'])]
     public function agents(Campagne $campagne): Response
     {
+        /** @var Utilisateur $user */
         $user = $this->getUser();
         $services = $this->perimetreRepository->findServicesForCoordinateur($user);
 
@@ -95,6 +97,7 @@ class CoordinateurController extends AbstractController
     #[Route('/positionner/{agent}', name: 'app_coord_position', methods: ['GET', 'POST'])]
     public function position(Campagne $campagne, Agent $agent, Request $request): Response
     {
+        /** @var Utilisateur $user */
         $user = $this->getUser();
 
         // RG-114 : Verifier que l'agent est dans le perimetre du coordinateur
