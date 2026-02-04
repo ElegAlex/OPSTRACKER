@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
  * Regles metier implementees :
  * - RG-014 : Statut initial = "A planifier"
  * - RG-015 : TOUTES les donnees sont stockees en PostgreSQL JSONB (donneesPersonnalisees)
- * - RG-017 : 6 statuts avec transitions definies
+ * - RG-017 : 7 statuts avec transitions definies
  * - RG-018 : 1 operation = 1 technicien assigne maximum
  * - RG-021 : Motif de report optionnel
  *
@@ -27,13 +27,14 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class Operation
 {
-    // RG-017 : 6 statuts operation
+    // RG-017 : 7 statuts operation
     public const STATUT_A_PLANIFIER = 'a_planifier';
     public const STATUT_PLANIFIE = 'planifie';
     public const STATUT_EN_COURS = 'en_cours';
     public const STATUT_REALISE = 'realise';
     public const STATUT_REPORTE = 'reporte';
     public const STATUT_A_REMEDIER = 'a_remedier';
+    public const STATUT_A_REPLANIFIER = 'a_replanifier';
 
     public const STATUTS = [
         self::STATUT_A_PLANIFIER => 'A planifier',
@@ -42,6 +43,7 @@ class Operation
         self::STATUT_REALISE => 'Realise',
         self::STATUT_REPORTE => 'Reporte',
         self::STATUT_A_REMEDIER => 'A remedier',
+        self::STATUT_A_REPLANIFIER => 'A replanifier',
     ];
 
     public const STATUTS_COULEURS = [
@@ -51,6 +53,7 @@ class Operation
         self::STATUT_REALISE => 'success',
         self::STATUT_REPORTE => 'warning',
         self::STATUT_A_REMEDIER => 'danger',
+        self::STATUT_A_REPLANIFIER => 'warning',
     ];
 
     // Statuts finaux (terminaux)
@@ -84,6 +87,19 @@ class Operation
      */
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $motifReport = null;
+
+    /**
+     * Date planifiee initiale (avant le premier report)
+     * Memorisee pour tracer l'historique des reports
+     */
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $datePlanifieeInitiale = null;
+
+    /**
+     * Nombre de fois que l'operation a ete reportee
+     */
+    #[ORM\Column(type: Types::SMALLINT, options: ['default' => 0])]
+    private int $nombreReports = 0;
 
     /**
      * Notes/commentaires libres
@@ -271,6 +287,42 @@ class Operation
         $this->motifReport = $motifReport;
 
         return $this;
+    }
+
+    public function getDatePlanifieeInitiale(): ?\DateTimeImmutable
+    {
+        return $this->datePlanifieeInitiale;
+    }
+
+    public function setDatePlanifieeInitiale(?\DateTimeImmutable $datePlanifieeInitiale): static
+    {
+        $this->datePlanifieeInitiale = $datePlanifieeInitiale;
+
+        return $this;
+    }
+
+    public function getNombreReports(): int
+    {
+        return $this->nombreReports;
+    }
+
+    public function setNombreReports(int $nombreReports): static
+    {
+        $this->nombreReports = $nombreReports;
+
+        return $this;
+    }
+
+    /**
+     * Prepare un report : memorise la date initiale (au premier report) et incremente le compteur
+     */
+    public function preparerReport(): void
+    {
+        // Memoriser la date initiale seulement au premier report
+        if ($this->datePlanifieeInitiale === null && $this->datePlanifiee !== null) {
+            $this->datePlanifieeInitiale = $this->datePlanifiee;
+        }
+        $this->nombreReports++;
     }
 
     public function getNotes(): ?string

@@ -37,7 +37,8 @@
             'en_cours': 'zap',
             'realise': 'check-circle',
             'reporte': 'pause-circle',
-            'a_remedier': 'alert-triangle'
+            'a_remedier': 'alert-triangle',
+            'a_replanifier': 'calendar'
         } %}
         <i data-feather="{{ icones[operation.statut] ?? 'circle' }}" class="w-4 h-4"></i>
         <span class="text-sm font-bold">{{ operation.statutLabel }}</span>
@@ -115,14 +116,35 @@
         </div>
     {% endif %}
 
-    {# Motif de report (si reporte) #}
-    {% if operation.statut == 'reporte' and operation.motifReport %}
+    {# Historique de report (si reporte ou a_replanifier) #}
+    {% if operation.statut in ['reporte', 'a_replanifier'] or operation.nombreReports > 0 %}
         <div class="mb-6 p-4 bg-warning/10 border-2 border-warning">
             <h3 class="font-bold text-warning mb-2 flex items-center gap-2">
-                <i data-feather="pause-circle" class="w-4 h-4"></i>
-                Motif de report
+                <i data-feather="{{ operation.statut == 'reporte' ? 'pause-circle' : 'calendar' }}" class="w-4 h-4"></i>
+                {% if operation.statut == 'a_replanifier' %}
+                    En attente de replanification
+                {% else %}
+                    Intervention reportee
+                {% endif %}
+                {% if operation.nombreReports > 0 %}
+                    <span class="ml-auto text-xs bg-warning text-white px-2 py-0.5">
+                        {{ operation.nombreReports }} report{{ operation.nombreReports > 1 ? 's' : '' }}
+                    </span>
+                {% endif %}
             </h3>
-            <p class="text-sm text-warning">{{ operation.motifReport }}</p>
+
+            {% if operation.datePlanifieeInitiale %}
+            <p class="text-xs text-muted mb-2">
+                <strong>Date initiale :</strong>
+                <span class="line-through">{{ operation.datePlanifieeInitiale|format_datetime('long', 'short', locale='fr') }}</span>
+            </p>
+            {% endif %}
+
+            {% if operation.motifReport %}
+            <p class="text-sm text-warning">
+                <strong>Motif :</strong> {{ operation.motifReport }}
+            </p>
+            {% endif %}
         </div>
     {% endif %}
 
@@ -415,6 +437,29 @@
                 Retour a la liste
             </a>
 
+        {% elseif operation.statut == 'a_replanifier' %}
+            {# A replanifier -> En attente de nouvelle date par Sophie #}
+            <div class="bg-warning/10 border-2 border-warning p-4 mb-2">
+                <div class="flex items-center gap-3">
+                    <i data-feather="calendar" class="w-6 h-6 text-warning"></i>
+                    <div>
+                        <p class="font-bold text-warning">EN ATTENTE DE REPLANIFICATION</p>
+                        <p class="text-sm text-muted">Sophie doit assigner une nouvelle date</p>
+                    </div>
+                </div>
+            </div>
+            <form action="{{ path('terrain_replanifier', {id: operation.id}) }}" method="post">
+                <input type="hidden" name="_token" value="{{ csrf_token('replanifier_' ~ operation.id) }}">
+                <button type="submit" class="btn-action w-full bg-primary text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors">
+                    <i data-feather="refresh-cw" class="w-6 h-6"></i>
+                    REPRENDRE L'INTERVENTION
+                </button>
+            </form>
+            <a href="{{ path('terrain_index') }}" class="btn-action w-full mt-2 bg-ink/10 border-2 border-ink text-ink font-bold flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="arrow-left" class="w-5 h-5"></i>
+                Retour a la liste
+            </a>
+
         {% else %}
             {# A planifier - pas encore assignee -> Retour liste #}
             <a href="{{ path('terrain_index') }}" class="btn-action w-full bg-ink/10 border-2 border-ink text-ink font-bold text-lg flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
@@ -433,10 +478,46 @@
             </h3>
             <form action="{{ path('terrain_reporter', {id: operation.id}) }}" method="post">
                 <input type="hidden" name="_token" value="{{ csrf_token('reporter_' ~ operation.id) }}">
+
+                {# Info RDV actuel #}
+                {% if operation.datePlanifiee %}
+                <div class="mb-4 p-3 bg-primary/10 border border-primary/20">
+                    <p class="text-sm text-ink">
+                        <strong>RDV actuel :</strong> {{ operation.datePlanifiee|format_datetime('long', 'short', locale='fr') }}
+                    </p>
+                    {% if operation.datePlanifieeInitiale %}
+                    <p class="text-xs text-muted mt-1">
+                        Date initiale : {{ operation.datePlanifieeInitiale|format_datetime('long', 'short', locale='fr') }}
+                        — {{ operation.nombreReports }} report{{ operation.nombreReports > 1 ? 's' : '' }}
+                    </p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {# Motif (optionnel) #}
                 <div class="mb-4">
                     <label for="motif" class="block text-sm font-semibold text-ink mb-2">Motif du report (optionnel)</label>
-                    <textarea name="motif" id="motif" rows="3" class="w-full border-2 border-ink p-3 text-sm focus:border-warning focus:outline-none" placeholder="Ex: Agent absent, materiel manquant..."></textarea>
+                    <textarea name="motif" id="motif" rows="2" class="w-full border-2 border-ink p-3 text-sm focus:border-warning focus:outline-none" placeholder="Ex: Agent absent, materiel manquant...">{{ operation.motifReport }}</textarea>
                 </div>
+
+                {# Nouvelle date (optionnel) #}
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-ink mb-2">Nouveau creneau (optionnel)</label>
+                    <p class="text-xs text-muted mb-2">
+                        Si non renseigne, l'intervention passera en "A replanifier" pour Sophie.
+                    </p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="date"
+                               name="nouvelle_date"
+                               min="{{ 'now'|date('Y-m-d') }}"
+                               class="border-2 border-ink p-2 text-sm focus:border-warning focus:outline-none">
+                        <input type="time"
+                               name="nouvelle_heure"
+                               value="09:00"
+                               class="border-2 border-ink p-2 text-sm focus:border-warning focus:outline-none">
+                    </div>
+                </div>
+
                 <div class="flex gap-2">
                     <button type="button" onclick="closeReportModal()" class="flex-1 btn-action bg-white border-2 border-ink text-ink font-bold hover:bg-ink hover:text-white transition-colors">
                         ANNULER

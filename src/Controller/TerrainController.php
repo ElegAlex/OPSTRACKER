@@ -453,8 +453,9 @@ class TerrainController extends AbstractController
     }
 
     /**
-     * Reporter une intervention avec motif.
-     * Transition en_cours -> reporte (RG-021)
+     * Reporter une intervention avec motif et date optionnelle.
+     * - Avec nouvelle date : en_cours|planifie -> reporte
+     * - Sans nouvelle date : en_cours|planifie -> a_replanifier (RG-021)
      */
     #[Route('/{id}/reporter', name: 'terrain_reporter', methods: ['POST'])]
     public function reporter(Request $request, Operation $operation): Response
@@ -467,11 +468,44 @@ class TerrainController extends AbstractController
         }
 
         $motif = $request->request->get('motif');
+        $dateStr = $request->request->get('nouvelle_date');
+        $heureStr = $request->request->get('nouvelle_heure');
 
-        $success = $this->operationService->appliquerTransition($operation, 'reporter', $motif);
+        // Determiner transition et date
+        $transition = 'mettre_a_replanifier';
+        $nouvelleDatePlanifiee = null;
+
+        if ($dateStr !== null && $dateStr !== '') {
+            try {
+                $datetime = $dateStr;
+                if ($heureStr !== null && $heureStr !== '') {
+                    $datetime .= ' ' . $heureStr;
+                } else {
+                    $datetime .= ' 09:00';
+                }
+                $nouvelleDatePlanifiee = new \DateTimeImmutable($datetime);
+                $transition = 'reporter';
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Format de date invalide.');
+                return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
+            }
+        }
+
+        $success = $this->operationService->appliquerTransition($operation, $transition, $motif, $nouvelleDatePlanifiee);
 
         if ($success) {
-            $this->addFlash('warning', sprintf('Intervention %s reportee.', $operation->getDisplayIdentifier() ?? 'Operation'));
+            if ($transition === 'reporter' && $nouvelleDatePlanifiee !== null) {
+                $this->addFlash('warning', sprintf(
+                    'Intervention %s reportee au %s.',
+                    $operation->getDisplayIdentifier() ?? 'Operation',
+                    $nouvelleDatePlanifiee->format('d/m/Y H:i')
+                ));
+            } else {
+                $this->addFlash('warning', sprintf(
+                    'Intervention %s mise a replanifier.',
+                    $operation->getDisplayIdentifier() ?? 'Operation'
+                ));
+            }
             // US-505 : Retour automatique a la liste
             return $this->redirectToRoute('terrain_index');
         }

@@ -1,6 +1,6 @@
 # Workflows Symfony pour OpsTracker
 # RG-010 : Workflow Campagne (5 statuts)
-# RG-017 : Workflow Operation (6 statuts)
+# RG-017 : Workflow Operation (7 statuts)
 
 framework:
     workflows:
@@ -65,6 +65,7 @@ framework:
                 - realise
                 - reporte
                 - a_remedier
+                - a_replanifier
             transitions:
                 # Planifier une operation
                 planifier:
@@ -88,9 +89,16 @@ framework:
                 remedier:
                     from: en_cours
                     to: a_remedier
+                # Mettre a replanifier (report sans nouvelle date)
+                mettre_a_replanifier:
+                    from:
+                        - planifie
+                        - en_cours
+                    to: a_replanifier
                 # Replanifier apres report
                 replanifier:
                     from:
                         - reporte
                         - a_remedier
+                        - a_replanifier
                     to: planifie

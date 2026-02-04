@@ -16,7 +16,7 @@ use Symfony\Component\Workflow\WorkflowInterface;
  * Service metier pour la gestion des operations.
  *
  * Regles metier implementees :
- * - RG-017 : Gestion des 6 statuts operation avec workflow
+ * - RG-017 : Gestion des 7 statuts operation avec workflow
  * - RG-018 : 1 operation = 1 technicien assigne maximum
  * - RG-021 : Motif de report optionnel
  * - RG-080 : Triple signalisation (icone + couleur + texte)
@@ -59,16 +59,32 @@ class OperationService
      * RG-017 : Transitions validees par le workflow Symfony
      *
      * @param string|null $motif Motif de report (RG-021)
+     * @param \DateTimeImmutable|null $nouvelleDatePlanifiee Nouvelle date si report avec replanification
      */
-    public function appliquerTransition(Operation $operation, string $transition, ?string $motif = null): bool
-    {
+    public function appliquerTransition(
+        Operation $operation,
+        string $transition,
+        ?string $motif = null,
+        ?\DateTimeImmutable $nouvelleDatePlanifiee = null
+    ): bool {
         if (!$this->operationWorkflow->can($operation, $transition)) {
             return false;
         }
 
-        // Si c'est un report, enregistrer le motif (RG-021)
-        if ($transition === 'reporter' && $motif !== null) {
-            $operation->setMotifReport($motif);
+        // Si c'est un report ou mise a replanifier
+        if (in_array($transition, ['reporter', 'mettre_a_replanifier'], true)) {
+            // Preparer le report (memorise date initiale + incremente compteur)
+            $operation->preparerReport();
+
+            // Enregistrer le motif (RG-021)
+            if ($motif !== null) {
+                $operation->setMotifReport($motif);
+            }
+
+            // Si reporter avec nouvelle date, mettre a jour la date planifiee
+            if ($transition === 'reporter' && $nouvelleDatePlanifiee !== null) {
+                $operation->setDatePlanifiee($nouvelleDatePlanifiee);
+            }
         }
 
         // Si c'est une realisation, enregistrer la date
@@ -97,6 +113,7 @@ class OperationService
             'reporter' => 'Reporter',
             'remedier' => 'A remedier',
             'replanifier' => 'Replanifier',
+            'mettre_a_replanifier' => 'A replanifier',
         ];
 
         foreach ($this->operationWorkflow->getEnabledTransitions($operation) as $t) {
@@ -138,6 +155,7 @@ class OperationService
             Operation::STATUT_REALISE => 'check-circle',
             Operation::STATUT_REPORTE => 'pause-circle',
             Operation::STATUT_A_REMEDIER => 'alert-triangle',
+            Operation::STATUT_A_REPLANIFIER => 'calendar',
         ];
 
         $stats = [];
