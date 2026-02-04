@@ -454,8 +454,8 @@ class TerrainController extends AbstractController
 
     /**
      * Reporter une intervention avec motif et date optionnelle.
-     * - Avec nouvelle date : en_cours|planifie -> reporte
-     * - Sans nouvelle date : en_cours|planifie -> a_replanifier (RG-021)
+     * - Avec nouvelle date : reporte + nouvelle datePlanifiee
+     * - Sans nouvelle date : reporte + datePlanifiee = null (RG-021)
      */
     #[Route('/{id}/reporter', name: 'terrain_reporter', methods: ['POST'])]
     public function reporter(Request $request, Operation $operation): Response
@@ -471,8 +471,7 @@ class TerrainController extends AbstractController
         $dateStr = $request->request->get('nouvelle_date');
         $heureStr = $request->request->get('nouvelle_heure');
 
-        // Determiner transition et date
-        $transition = 'mettre_a_replanifier';
+        // Determiner la nouvelle date (peut etre null = report sans date)
         $nouvelleDatePlanifiee = null;
 
         if ($dateStr !== null && $dateStr !== '') {
@@ -484,17 +483,16 @@ class TerrainController extends AbstractController
                     $datetime .= ' 09:00';
                 }
                 $nouvelleDatePlanifiee = new \DateTimeImmutable($datetime);
-                $transition = 'reporter';
             } catch (\Exception $e) {
                 $this->addFlash('error', 'Format de date invalide.');
                 return $this->redirectToRoute('terrain_show', ['id' => $operation->getId()]);
             }
         }
 
-        $success = $this->operationService->appliquerTransition($operation, $transition, $motif, $nouvelleDatePlanifiee);
+        $success = $this->operationService->appliquerTransition($operation, 'reporter', $motif, $nouvelleDatePlanifiee);
 
         if ($success) {
-            if ($transition === 'reporter' && $nouvelleDatePlanifiee !== null) {
+            if ($nouvelleDatePlanifiee !== null) {
                 $this->addFlash('warning', sprintf(
                     'Intervention %s reportee au %s.',
                     $operation->getDisplayIdentifier() ?? 'Operation',
@@ -502,7 +500,7 @@ class TerrainController extends AbstractController
                 ));
             } else {
                 $this->addFlash('warning', sprintf(
-                    'Intervention %s mise a replanifier.',
+                    'Intervention %s reportee (sans nouvelle date).',
                     $operation->getDisplayIdentifier() ?? 'Operation'
                 ));
             }

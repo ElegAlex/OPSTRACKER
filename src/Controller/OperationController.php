@@ -110,7 +110,6 @@ class OperationController extends AbstractController
         $motif = $request->request->get('motif');
 
         // Gestion speciale pour le report avec date optionnelle
-        $transitionEffective = $transition;
         $nouvelleDatePlanifiee = null;
 
         if ($transition === 'reporter') {
@@ -121,18 +120,15 @@ class OperationController extends AbstractController
                 try {
                     $datetime = $dateStr . ' ' . ($heureStr ?: '09:00');
                     $nouvelleDatePlanifiee = new \DateTimeImmutable($datetime);
-                    // Avec date → transition 'reporter'
                 } catch (\Exception $e) {
                     $this->addFlash('danger', 'Format de date invalide.');
                     return $this->redirectToRoute('app_operation_index', ['campagne' => $campagne->getId()]);
                 }
-            } else {
-                // Sans date → transition 'mettre_a_replanifier'
-                $transitionEffective = 'mettre_a_replanifier';
             }
+            // Sans date -> nouvelleDatePlanifiee reste null, statut passe a reporte sans date
         }
 
-        if ($this->operationService->appliquerTransition($operation, $transitionEffective, $motif, $nouvelleDatePlanifiee)) {
+        if ($this->operationService->appliquerTransition($operation, $transition, $motif, $nouvelleDatePlanifiee)) {
             if ($request->isXmlHttpRequest()) {
                 return new JsonResponse([
                     'success' => true,
@@ -144,13 +140,13 @@ class OperationController extends AbstractController
             }
 
             // Message adapte selon le type de transition
-            if ($transitionEffective === 'reporter' && $nouvelleDatePlanifiee !== null) {
+            if ($transition === 'reporter' && $nouvelleDatePlanifiee !== null) {
                 $this->addFlash('warning', sprintf(
                     'Operation reportee au %s.',
                     $nouvelleDatePlanifiee->format('d/m/Y H:i')
                 ));
-            } elseif ($transitionEffective === 'mettre_a_replanifier') {
-                $this->addFlash('warning', 'Operation mise en attente de replanification.');
+            } elseif ($transition === 'reporter') {
+                $this->addFlash('warning', 'Operation reportee (sans nouvelle date).');
             } else {
                 $this->addFlash('success', 'Statut de l\'operation mis a jour.');
             }

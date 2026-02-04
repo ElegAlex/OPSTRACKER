@@ -27,14 +27,13 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class Operation
 {
-    // RG-017 : 7 statuts operation
+    // RG-017 : 6 statuts operation
     public const STATUT_A_PLANIFIER = 'a_planifier';
     public const STATUT_PLANIFIE = 'planifie';
     public const STATUT_EN_COURS = 'en_cours';
     public const STATUT_REALISE = 'realise';
     public const STATUT_REPORTE = 'reporte';
     public const STATUT_A_REMEDIER = 'a_remedier';
-    public const STATUT_A_REPLANIFIER = 'a_replanifier';
 
     public const STATUTS = [
         self::STATUT_A_PLANIFIER => 'A planifier',
@@ -43,7 +42,6 @@ class Operation
         self::STATUT_REALISE => 'Realise',
         self::STATUT_REPORTE => 'Reporte',
         self::STATUT_A_REMEDIER => 'A remedier',
-        self::STATUT_A_REPLANIFIER => 'A replanifier',
     ];
 
     public const STATUTS_COULEURS = [
@@ -53,7 +51,6 @@ class Operation
         self::STATUT_REALISE => 'success',
         self::STATUT_REPORTE => 'warning',
         self::STATUT_A_REMEDIER => 'danger',
-        self::STATUT_A_REPLANIFIER => 'warning',
     ];
 
     // Statuts finaux (terminaux)

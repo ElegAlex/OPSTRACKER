@@ -71,8 +71,8 @@ class OperationService
             return false;
         }
 
-        // Si c'est un report ou mise a replanifier
-        if (in_array($transition, ['reporter', 'mettre_a_replanifier'], true)) {
+        // Si c'est un report
+        if ($transition === 'reporter') {
             // Preparer le report (memorise date initiale + incremente compteur)
             $operation->preparerReport();
 
@@ -81,10 +81,8 @@ class OperationService
                 $operation->setMotifReport($motif);
             }
 
-            // Si reporter avec nouvelle date, mettre a jour la date planifiee
-            if ($transition === 'reporter' && $nouvelleDatePlanifiee !== null) {
-                $operation->setDatePlanifiee($nouvelleDatePlanifiee);
-            }
+            // Mettre a jour la date planifiee (peut etre null = sans nouvelle date)
+            $operation->setDatePlanifiee($nouvelleDatePlanifiee);
         }
 
         // Si c'est une realisation, enregistrer la date
@@ -113,7 +111,6 @@ class OperationService
             'reporter' => 'Reporter',
             'remedier' => 'A remedier',
             'replanifier' => 'Replanifier',
-            'mettre_a_replanifier' => 'A replanifier',
         ];
 
         foreach ($this->operationWorkflow->getEnabledTransitions($operation) as $t) {
@@ -155,7 +152,6 @@ class OperationService
             Operation::STATUT_REALISE => 'check-circle',
             Operation::STATUT_REPORTE => 'pause-circle',
             Operation::STATUT_A_REMEDIER => 'alert-triangle',
-            Operation::STATUT_A_REPLANIFIER => 'calendar',
         ];
 
         $stats = [];

@@ -65,7 +65,6 @@ framework:
                 - realise
                 - reporte
                 - a_remedier
-                - a_replanifier
             transitions:
                 # Planifier une operation
                 planifier:
@@ -79,7 +78,7 @@ framework:
                 realiser:
                     from: en_cours
                     to: realise
-                # Reporter l'intervention
+                # Reporter l'intervention (avec ou sans nouvelle date)
                 reporter:
                     from:
                         - planifie
@@ -89,16 +88,9 @@ framework:
                 remedier:
                     from: en_cours
                     to: a_remedier
-                # Mettre a replanifier (report sans nouvelle date)
-                mettre_a_replanifier:
-                    from:
-                        - planifie
-                        - en_cours
-                    to: a_replanifier
                 # Replanifier apres report
                 replanifier:
                     from:
                         - reporte
                         - a_remedier
-                        - a_replanifier
                     to: planifie

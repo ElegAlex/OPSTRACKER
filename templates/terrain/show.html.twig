@@ -37,8 +37,7 @@
             'en_cours': 'zap',
             'realise': 'check-circle',
             'reporte': 'pause-circle',
-            'a_remedier': 'alert-triangle',
-            'a_replanifier': 'calendar'
+            'a_remedier': 'alert-triangle'
         } %}
         <i data-feather="{{ icones[operation.statut] ?? 'circle' }}" class="w-4 h-4"></i>
         <span class="text-sm font-bold">{{ operation.statutLabel }}</span>
@@ -116,16 +115,12 @@
         </div>
     {% endif %}
 
-    {# Historique de report (si reporte ou a_replanifier) #}
-    {% if operation.statut in ['reporte', 'a_replanifier'] or operation.nombreReports > 0 %}
+    {# Historique de report (si reporte) #}
+    {% if operation.statut == 'reporte' or operation.nombreReports > 0 %}
         <div class="mb-6 p-4 bg-warning/10 border-2 border-warning">
             <h3 class="font-bold text-warning mb-2 flex items-center gap-2">
-                <i data-feather="{{ operation.statut == 'reporte' ? 'pause-circle' : 'calendar' }}" class="w-4 h-4"></i>
-                {% if operation.statut == 'a_replanifier' %}
-                    En attente de replanification
-                {% else %}
-                    Intervention reportee
-                {% endif %}
+                <i data-feather="pause-circle" class="w-4 h-4"></i>
+                Intervention reportee
                 {% if operation.nombreReports > 0 %}
                     <span class="ml-auto text-xs bg-warning text-white px-2 py-0.5">
                         {{ operation.nombreReports }} report{{ operation.nombreReports > 1 ? 's' : '' }}
@@ -437,29 +432,6 @@
                 Retour a la liste
             </a>
 
-        {% elseif operation.statut == 'a_replanifier' %}
-            {# A replanifier -> En attente de nouvelle date par Sophie #}
-            <div class="bg-warning/10 border-2 border-warning p-4 mb-2">
-                <div class="flex items-center gap-3">
-                    <i data-feather="calendar" class="w-6 h-6 text-warning"></i>
-                    <div>
-                        <p class="font-bold text-warning">EN ATTENTE DE REPLANIFICATION</p>
-                        <p class="text-sm text-muted">Sophie doit assigner une nouvelle date</p>
-                    </div>
-                </div>
-            </div>
-            <form action="{{ path('terrain_replanifier', {id: operation.id}) }}" method="post">
-                <input type="hidden" name="_token" value="{{ csrf_token('replanifier_' ~ operation.id) }}">
-                <button type="submit" class="btn-action w-full bg-primary text-white font-bold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors">
-                    <i data-feather="refresh-cw" class="w-6 h-6"></i>
-                    REPRENDRE L'INTERVENTION
-                </button>
-            </form>
-            <a href="{{ path('terrain_index') }}" class="btn-action w-full mt-2 bg-ink/10 border-2 border-ink text-ink font-bold flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
-                <i data-feather="arrow-left" class="w-5 h-5"></i>
-                Retour a la liste
-            </a>
-
         {% else %}
             {# A planifier - pas encore assignee -> Retour liste #}
             <a href="{{ path('terrain_index') }}" class="btn-action w-full bg-ink/10 border-2 border-ink text-ink font-bold text-lg flex items-center justify-center gap-3 hover:bg-ink hover:text-white transition-colors">
@@ -504,7 +476,7 @@
                 <div class="mb-4">
                     <label class="block text-sm font-semibold text-ink mb-2">Nouveau creneau (optionnel)</label>
                     <p class="text-xs text-muted mb-2">
-                        Si non renseigne, l'intervention passera en "A replanifier" pour Sophie.
+                        Si non renseigne, l'intervention restera sans date assignee.
                     </p>
                     <div class="grid grid-cols-2 gap-2">
                         <input type="date"

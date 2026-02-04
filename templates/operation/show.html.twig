@@ -46,8 +46,7 @@
                                 'en_cours': 'zap',
                                 'realise': 'check-circle',
                                 'reporte': 'pause-circle',
-                                'a_remedier': 'alert-triangle',
-                                'a_replanifier': 'calendar'
+                                'a_remedier': 'alert-triangle'
                             } %}
                             <i data-feather="{{ icones[operation.statut] ?? 'circle' }}" class="w-3 h-3"></i>
                             {{ operation.statutLabel }}
@@ -195,16 +194,12 @@
                 {% endif %}
 
                 {# Historique de report #}
-                {% if operation.statut in ['reporte', 'a_replanifier'] or operation.nombreReports > 0 %}
+                {% if operation.statut == 'reporte' or operation.nombreReports > 0 %}
                 <div class="bg-warning/10 border-2 border-warning">
                     <div class="px-6 py-4 border-b-2 border-warning/20">
                         <h2 class="font-bold text-warning flex items-center gap-2">
-                            <i data-feather="{{ operation.statut == 'reporte' ? 'pause-circle' : 'calendar' }}" class="w-4 h-4"></i>
-                            {% if operation.statut == 'a_replanifier' %}
-                                En attente de replanification
-                            {% else %}
-                                Historique de report
-                            {% endif %}
+                            <i data-feather="pause-circle" class="w-4 h-4"></i>
+                            Historique de report
                             {% if operation.nombreReports > 0 %}
                                 <span class="ml-auto text-xs bg-warning text-white px-2 py-0.5">
                                     {{ operation.nombreReports }} report{{ operation.nombreReports > 1 ? 's' : '' }}

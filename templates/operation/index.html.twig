@@ -441,7 +441,7 @@
                     Nouveau creneau <span class="text-muted text-xs">(optionnel)</span>
                 </label>
                 <p class="text-xs text-muted mb-2">
-                    Si non renseigne, l'operation passera en "A replanifier".
+                    Si non renseigne, l'intervention restera sans date assignee.
                 </p>
                 <div class="flex gap-2">
                     <input type="date"
@@ -529,8 +529,8 @@ function handleStatutChange(select) {
     const newValue = select.value;
     const previousValue = select.dataset.previous;
 
-    // Si on selectionne un statut de report, ouvrir la modale
-    if (newValue === 'reporte' || newValue === 'a_replanifier') {
+    // Si on selectionne le statut reporte, ouvrir la modale
+    if (newValue === 'reporte') {
         // Annuler le changement dans le select
         select.value = previousValue;
 
