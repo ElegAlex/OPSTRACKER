@@ -230,18 +230,26 @@
                         </td>
                         {% endif %}
 
-                        {# Statut avec select inline - tous les statuts disponibles #}
+                        {# Statut avec select inline - modale pour report #}
                         <td class="px-4 py-3">
-                            <form action="{{ path('app_operation_update_statut', {campagne: campagne.id, id: operation.id}) }}" method="post" class="inline-block">
-                                <input type="hidden" name="_token" value="{{ csrf_token('operation_statut_' ~ operation.id) }}">
-                                <select name="statut"
-                                        onchange="this.form.submit()"
-                                        class="select-inline text-xs px-2 py-1 border border-ink/10 focus:border-ink bg-{{ operation.statutCouleur }}/10 text-{{ operation.statutCouleur }} font-bold uppercase tracking-wider min-w-[120px]">
-                                    {% for statut, label in constant('App\\Entity\\Operation::STATUTS') %}
-                                    <option value="{{ statut }}" {{ operation.statut == statut ? 'selected' : '' }}>{{ label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </form>
+                            <div>
+                                <form action="{{ path('app_operation_update_statut', {campagne: campagne.id, id: operation.id}) }}"
+                                      method="post"
+                                      class="inline-block">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('operation_statut_' ~ operation.id) }}">
+                                    <select name="statut"
+                                            data-previous="{{ operation.statut }}"
+                                            onchange="handleStatutChange(this, {{ operation.id }})"
+                                            class="select-inline text-xs px-2 py-1 border border-ink/10 focus:border-ink bg-{{ operation.statutCouleur }}/10 text-{{ operation.statutCouleur }} font-bold uppercase tracking-wider min-w-[120px]">
+                                        {% for statut, label in constant('App\\Entity\\Operation::STATUTS') %}
+                                        <option value="{{ statut }}" {{ operation.statut == statut ? 'selected' : '' }}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+
+                                {# Modale de report inline #}
+                                {% include 'operation/_modal_reporter_inline.html.twig' with {operation: operation, campagne: campagne} %}
+                            </div>
                         </td>
 
                         {# Checklist progression #}
@@ -428,6 +436,46 @@ function initModals() {
             }
         });
     });
+}
+
+// === STATUT REPORT MODAL ===
+/**
+ * Gere le changement de statut avec modale pour les reports
+ */
+function handleStatutChange(select, operationId) {
+    const newValue = select.value;
+    const previousValue = select.dataset.previous;
+
+    // Si on selectionne un statut de report, ouvrir la modale
+    if (newValue === 'reporte' || newValue === 'a_replanifier') {
+        // Annuler le changement dans le select
+        select.value = previousValue;
+
+        // Ouvrir la modale
+        const modal = document.getElementById('modal-reporter-' + operationId);
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // Focus sur le textarea
+            const textarea = modal.querySelector('textarea');
+            if (textarea) textarea.focus();
+        }
+    } else {
+        // Changement normal - soumettre le formulaire
+        select.dataset.previous = newValue;
+        select.form.submit();
+    }
+}
+
+/**
+ * Ferme une modale de report
+ */
+function closeReporterModal(operationId) {
+    const modal = document.getElementById('modal-reporter-' + operationId);
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
 }
 
 // === INIT ===
