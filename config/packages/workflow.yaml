@@ -81,8 +81,10 @@ framework:
                 # Reporter l'intervention (avec ou sans nouvelle date)
                 reporter:
                     from:
+                        - a_planifier
                         - planifie
                         - en_cours
+                        - a_remedier
                     to: reporte
                 # Marquer a remedier (probleme)
                 remedier:
