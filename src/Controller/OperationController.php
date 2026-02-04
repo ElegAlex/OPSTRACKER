@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use League\Csv\Writer;
 
 /**
  * Controller pour la gestion des operations d'une campagne (vue Sophie).
@@ -78,6 +79,141 @@ class OperationController extends AbstractController
             'filtres' => $filtres,
             'champs' => $campagne->getChamps(),
         ]);
+    }
+
+    /**
+     * Export CSV des operations d'une campagne.
+     * Exporte toutes les colonnes visibles dans le tableau.
+     */
+    #[Route('/export.csv', name: 'app_operation_export', methods: ['GET'])]
+    #[IsGranted('ROLE_GESTIONNAIRE')]
+    public function exportCsv(Campagne $campagne): Response
+    {
+        $operations = $this->operationService->getOperationsWithFilters($campagne, []);
+        $champs = $campagne->getChamps();
+
+        $csv = Writer::createFromString();
+
+        // BOM UTF-8 pour Excel Windows
+        $csv->setOutputBOM(Writer::BOM_UTF8);
+
+        // Construction des headers
+        $headers = [];
+
+        // Colonnes dynamiques (CampagneChamp) - exclure date/heure mappees
+        foreach ($champs as $champ) {
+            if ($champ->getNom() !== $campagne->getColonneDatePlanifiee()
+                && $champ->getNom() !== $campagne->getColonneHoraire()) {
+                $headers[] = $champ->getNom();
+            }
+        }
+
+        // Colonne segment si definie
+        if ($campagne->getColonneSegment()) {
+            $headers[] = $campagne->getColonneSegment();
+        }
+
+        // Colonnes fixes
+        $headers[] = 'Statut';
+        $headers[] = 'Checklist';
+        $headers[] = 'Technicien';
+        $headers[] = 'Date';
+        $headers[] = 'Heure';
+
+        // Colonne duree si activee
+        $showDuree = $campagne->isSaisieTempsActivee();
+        if ($showDuree) {
+            $headers[] = 'Duree';
+        }
+
+        // Colonne reservation si ouverte
+        if ($campagne->isReservationOuverte()) {
+            if ($campagne->isMultiPlaces()) {
+                $headers[] = 'Places reservees';
+                $headers[] = 'Capacite';
+            } else {
+                $headers[] = 'Reserve par';
+            }
+        }
+
+        $csv->insertOne($headers);
+
+        // Donnees
+        $totalEtapes = $campagne->getNombreEtapesActives();
+
+        foreach ($operations as $operation) {
+            $row = [];
+
+            // Colonnes dynamiques
+            foreach ($champs as $champ) {
+                if ($champ->getNom() !== $campagne->getColonneDatePlanifiee()
+                    && $champ->getNom() !== $campagne->getColonneHoraire()) {
+                    $row[] = $operation->getDonneePersonnalisee($champ->getNom()) ?? '-';
+                }
+            }
+
+            // Segment
+            if ($campagne->getColonneSegment()) {
+                $donneesPerso = $operation->getDonneesPersonnalisees() ?? [];
+                $row[] = $donneesPerso[$campagne->getColonneSegment()] ?? '-';
+            }
+
+            // Statut
+            $row[] = $operation->getStatutLabel();
+
+            // Checklist
+            if ($totalEtapes > 0) {
+                $instance = $operation->getChecklistInstance();
+                $completed = $instance ? $instance->getNombreEtapesCochees() : 0;
+                $row[] = $completed . '/' . $totalEtapes;
+            } else {
+                $row[] = '-';
+            }
+
+            // Technicien
+            $row[] = $operation->getTechnicienAssigne()?->getNomComplet() ?? 'Non assigne';
+
+            // Date et Heure
+            $datePlanifiee = $operation->getDatePlanifiee();
+            $row[] = $datePlanifiee?->format('d/m/Y') ?? '-';
+            $row[] = $datePlanifiee?->format('H:i') ?? '-';
+
+            // Duree
+            if ($showDuree) {
+                $row[] = $operation->getDureeFormatee() ?? '-';
+            }
+
+            // Reservation
+            if ($campagne->isReservationOuverte()) {
+                if ($campagne->isMultiPlaces()) {
+                    $row[] = $operation->getPlacesReservees();
+                    $row[] = $operation->getCapacite();
+                } else {
+                    $reservations = $operation->getReservationsEndUser();
+                    if (count($reservations) > 0) {
+                        $first = $reservations->first();
+                        $row[] = $first ? $first->getNomPrenom() : '-';
+                    } else {
+                        $row[] = '-';
+                    }
+                }
+            }
+
+            $csv->insertOne($row);
+        }
+
+        $filename = sprintf(
+            'operations_campagne_%d_%s.csv',
+            $campagne->getId(),
+            (new \DateTime())->format('Y-m-d')
+        );
+
+        $response = new Response($csv->toString());
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
+
+        return $response;
     }
 
     /**

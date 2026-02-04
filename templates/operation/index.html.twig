@@ -74,6 +74,13 @@
 
         {# Actions #}
         <div class="flex items-center gap-3">
+            {% if is_granted('ROLE_GESTIONNAIRE') or is_granted('ROLE_COORDINATEUR') or is_granted('ROLE_ADMIN') %}
+            <a href="{{ path('app_operation_export', {campagne: campagne.id}) }}"
+               class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-ink border-2 border-ink hover:bg-ink hover:text-white transition-colors">
+                <i data-feather="download" class="w-4 h-4"></i>
+                Exporter CSV
+            </a>
+            {% endif %}
             <a href="{{ path('app_campagne_operation_new', {id: campagne.id}) }}" class="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-ink hover:bg-ink/90 transition-colors">
                 <i data-feather="plus" class="w-4 h-4"></i>
                 Ajouter

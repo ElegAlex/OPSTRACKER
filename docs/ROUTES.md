@@ -66,6 +66,7 @@ Documentation des routes de l'application.
 | Route | Methode | Path | Controller |
 |-------|---------|------|------------|
 | `app_operation_index` | GET | `/campagnes/{campagne}/operations` | `OperationController::index` |
+| `app_operation_export` | GET | `/campagnes/{campagne}/operations/export.csv` | `OperationController::exportCsv` |
 | `app_operation_show` | GET | `/campagnes/{campagne}/operations/{id}` | `OperationController::show` |
 | `app_operation_edit` | GET, POST | `/campagnes/{campagne}/operations/{id}/modifier` | `OperationController::edit` |
 | `app_operation_transition` | POST | `/campagnes/{campagne}/operations/{id}/transition/{transition}` | `OperationController::transition` |
