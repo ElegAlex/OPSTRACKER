@@ -163,13 +163,26 @@ if [[ -d "$INSTALL_DIR" ]]; then
         cd /
     fi
 
-    # Supprimer tous les volumes Docker lies a opstracker
-    $USE_SUDO docker volume ls -q 2>/dev/null | grep -E "opstracker" | xargs -r $USE_SUDO docker volume rm -f 2>/dev/null || true
+    # Arreter TOUS les conteneurs opstracker (au cas ou ils viennent d'ailleurs)
+    for container in $($USE_SUDO docker ps -aq --filter "name=opstracker" 2>/dev/null); do
+        $USE_SUDO docker rm -f "$container" 2>/dev/null || true
+    done
+
+    # Supprimer TOUS les volumes Docker lies a opstracker (avec differents prefixes)
+    for volume in $($USE_SUDO docker volume ls -q 2>/dev/null | grep -i "opstracker"); do
+        $USE_SUDO docker volume rm -f "$volume" 2>/dev/null || true
+    done
 
     # Supprimer le dossier
     sudo rm -rf "$INSTALL_DIR"
 
     echo -e "${GREEN}[OK] Installation precedente nettoyee${NC}"
+else
+    # Meme sans dossier existant, nettoyer d'eventuels volumes orphelins
+    for volume in $($USE_SUDO docker volume ls -q 2>/dev/null | grep -i "opstracker"); do
+        echo -e "${YELLOW}  Suppression du volume orphelin: $volume${NC}"
+        $USE_SUDO docker volume rm -f "$volume" 2>/dev/null || true
+    done
 fi
 
 # Cloner le repo
