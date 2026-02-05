@@ -109,6 +109,9 @@ RUN php bin/console cache:warmup --env=prod --no-debug || true
 # Tailwind CSS - compiler les styles
 RUN php bin/console tailwind:build --minify --env=prod || true
 
+# Assets des bundles (EasyAdmin, etc.) - copie physique, pas symlinks
+RUN php bin/console assets:install public --env=prod || true
+
 # Asset Mapper - installer et compiler les assets
 RUN php bin/console importmap:install --env=prod || true \
     && php bin/console asset-map:compile --env=prod || true
