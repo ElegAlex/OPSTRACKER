@@ -5,15 +5,17 @@
 
 > Gestion d'operations IT pour les organisations - Pilotage des campagnes de migration et deploiement en temps reel.
 
-## Installation rapide (Linux - 1 commande)
+## Installation rapide (Linux)
 
 ```bash
-curl -sL https://raw.githubusercontent.com/ElegAlex/OPSTRACKER/main/scripts/quick-install.sh | bash
+curl -sL https://raw.githubusercontent.com/ElegAlex/OPSTRACKER/main/scripts/quick-install.sh | sudo bash
 ```
 
-Installe automatiquement Docker, configure tout, et demarre l'application.
+Installe Docker si necessaire, configure tout, et demarre l'application sur **http://localhost**.
 
-**Autres OS / Installation manuelle** : Voir ci-dessous ou [documentation complete](docs/DOCKER.md)
+**Identifiants par defaut :**
+- Email : `admin@opstracker.local`
+- Mot de passe : `Admin123!`
 
 ## Documentation
 
@@ -21,26 +23,62 @@ Installe automatiquement Docker, configure tout, et demarre l'application.
 |----------|-------------|
 | [Installation RHEL 8.10](docs/INSTALL_RHEL.md) | Guide complet pour Red Hat Enterprise Linux (online/offline, proxy, SELinux, HTTPS) |
 | [Guide d'exploitation](docs/EXPLOITATION.md) | Administration, sauvegardes, monitoring, depannage, securite |
-| [Installation Docker](docs/DOCKER.md) | Installation standard avec Docker Compose |
+| [Installation Docker](docs/DOCKER.md) | Installation manuelle avec Docker Compose |
 
-## Quick Start (Docker)
+## Fonctionnalites
+
+- **Dashboard temps reel** : KPI, progression par segment, activite recente
+- **Gestion des campagnes** : Creation, configuration, suivi des operations
+- **Interface terrain** : Vue mobile pour les techniciens avec checklists interactives
+- **Reservations** : Systeme de creneaux type Doodle pour les agents
+- **Administration** : Gestion des utilisateurs, types d'operation, templates de checklist
+- **Audit** : Tracabilite complete des modifications
+
+## Installation manuelle (Docker)
+
+### Prerequis
+
+- Docker 24.0+ et Docker Compose 2.20+
+- Git
+
+### Etapes
 
 ```bash
-# 1. Cloner
+# 1. Cloner le repository
 git clone https://github.com/ElegAlex/OPSTRACKER.git
 cd OPSTRACKER
 
-# 2. Configurer
-cp .env.docker .env.local
-# Editer .env.local (APP_SECRET, DB_PASSWORD)
+# 2. Configurer l'environnement
+cp .env.docker .env
+# Editer .env : modifier APP_SECRET et DB_PASSWORD
 
-# 3. Lancer
-make install
+# 3. Construire et demarrer
+docker compose build
+docker compose up -d
 
-# 4. Acceder : http://localhost
+# 4. Executer les migrations
+docker compose exec app php bin/console doctrine:migrations:migrate --no-interaction
+
+# 5. Creer un administrateur
+docker compose exec app php bin/console app:create-admin \
+    admin@example.com Admin Admin --password='VotreMotDePasse123!'
 ```
 
-Documentation complete: [docs/DOCKER.md](docs/DOCKER.md)
+Acceder a l'application : **http://localhost**
+
+### Charger les donnees de demo (optionnel)
+
+```bash
+docker compose exec app php bin/console doctrine:fixtures:load --no-interaction
+```
+
+Comptes de demo disponibles :
+
+| Email | Mot de passe | Role |
+|-------|--------------|------|
+| admin@cpam92.fr | Admin123! | Administrateur |
+| sophie.martin@cpam92.fr | Sophie123! | Gestionnaire |
+| karim.benali@cpam92.fr | Karim123! | Technicien |
 
 ## Images Docker
 
@@ -52,62 +90,55 @@ docker pull ghcr.io/elegalex/opstracker:latest
 docker pull ghcr.io/elegalex/opstracker:v2.3.0
 ```
 
-## Fonctionnalites
-
-- **Dashboard temps reel** : KPI, progression par segment, activite recente
-- **Gestion des campagnes** : Creation, configuration, suivi des operations
-- **Interface terrain** : Vue mobile pour les techniciens avec checklists interactives
-- **Administration** : Gestion des utilisateurs, types d'operation, templates de checklist
-
-## Prerequis
-
-- Docker 24.0+ et Docker Compose 2.20+
-- Git
-- Make (optionnel mais recommande)
-
-## Installation rapide
+## Commandes utiles
 
 ```bash
-# Avec Makefile (recommande)
-make install
+# Gestion des conteneurs
+docker compose up -d          # Demarrer
+docker compose down           # Arreter
+docker compose restart        # Redemarrer
+docker compose logs -f        # Voir les logs
 
-# Ou manuellement
-docker compose up -d
-docker compose exec app composer install
-docker compose exec app php bin/console doctrine:migrations:migrate --no-interaction
+# Acces au conteneur PHP
+docker compose exec app sh
 
-# (Optionnel) Charger les donnees de demo
-make db-fixtures
-# ou: docker compose exec app php bin/console doctrine:fixtures:load --no-interaction
+# Base de donnees
+docker compose exec app php bin/console doctrine:migrations:migrate
+docker compose exec app php bin/console doctrine:fixtures:load
+
+# Cache
+docker compose exec app php bin/console cache:clear
+
+# Tests
+docker compose exec app php bin/phpunit
 ```
 
-## Acces a l'application
+### Avec Makefile
 
-| Service | URL | Description |
-|---------|-----|-------------|
-| Application | http://localhost:8081 | Interface principale |
-| PostgreSQL | localhost:5434 | Base de donnees |
-| Redis | localhost:6381 | Cache/Sessions |
-
-## Comptes de demo
-
-Apres chargement des fixtures :
-
-| Email | Mot de passe | Role |
-|-------|--------------|------|
-| admin@cpam92.fr | Admin123! | Administrateur |
-| sophie.martin@cpam92.fr | Sophie123! | Gestionnaire |
-| karim.benali@cpam92.fr | Karim123! | Technicien |
+```bash
+make start          # Demarrer
+make stop           # Arreter
+make logs           # Voir les logs
+make shell          # Acceder au shell PHP
+make db-migrate     # Migrations
+make db-backup      # Sauvegarder la BDD
+make test           # Executer les tests
+make deploy         # Mise a jour production
+make help           # Toutes les commandes
+```
 
 ## Architecture
 
 ```
 opstracker/
 ├── config/              # Configuration Symfony
-├── docker/              # Configuration Docker (Nginx, PHP)
+├── docker/              # Configuration Docker (Nginx, PHP, PostgreSQL)
+├── docs/                # Documentation
 ├── migrations/          # Migrations Doctrine
 ├── public/              # Point d'entree web
+├── scripts/             # Scripts d'installation
 ├── src/
+│   ├── Command/         # Commandes console
 │   ├── Controller/      # Controleurs (Dashboard, Terrain, Admin)
 │   ├── Entity/          # Entites Doctrine
 │   ├── Repository/      # Repositories
@@ -120,83 +151,28 @@ opstracker/
 
 ## Stack technique
 
-- **Backend:** PHP 8.3, Symfony 7.4
-- **Base de donnees:** PostgreSQL 17
-- **Frontend:** Twig, Tailwind CSS, Turbo (Hotwire)
-- **Admin:** EasyAdmin 4
-- **Tests:** PHPUnit 12
+| Composant | Version |
+|-----------|---------|
+| PHP | 8.3 |
+| Symfony | 7.4 |
+| PostgreSQL | 17 |
+| Redis | 7 |
+| Nginx | 1.25 |
+| Tailwind CSS | 3.x |
+| EasyAdmin | 4 |
 
-## Commandes utiles
-
-```bash
-# Avec Makefile
-make start          # Demarrer
-make stop           # Arreter
-make logs           # Voir les logs
-make test           # Executer les tests
-make cache-clear    # Vider le cache
-make shell          # Acceder au shell PHP
-make db-migrate     # Migrations
-make db-backup      # Sauvegarder la BDD
-make deploy         # Mise a jour production
-make help           # Voir toutes les commandes
-
-# Sans Makefile
-docker compose up -d
-docker compose down
-docker compose logs -f
-docker compose exec app php bin/phpunit
-```
-
-## Tests
-
-```bash
-# Tous les tests
-docker compose exec php php bin/phpunit
-
-# Tests avec couverture
-docker compose exec php php bin/phpunit --coverage-text
-
-# Tests specifiques
-docker compose exec php php bin/phpunit tests/Functional/
-docker compose exec php php bin/phpunit tests/Unit/
-```
-
-## Deploiement production
-
-### Variables d'environnement
-
-Creer un fichier `.env.local` avec :
-
-```env
-APP_ENV=prod
-APP_SECRET=<secret-aleatoire-32-caracteres>
-DATABASE_URL="postgresql://user:password@host:5432/opstracker?serverVersion=17"
-```
-
-### Build production
-
-```bash
-# Installer les dependances production
-docker compose exec php composer install --no-dev --optimize-autoloader
-
-# Vider et warmer le cache
-docker compose exec php php bin/console cache:clear --env=prod
-docker compose exec php php bin/console cache:warmup --env=prod
-
-# Executer les migrations
-docker compose exec php php bin/console doctrine:migrations:migrate --env=prod --no-interaction
-```
-
-## Regles metier implementees
+## Regles metier
 
 | Code | Description |
 |------|-------------|
+| RG-001 | Politique de mot de passe (8 car., majuscule, chiffre, special) |
+| RG-006 | Verrouillage apres 5 tentatives echouees |
 | RG-010 | Campagne avec dates, type operation, proprietaire |
 | RG-017 | Transitions de statut des operations |
 | RG-020 | Vue terrain filtree par technicien |
 | RG-030 | Templates de checklist avec phases |
 | RG-040 | Dashboard temps reel avec Turbo |
+| RG-070 | Audit trail sur les entites principales |
 | RG-080 | Triple signalisation (icone + couleur + texte) |
 | RG-082 | Touch targets 44x44px minimum |
 
@@ -206,4 +182,4 @@ MIT License
 
 ---
 
-Developpe avec Symfony 7.4 et Claude Code
+Developpe avec Symfony 7.4 et [Claude Code](https://claude.ai/code)
