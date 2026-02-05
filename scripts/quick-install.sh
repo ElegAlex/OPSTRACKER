@@ -243,51 +243,77 @@ $USE_SUDO docker compose build --no-cache || error_exit "Echec du build Docker"
 echo "  Demarrage des services..."
 $USE_SUDO docker compose up -d || error_exit "Echec du demarrage des services"
 
-# Attente des services avec healthcheck
+# Attente que les conteneurs soient healthy
 echo "  Attente que les services soient prets..."
-MAX_WAIT=120
+MAX_WAIT=180
 WAITED=0
 while [[ $WAITED -lt $MAX_WAIT ]]; do
-    if $USE_SUDO docker compose exec -T app php -v &>/dev/null 2>&1; then
+    # Verifier que le conteneur app est healthy
+    APP_STATUS=$($USE_SUDO docker compose ps app --format '{{.Health}}' 2>/dev/null || echo "unknown")
+    if [[ "$APP_STATUS" == "healthy" ]]; then
+        echo -e "${GREEN}  Services prets${NC}"
         break
     fi
     sleep 5
     WAITED=$((WAITED + 5))
-    echo "  ... attente ($WAITED/$MAX_WAIT sec)"
+    echo "  ... attente ($WAITED/$MAX_WAIT sec) - status: $APP_STATUS"
 done
 
 if [[ $WAITED -ge $MAX_WAIT ]]; then
     echo -e "${YELLOW}  [WARN] Timeout atteint, tentative de continuer...${NC}"
 fi
 
-# Attente supplementaire pour PostgreSQL
-sleep 10
-
-# Migrations
-echo "  Execution des migrations..."
-$USE_SUDO docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction || {
-    echo -e "${YELLOW}  [WARN] Premiere tentative echouee, nouvel essai dans 10s...${NC}"
-    sleep 10
-    $USE_SUDO docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction || echo -e "${YELLOW}  [WARN] Migrations a verifier manuellement${NC}"
-}
+# Attente supplementaire pour que PostgreSQL soit completement pret
+echo "  Verification de la connexion PostgreSQL..."
+for i in {1..12}; do
+    if $USE_SUDO docker compose exec -T app php bin/console dbal:run-sql "SELECT 1" &>/dev/null; then
+        echo -e "${GREEN}  PostgreSQL pret${NC}"
+        break
+    fi
+    echo "  ... attente PostgreSQL ($i/12)"
+    sleep 5
+done
 
 # =============================================================================
-# 7. CREATION COMPTE ADMIN
+# 7. MIGRATIONS ET CREATION ADMIN
 # =============================================================================
 
-echo -e "${YELLOW}[7/7] Creation du compte administrateur...${NC}"
+echo -e "${YELLOW}[7/7] Configuration de la base de donnees...${NC}"
 
-# Creer l'admin avec les identifiants par defaut
-$USE_SUDO docker compose exec -T app php bin/console app:create-admin \
+# Migrations avec retry
+echo "  Execution des migrations Doctrine..."
+MIGRATION_SUCCESS=false
+for attempt in 1 2 3; do
+    if $USE_SUDO docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction 2>&1; then
+        MIGRATION_SUCCESS=true
+        echo -e "${GREEN}  [OK] Migrations executees${NC}"
+        break
+    else
+        echo -e "${YELLOW}  [WARN] Tentative $attempt echouee, nouvel essai dans 5s...${NC}"
+        sleep 5
+    fi
+done
+
+if [[ "$MIGRATION_SUCCESS" != "true" ]]; then
+    echo -e "${RED}  [ERREUR] Les migrations ont echoue. Verifiez manuellement :${NC}"
+    echo "    cd /opt/opstracker && docker compose exec app php bin/console doctrine:migrations:migrate --no-interaction"
+fi
+
+# Creation admin
+echo "  Creation du compte administrateur..."
+ADMIN_OUTPUT=$($USE_SUDO docker compose exec -T app php bin/console app:create-admin \
     admin@opstracker.local \
     Admin \
     Admin \
-    --password='Admin123!' 2>/dev/null
+    --password='Admin123!' 2>&1)
+ADMIN_EXIT=$?
 
-if [[ $? -eq 0 ]]; then
-    echo -e "${GREEN}[OK] Compte administrateur cree${NC}"
+if [[ $ADMIN_EXIT -eq 0 ]]; then
+    echo -e "${GREEN}  [OK] Compte administrateur cree${NC}"
+elif echo "$ADMIN_OUTPUT" | grep -qi "existe\|already\|duplicate"; then
+    echo -e "${YELLOW}  [INFO] Le compte admin existe deja${NC}"
 else
-    echo -e "${YELLOW}  [WARN] Le compte admin existe peut-etre deja${NC}"
+    echo -e "${YELLOW}  [WARN] Creation admin: $ADMIN_OUTPUT${NC}"
 fi
 
 # =============================================================================
