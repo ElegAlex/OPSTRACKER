@@ -123,8 +123,8 @@ echo -e "${YELLOW}[3/7] Verification de Docker Compose...${NC}"
 # Definir la commande docker compose
 DOCKER_COMPOSE="$USE_SUDO docker compose"
 
-if $DOCKER_COMPOSE version &>/dev/null; then
-    COMPOSE_VERSION=$($DOCKER_COMPOSE version --short 2>/dev/null)
+if docker compose version &>/dev/null; then
+    COMPOSE_VERSION=$(docker compose version --short 2>/dev/null)
     echo -e "${GREEN}✓ Docker Compose disponible (v$COMPOSE_VERSION)${NC}"
 else
     error_exit "Docker Compose non disponible. Reessayez apres redemarrage."
@@ -158,7 +158,7 @@ if [[ -d "$INSTALL_DIR" ]]; then
         cd /
         if [[ -f "$INSTALL_DIR/docker-compose.yml" ]]; then
             cd "$INSTALL_DIR"
-            $DOCKER_COMPOSE down -v --remove-orphans 2>/dev/null || true
+            docker compose down -v --remove-orphans 2>/dev/null || true
             cd /
         fi
         sudo rm -rf "$INSTALL_DIR"
@@ -217,10 +217,10 @@ echo -e "${GREEN}✓ Configuration generee (secrets aleatoires)${NC}"
 echo -e "${YELLOW}[6/7] Installation (peut prendre plusieurs minutes)...${NC}"
 
 echo "  Construction de l'image Docker..."
-$DOCKER_COMPOSE build --no-cache || error_exit "Echec du build Docker"
+docker compose build --no-cache || error_exit "Echec du build Docker"
 
 echo "  Demarrage des services..."
-$DOCKER_COMPOSE up -d || error_exit "Echec du demarrage des services"
+docker compose up -d || error_exit "Echec du demarrage des services"
 
 # Attente des services
 echo "  Attente que tous les services demarrent..."
