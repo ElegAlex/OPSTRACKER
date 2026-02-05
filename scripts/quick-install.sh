@@ -248,41 +248,48 @@ docker_compose_cmd build --no-cache
 echo "  Demarrage des services..."
 docker_compose_cmd up -d
 
-# Attente que PostgreSQL soit pret (via healthcheck)
-echo "  Attente de PostgreSQL..."
-RETRIES=30
-until docker_compose_cmd exec -T postgres pg_isready -U opstracker -d opstracker &>/dev/null || [ $RETRIES -eq 0 ]; do
+# Attente que PostgreSQL soit pret
+echo -n "  Attente de PostgreSQL"
+for i in $(seq 1 30); do
+    if docker_compose_cmd exec -T postgres pg_isready -U opstracker -d opstracker &>/dev/null; then
+        echo ""
+        echo -e "${GREEN}  ✓ PostgreSQL pret${NC}"
+        break
+    fi
     echo -n "."
     sleep 2
-    RETRIES=$((RETRIES-1))
+    if [ $i -eq 30 ]; then
+        echo ""
+        echo -e "${RED}❌ PostgreSQL n'a pas demarre a temps.${NC}"
+        docker_compose_cmd logs postgres
+        exit 1
+    fi
 done
-echo ""
-
-if [ $RETRIES -eq 0 ]; then
-    echo -e "${RED}❌ PostgreSQL n'a pas demarre a temps.${NC}"
-    docker_compose_cmd logs postgres
-    exit 1
-fi
 
 # Attente que l'application soit prete
-echo "  Attente de l'application..."
-RETRIES=30
-until docker_compose_cmd exec -T app php-fpm-healthcheck &>/dev/null || [ $RETRIES -eq 0 ]; do
+echo -n "  Attente de l'application"
+for i in $(seq 1 30); do
+    if docker_compose_cmd exec -T app php-fpm-healthcheck &>/dev/null; then
+        echo ""
+        echo -e "${GREEN}  ✓ Application prete${NC}"
+        break
+    fi
     echo -n "."
     sleep 2
-    RETRIES=$((RETRIES-1))
+    if [ $i -eq 30 ]; then
+        echo ""
+        echo -e "${RED}❌ L'application n'a pas demarre a temps.${NC}"
+        docker_compose_cmd logs app
+        exit 1
+    fi
 done
-echo ""
-
-if [ $RETRIES -eq 0 ]; then
-    echo -e "${RED}❌ L'application n'a pas demarre a temps.${NC}"
-    docker_compose_cmd logs app
-    exit 1
-fi
 
 # Executer les migrations
 echo "  Execution des migrations..."
-docker_compose_cmd exec -T app php bin/console doctrine:migrations:migrate --no-interaction
+docker_compose_cmd exec -T app php bin/console doctrine:migrations:migrate --no-interaction || {
+    echo -e "${RED}❌ Erreur lors des migrations.${NC}"
+    exit 1
+}
 
 echo -e "${GREEN}✓ OpsTracker installe et demarre${NC}"
 
