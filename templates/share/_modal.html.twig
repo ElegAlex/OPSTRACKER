@@ -67,7 +67,17 @@ function copyShareUrl() {
     const input = document.getElementById('share-url');
     input.select();
     input.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(input.value);
+
+    // Compatible HTTP et HTTPS
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(input.value);
+    } else {
+        try {
+            document.execCommand('copy');
+        } catch (e) {
+            console.error('Erreur copie:', e);
+        }
+    }
 
     // Feedback visuel
     const btn = input.nextElementSibling;

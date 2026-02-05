@@ -374,11 +374,33 @@ function toggleShareDropdown() {
     document.getElementById('config-menu')?.classList.add('hidden');
 }
 
+// Copier dans le presse-papier (compatible HTTP et HTTPS)
+function copyToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    } else {
+        // Fallback pour HTTP
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+        } catch (e) {
+            console.error('Erreur copie:', e);
+        }
+        document.body.removeChild(textArea);
+        return Promise.resolve();
+    }
+}
+
 // Copier le lien de reservation
 function copyReservationLink() {
     const linkEl = document.getElementById('reservation-link-preview');
     if (linkEl) {
-        navigator.clipboard.writeText(linkEl.textContent.trim());
+        copyToClipboard(linkEl.textContent.trim());
         const originalText = linkEl.textContent;
         linkEl.textContent = 'Lien copie !';
         linkEl.classList.add('text-success');
