@@ -15,6 +15,14 @@ Installe automatiquement Docker, configure tout, et demarre l'application.
 
 **Autres OS / Installation manuelle** : Voir ci-dessous ou [documentation complete](docs/DOCKER.md)
 
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Installation RHEL 8.10](docs/INSTALL_RHEL.md) | Guide complet pour Red Hat Enterprise Linux (online/offline, proxy, SELinux, HTTPS) |
+| [Guide d'exploitation](docs/EXPLOITATION.md) | Administration, sauvegardes, monitoring, depannage, securite |
+| [Installation Docker](docs/DOCKER.md) | Installation standard avec Docker Compose |
+
 ## Quick Start (Docker)
 
 ```bash
