@@ -151,39 +151,32 @@ echo -e "${YELLOW}[4/7] Telechargement d'OpsTracker...${NC}"
 
 INSTALL_DIR="${INSTALL_DIR:-/opt/opstracker}"
 
-# Nettoyage d'une installation precedente
-if [[ -d "$INSTALL_DIR" ]]; then
-    echo -e "${YELLOW}  Nettoyage de l'installation precedente...${NC}"
+# Nettoyage COMPLET (toujours effectue)
+echo -e "${YELLOW}  Nettoyage des installations precedentes...${NC}"
 
-    # Arreter et supprimer les conteneurs/volumes
+# Arreter docker compose si le fichier existe
+if [[ -f "$INSTALL_DIR/docker-compose.yml" ]]; then
+    cd "$INSTALL_DIR"
+    $USE_SUDO docker compose down -v --remove-orphans 2>/dev/null || true
     cd /
-    if [[ -f "$INSTALL_DIR/docker-compose.yml" ]]; then
-        cd "$INSTALL_DIR"
-        $USE_SUDO docker compose down -v --remove-orphans 2>/dev/null || true
-        cd /
-    fi
-
-    # Arreter TOUS les conteneurs opstracker (au cas ou ils viennent d'ailleurs)
-    for container in $($USE_SUDO docker ps -aq --filter "name=opstracker" 2>/dev/null); do
-        $USE_SUDO docker rm -f "$container" 2>/dev/null || true
-    done
-
-    # Supprimer TOUS les volumes Docker lies a opstracker (avec differents prefixes)
-    for volume in $($USE_SUDO docker volume ls -q 2>/dev/null | grep -i "opstracker"); do
-        $USE_SUDO docker volume rm -f "$volume" 2>/dev/null || true
-    done
-
-    # Supprimer le dossier
-    sudo rm -rf "$INSTALL_DIR"
-
-    echo -e "${GREEN}[OK] Installation precedente nettoyee${NC}"
-else
-    # Meme sans dossier existant, nettoyer d'eventuels volumes orphelins
-    for volume in $($USE_SUDO docker volume ls -q 2>/dev/null | grep -i "opstracker"); do
-        echo -e "${YELLOW}  Suppression du volume orphelin: $volume${NC}"
-        $USE_SUDO docker volume rm -f "$volume" 2>/dev/null || true
-    done
 fi
+
+# Arreter et supprimer TOUS les conteneurs opstracker
+for container in $($USE_SUDO docker ps -aq --filter "name=opstracker" 2>/dev/null); do
+    $USE_SUDO docker rm -f "$container" 2>/dev/null || true
+done
+
+# Supprimer TOUS les volumes Docker lies a opstracker
+for volume in $($USE_SUDO docker volume ls -q 2>/dev/null | grep -i "opstracker"); do
+    $USE_SUDO docker volume rm -f "$volume" 2>/dev/null || true
+done
+
+# Supprimer le dossier s'il existe
+if [[ -d "$INSTALL_DIR" ]]; then
+    sudo rm -rf "$INSTALL_DIR"
+fi
+
+echo -e "${GREEN}[OK] Nettoyage termine${NC}"
 
 # Cloner le repo
 sudo git clone --depth 1 https://github.com/ElegAlex/OPSTRACKER.git "$INSTALL_DIR"
