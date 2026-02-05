@@ -129,6 +129,11 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
+      - name: Warmup cache for PHPStan
+        run: |
+          echo "APP_ENV=dev" > .env.local
+          php bin/console cache:warmup --env=dev
+
       - name: PHP CS Fixer (dry-run)
         run: composer cs-check
         continue-on-error: true
