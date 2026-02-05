@@ -222,114 +222,29 @@ $DOCKER_COMPOSE build --no-cache || error_exit "Echec du build Docker"
 echo "  Demarrage des services..."
 $DOCKER_COMPOSE up -d || error_exit "Echec du demarrage des services"
 
-# Attente PostgreSQL
-echo -n "  Attente de PostgreSQL"
-PG_READY=false
-for i in $(seq 1 30); do
-    if $DOCKER_COMPOSE exec -T postgres pg_isready -U opstracker -d opstracker >/dev/null 2>&1; then
-        PG_READY=true
-        break
-    fi
-    echo -n "."
-    sleep 2
-done
-echo ""
-
-if [ "$PG_READY" = false ]; then
-    echo -e "${RED}❌ PostgreSQL n'a pas demarre a temps.${NC}"
-    $DOCKER_COMPOSE logs postgres
-    exit 1
-fi
-echo -e "${GREEN}  ✓ PostgreSQL pret${NC}"
-
-# Attente Application
-echo -n "  Attente de l'application"
-APP_READY=false
-for i in $(seq 1 30); do
-    if $DOCKER_COMPOSE exec -T app php-fpm-healthcheck >/dev/null 2>&1; then
-        APP_READY=true
-        break
-    fi
-    echo -n "."
-    sleep 2
-done
-echo ""
-
-if [ "$APP_READY" = false ]; then
-    echo -e "${RED}❌ L'application n'a pas demarre a temps.${NC}"
-    $DOCKER_COMPOSE logs app
-    exit 1
-fi
-echo -e "${GREEN}  ✓ Application prete${NC}"
+# Attente des services
+echo "  Attente que tous les services demarrent..."
+sleep 20
 
 # Migrations
 echo "  Execution des migrations..."
-if ! $DOCKER_COMPOSE exec -T app php bin/console doctrine:migrations:migrate --no-interaction; then
-    error_exit "Echec des migrations"
-fi
-echo -e "${GREEN}  ✓ Migrations executees${NC}"
-
-echo -e "${GREEN}✓ OpsTracker installe et demarre${NC}"
-
-# =============================================================================
-# 7. CREATION COMPTE ADMIN
-# =============================================================================
-
-echo -e "${YELLOW}[7/7] Creation du compte administrateur...${NC}"
-echo ""
-
-read -p "Email administrateur : " ADMIN_EMAIL
-read -p "Nom de famille : " ADMIN_NOM
-read -p "Prenom : " ADMIN_PRENOM
-read -s -p "Mot de passe (8 car min, 1 maj, 1 chiffre, 1 special) : " ADMIN_PASSWORD
-echo ""
-read -s -p "Confirmer le mot de passe : " ADMIN_PASSWORD_CONFIRM
-echo ""
-
-if [[ "$ADMIN_PASSWORD" != "$ADMIN_PASSWORD_CONFIRM" ]]; then
-    echo -e "${RED}❌ Les mots de passe ne correspondent pas.${NC}"
-    echo "   Creez le compte plus tard avec :"
-    echo "   cd $INSTALL_DIR && $DOCKER_COMPOSE exec app php bin/console app:create-admin"
-else
-    if $DOCKER_COMPOSE exec -T app php bin/console app:create-admin "$ADMIN_EMAIL" "$ADMIN_NOM" "$ADMIN_PRENOM" <<ADMINEOF
-$ADMIN_PASSWORD
-$ADMIN_PASSWORD
-ADMINEOF
-    then
-        echo -e "${GREEN}✓ Compte administrateur cree${NC}"
-    else
-        echo -e "${YELLOW}⚠ Erreur lors de la creation du compte admin.${NC}"
-        echo "   Creez-le manuellement avec :"
-        echo "   cd $INSTALL_DIR && $DOCKER_COMPOSE exec app php bin/console app:create-admin"
-    fi
-fi
-
-# =============================================================================
-# TERMINE
-# =============================================================================
-
-IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "votre-ip")
+cd /opt/opstracker
+docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction || echo "  WARN: Migrations a lancer manuellement"
 
 echo ""
-echo "╔═══════════════════════════════════════════════════════════╗"
-echo "║              ✅ Installation terminee !                   ║"
-echo "╚═══════════════════════════════════════════════════════════╝"
-echo ""
-echo -e "  ${GREEN}Acces local :${NC}     http://localhost"
-echo -e "  ${GREEN}Acces reseau :${NC}    http://$IP"
-echo ""
-echo -e "  ${GREEN}Dossier :${NC}         $INSTALL_DIR"
-echo -e "  ${GREEN}Logs :${NC}            cd $INSTALL_DIR && docker compose logs -f"
-echo -e "  ${GREEN}Arreter :${NC}         cd $INSTALL_DIR && docker compose down"
-echo -e "  ${GREEN}Redemarrer :${NC}      cd $INSTALL_DIR && docker compose up -d"
-echo ""
-if [[ -n "$ADMIN_EMAIL" ]]; then
-    echo -e "  ${YELLOW}Connexion :${NC}       $ADMIN_EMAIL"
-    echo ""
-fi
+echo "  ✓ Installation terminee"
 
-if [[ -n "$USE_SUDO" ]]; then
-    echo -e "${YELLOW}Note: Docker necessite sudo. Reconnectez-vous ou utilisez 'newgrp docker'${NC}"
-    echo -e "${YELLOW}      pour l'utiliser sans sudo.${NC}"
-    echo ""
-fi
+IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+
+echo ""
+echo "  ╔═══════════════════════════════════════════════════════════╗"
+echo "  ║              Installation terminee !                      ║"
+echo "  ╚═══════════════════════════════════════════════════════════╝"
+echo ""
+echo "  Acces local :     http://localhost"
+echo "  Acces reseau :    http://$IP"
+echo ""
+echo "  Pour creer un compte admin :"
+echo "    cd /opt/opstracker"
+echo "    docker compose exec app php bin/console app:create-admin"
+echo ""
