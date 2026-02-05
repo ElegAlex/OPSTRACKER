@@ -113,19 +113,28 @@ RUN php bin/console tailwind:build --minify --env=prod || true
 RUN php bin/console importmap:install --env=prod || true \
     && php bin/console asset-map:compile --env=prod || true
 
+# Sauvegarder les assets compiles pour le volume partage
+# Ces fichiers seront copies au demarrage vers le volume monte
+RUN mkdir -p /assets-compiled \
+    && cp -r /var/www/html/public/* /assets-compiled/
+
 # Permissions (après warmup pour inclure le cache)
-RUN chown -R www-data:www-data var uploads \
+RUN chown -R www-data:www-data var uploads /assets-compiled \
     && chmod -R 775 var uploads
+
+# Entrypoint script (copie les assets vers le volume partage)
+COPY docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
     CMD php-fpm-healthcheck || exit 1
 
-# Utilisateur non-root
-USER www-data
-
 EXPOSE 9000
 
+# Entrypoint copie les assets puis lance php-fpm
+# Note: php-fpm workers tournent en www-data via www.conf
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["php-fpm"]
 
 # ============================================

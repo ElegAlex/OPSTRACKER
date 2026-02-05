@@ -4,18 +4,19 @@
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Fonction pour afficher les erreurs et quitter
 error_exit() {
-    echo -e "${RED}❌ $1${NC}"
+    echo -e "${RED}[ERREUR] $1${NC}"
     exit 1
 }
 
 echo ""
-echo "╔═══════════════════════════════════════════════════════════╗"
-echo "║           OpsTracker - Installation automatique           ║"
-echo "╚═══════════════════════════════════════════════════════════╝"
+echo "======================================================"
+echo "       OpsTracker - Installation automatique          "
+echo "======================================================"
 echo ""
 
 # =============================================================================
@@ -54,7 +55,7 @@ else
     DISTRO="Linux"
 fi
 
-echo -e "${GREEN}✓ Systeme : $DISTRO${NC}"
+echo -e "${GREEN}[OK] Systeme : $DISTRO${NC}"
 
 # =============================================================================
 # 2. INSTALLATION DOCKER
@@ -66,7 +67,7 @@ USE_SUDO=""
 
 if command -v docker &>/dev/null; then
     DOCKER_VERSION=$(docker --version | cut -d' ' -f3 | tr -d ',')
-    echo -e "${GREEN}✓ Docker deja installe (v$DOCKER_VERSION)${NC}"
+    echo -e "${GREEN}[OK] Docker deja installe (v$DOCKER_VERSION)${NC}"
 
     # Verifier si on peut utiliser docker sans sudo
     if ! docker info &>/dev/null 2>&1; then
@@ -110,7 +111,7 @@ else
     sudo usermod -aG docker $USER
     USE_SUDO="sudo"
 
-    echo -e "${GREEN}✓ Docker installe${NC}"
+    echo -e "${GREEN}[OK] Docker installe${NC}"
     echo -e "${YELLOW}  Note: Utilisez 'newgrp docker' ou reconnectez-vous pour docker sans sudo${NC}"
 fi
 
@@ -125,7 +126,7 @@ DOCKER_COMPOSE="$USE_SUDO docker compose"
 
 if docker compose version &>/dev/null; then
     COMPOSE_VERSION=$(docker compose version --short 2>/dev/null)
-    echo -e "${GREEN}✓ Docker Compose disponible (v$COMPOSE_VERSION)${NC}"
+    echo -e "${GREEN}[OK] Docker Compose disponible (v$COMPOSE_VERSION)${NC}"
 else
     error_exit "Docker Compose non disponible. Reessayez apres redemarrage."
 fi
@@ -140,39 +141,43 @@ if ! command -v git &>/dev/null; then
     fi
 fi
 
-echo -e "${GREEN}✓ Dependances verifiees${NC}"
+echo -e "${GREEN}[OK] Dependances verifiees${NC}"
 
 # =============================================================================
-# 4. CLONAGE DU REPO
+# 4. NETTOYAGE ET CLONAGE DU REPO
 # =============================================================================
 
 echo -e "${YELLOW}[4/7] Telechargement d'OpsTracker...${NC}"
 
 INSTALL_DIR="${INSTALL_DIR:-/opt/opstracker}"
 
+# Nettoyage d'une installation precedente
 if [[ -d "$INSTALL_DIR" ]]; then
-    echo -e "${YELLOW}  ⚠ Le dossier $INSTALL_DIR existe deja.${NC}"
-    read -p "  Supprimer et reinstaller ? (o/N) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Oo]$ ]]; then
+    echo -e "${YELLOW}  Nettoyage de l'installation precedente...${NC}"
+
+    # Arreter et supprimer les conteneurs/volumes
+    cd /
+    if [[ -f "$INSTALL_DIR/docker-compose.yml" ]]; then
+        cd "$INSTALL_DIR"
+        $USE_SUDO docker compose down -v --remove-orphans 2>/dev/null || true
         cd /
-        if [[ -f "$INSTALL_DIR/docker-compose.yml" ]]; then
-            cd "$INSTALL_DIR"
-            docker compose down -v --remove-orphans 2>/dev/null || true
-            cd /
-        fi
-        sudo rm -rf "$INSTALL_DIR"
-    else
-        echo "Installation annulee."
-        exit 0
     fi
+
+    # Supprimer tous les volumes Docker lies a opstracker
+    $USE_SUDO docker volume ls -q 2>/dev/null | grep -E "opstracker" | xargs -r $USE_SUDO docker volume rm -f 2>/dev/null || true
+
+    # Supprimer le dossier
+    sudo rm -rf "$INSTALL_DIR"
+
+    echo -e "${GREEN}[OK] Installation precedente nettoyee${NC}"
 fi
 
+# Cloner le repo
 sudo git clone --depth 1 https://github.com/ElegAlex/OPSTRACKER.git "$INSTALL_DIR"
 sudo chown -R $USER:$USER "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 
-echo -e "${GREEN}✓ OpsTracker telecharge dans $INSTALL_DIR${NC}"
+echo -e "${GREEN}[OK] OpsTracker telecharge dans $INSTALL_DIR${NC}"
 
 # =============================================================================
 # 5. CONFIGURATION
@@ -206,9 +211,12 @@ DEFAULT_URI=http://localhost
 NGINX_PORT=80
 SMS_ENABLED=false
 SMS_PROVIDER=log
+
+# Session cookie (false pour HTTP, true pour HTTPS)
+COOKIE_SECURE=false
 ENVEOF
 
-echo -e "${GREEN}✓ Configuration generee (secrets aleatoires)${NC}"
+echo -e "${GREEN}[OK] Configuration generee (secrets aleatoires)${NC}"
 
 # =============================================================================
 # 6. INSTALLATION
@@ -217,34 +225,81 @@ echo -e "${GREEN}✓ Configuration generee (secrets aleatoires)${NC}"
 echo -e "${YELLOW}[6/7] Installation (peut prendre plusieurs minutes)...${NC}"
 
 echo "  Construction de l'image Docker..."
-docker compose build --no-cache || error_exit "Echec du build Docker"
+$USE_SUDO docker compose build --no-cache || error_exit "Echec du build Docker"
 
 echo "  Demarrage des services..."
-docker compose up -d || error_exit "Echec du demarrage des services"
+$USE_SUDO docker compose up -d || error_exit "Echec du demarrage des services"
 
-# Attente des services
-echo "  Attente que tous les services demarrent..."
-sleep 20
+# Attente des services avec healthcheck
+echo "  Attente que les services soient prets..."
+MAX_WAIT=120
+WAITED=0
+while [[ $WAITED -lt $MAX_WAIT ]]; do
+    if $USE_SUDO docker compose exec -T app php -v &>/dev/null 2>&1; then
+        break
+    fi
+    sleep 5
+    WAITED=$((WAITED + 5))
+    echo "  ... attente ($WAITED/$MAX_WAIT sec)"
+done
+
+if [[ $WAITED -ge $MAX_WAIT ]]; then
+    echo -e "${YELLOW}  [WARN] Timeout atteint, tentative de continuer...${NC}"
+fi
+
+# Attente supplementaire pour PostgreSQL
+sleep 10
 
 # Migrations
 echo "  Execution des migrations..."
-cd /opt/opstracker
-docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction || echo "  WARN: Migrations a lancer manuellement"
+$USE_SUDO docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction || {
+    echo -e "${YELLOW}  [WARN] Premiere tentative echouee, nouvel essai dans 10s...${NC}"
+    sleep 10
+    $USE_SUDO docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction || echo -e "${YELLOW}  [WARN] Migrations a verifier manuellement${NC}"
+}
 
-echo ""
-echo "  ✓ Installation terminee"
+# =============================================================================
+# 7. CREATION COMPTE ADMIN
+# =============================================================================
+
+echo -e "${YELLOW}[7/7] Creation du compte administrateur...${NC}"
+
+# Creer l'admin avec les identifiants par defaut
+$USE_SUDO docker compose exec -T app php bin/console app:create-admin \
+    admin@opstracker.local \
+    Admin \
+    Admin \
+    --password='Admin123!' 2>/dev/null
+
+if [[ $? -eq 0 ]]; then
+    echo -e "${GREEN}[OK] Compte administrateur cree${NC}"
+else
+    echo -e "${YELLOW}  [WARN] Le compte admin existe peut-etre deja${NC}"
+fi
+
+# =============================================================================
+# SUCCES
+# =============================================================================
 
 IP=$(hostname -I 2>/dev/null | awk '{print $1}')
 
 echo ""
-echo "  ╔═══════════════════════════════════════════════════════════╗"
-echo "  ║              Installation terminee !                      ║"
-echo "  ╚═══════════════════════════════════════════════════════════╝"
+echo "======================================================"
+echo "       OpsTracker installe avec succes !              "
+echo "======================================================"
 echo ""
-echo "  Acces local :     http://localhost"
-echo "  Acces reseau :    http://$IP"
+echo -e "${CYAN}  URL locale :    http://localhost${NC}"
+echo -e "${CYAN}  URL reseau :    http://$IP${NC}"
 echo ""
-echo "  Pour creer un compte admin :"
+echo "  Identifiants par defaut :"
+echo -e "${GREEN}    Email :       admin@opstracker.local${NC}"
+echo -e "${GREEN}    Mot de passe: Admin123!${NC}"
+echo ""
+echo -e "${RED}  /!\\ IMPORTANT: Changez le mot de passe admin immediatement !${NC}"
+echo ""
+echo "  Commandes utiles :"
 echo "    cd /opt/opstracker"
-echo "    docker compose exec app php bin/console app:create-admin"
+echo "    docker compose logs -f      # Voir les logs"
+echo "    docker compose restart      # Redemarrer"
+echo "    docker compose down         # Arreter"
 echo ""

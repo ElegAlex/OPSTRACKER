@@ -7,6 +7,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -29,6 +30,7 @@ class CreateAdminCommand extends Command
             ->addArgument('email', InputArgument::OPTIONAL, 'Adresse email')
             ->addArgument('nom', InputArgument::OPTIONAL, 'Nom de famille')
             ->addArgument('prenom', InputArgument::OPTIONAL, 'Prenom')
+            ->addOption('password', 'p', InputOption::VALUE_OPTIONAL, 'Mot de passe (non-interactif)')
         ;
     }
 
@@ -61,21 +63,24 @@ class CreateAdminCommand extends Command
             $prenom = $helper->ask($input, $output, $question);
         }
 
-        // Mot de passe (hidden)
-        $question = new Question('Mot de passe (RG-001: 8 car min, 1 maj, 1 chiffre, 1 special): ');
-        $question->setHidden(true);
-        $question->setHiddenFallback(false);
-        $password = $helper->ask($input, $output, $question);
+        // Mot de passe (option ou interactif)
+        $password = $input->getOption('password');
+        if (!$password) {
+            $question = new Question('Mot de passe (RG-001: 8 car min, 1 maj, 1 chiffre, 1 special): ');
+            $question->setHidden(true);
+            $question->setHiddenFallback(false);
+            $password = $helper->ask($input, $output, $question);
 
-        // Confirmation
-        $question = new Question('Confirmer le mot de passe: ');
-        $question->setHidden(true);
-        $question->setHiddenFallback(false);
-        $passwordConfirm = $helper->ask($input, $output, $question);
+            // Confirmation seulement en mode interactif
+            $question = new Question('Confirmer le mot de passe: ');
+            $question->setHidden(true);
+            $question->setHiddenFallback(false);
+            $passwordConfirm = $helper->ask($input, $output, $question);
 
-        if ($password !== $passwordConfirm) {
-            $io->error('Les mots de passe ne correspondent pas.');
-            return Command::FAILURE;
+            if ($password !== $passwordConfirm) {
+                $io->error('Les mots de passe ne correspondent pas.');
+                return Command::FAILURE;
+            }
         }
 
         try {

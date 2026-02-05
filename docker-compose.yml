@@ -14,7 +14,7 @@ services:
     volumes:
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./public:/var/www/html/public:ro
+      - public_assets:/var/www/html/public:ro
       - nginx_logs:/var/log/nginx
     depends_on:
       app:
@@ -47,7 +47,9 @@ services:
       - MESSENGER_TRANSPORT_DSN=${MESSENGER_TRANSPORT_DSN:-doctrine://default?auto_setup=0}
       - SMS_ENABLED=${SMS_ENABLED:-false}
       - SMS_PROVIDER=${SMS_PROVIDER:-log}
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
     volumes:
+      - public_assets:/var/www/html/public
       - uploads:/var/www/html/uploads
       - var_log:/var/www/html/var/log
       - var_sessions:/var/www/html/var/sessions
@@ -113,6 +115,8 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  public_assets:
     driver: local
   uploads:
     driver: local
