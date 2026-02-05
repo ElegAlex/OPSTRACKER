@@ -182,4 +182,4 @@ MIT License
 
 ---
 
-Developpe avec Symfony 7.4 et [Claude Code](https://claude.ai/code)
+Developpe avec Symfony 7.4
