@@ -265,14 +265,20 @@ fi
 
 # Attente supplementaire pour que PostgreSQL soit completement pret
 echo "  Verification de la connexion PostgreSQL..."
-for i in {1..12}; do
-    if $USE_SUDO docker compose exec -T app php bin/console dbal:run-sql "SELECT 1" &>/dev/null; then
+PG_READY=false
+for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
+    if $USE_SUDO docker compose exec -T app php bin/console dbal:run-sql "SELECT 1" < /dev/null &>/dev/null; then
         echo -e "${GREEN}  PostgreSQL pret${NC}"
+        PG_READY=true
         break
     fi
     echo "  ... attente PostgreSQL ($i/12)"
     sleep 5
 done
+
+if [[ "$PG_READY" != "true" ]]; then
+    echo -e "${YELLOW}  [WARN] PostgreSQL peut ne pas etre pret${NC}"
+fi
 
 # =============================================================================
 # 7. MIGRATIONS ET CREATION ADMIN
@@ -284,7 +290,8 @@ echo -e "${YELLOW}[7/7] Configuration de la base de donnees...${NC}"
 echo "  Execution des migrations Doctrine..."
 MIGRATION_SUCCESS=false
 for attempt in 1 2 3; do
-    if $USE_SUDO docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction 2>&1; then
+    echo "  Tentative $attempt..."
+    if $USE_SUDO docker compose exec -T app php bin/console doctrine:migrations:migrate --no-interaction < /dev/null 2>&1; then
         MIGRATION_SUCCESS=true
         echo -e "${GREEN}  [OK] Migrations executees${NC}"
         break
@@ -305,7 +312,7 @@ ADMIN_OUTPUT=$($USE_SUDO docker compose exec -T app php bin/console app:create-a
     admin@opstracker.local \
     Admin \
     Admin \
-    --password='Admin123!' 2>&1)
+    --password='Admin123!' < /dev/null 2>&1)
 ADMIN_EXIT=$?
 
 if [[ $ADMIN_EXIT -eq 0 ]]; then
