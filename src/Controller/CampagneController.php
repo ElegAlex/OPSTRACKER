@@ -790,6 +790,8 @@ class CampagneController extends AbstractController
                         $titre = trim($titreRaw);
                         $description = trim($descriptionRaw) ?: null;
                         $obligatoire = $request->request->getBoolean('obligatoire', true);
+                        $documentId = $request->request->get('document_id');
+                        $documentId = $documentId !== null && $documentId !== '' ? (int) $documentId : null;
 
                         if ($titre !== '') {
                             $checklistService->ajouterEtapeCampagne(
@@ -797,11 +799,34 @@ class CampagneController extends AbstractController
                                 $phaseId,
                                 $titre,
                                 $description,
-                                $obligatoire
+                                $obligatoire,
+                                $documentId
                             );
                             $this->addFlash('success', 'Etape "'.$titre.'" ajoutee.');
                         } else {
                             $this->addFlash('danger', 'Le titre de l\'etape est obligatoire.');
+                        }
+                        break;
+
+                    case 'document_etape':
+                        $docId = $request->request->get('document_id');
+                        $docIdInt = $docId !== null && $docId !== '' ? (int) $docId : null;
+                        $structure = $campagne->getChecklistStructure();
+                        $found = false;
+                        foreach ($structure['phases'] as &$phase) {
+                            foreach ($phase['etapes'] as &$etape) {
+                                if ($etape['id'] === $etapeId) {
+                                    $etape['documentId'] = $docIdInt;
+                                    $found = true;
+                                    break 2;
+                                }
+                            }
+                        }
+                        unset($phase, $etape);
+                        if ($found) {
+                            $campagne->setChecklistStructure($structure);
+                            $this->entityManager->flush();
+                            $this->addFlash('success', $docIdInt !== null ? 'Document lie a l\'etape.' : 'Document dissocie de l\'etape.');
                         }
                         break;
 
@@ -824,11 +849,20 @@ class CampagneController extends AbstractController
         // Recuperer les champs de la campagne pour le mapping
         $champs = $campagne->getChamps();
 
+        // Construire un mapping documentId => nomOriginal pour affichage
+        $documents = $campagne->getDocuments()->toArray();
+        $documentMap = [];
+        foreach ($documents as $doc) {
+            $documentMap[$doc->getId()] = $doc->getNomOriginal().' ('.\strtoupper($doc->getExtension()).')';
+        }
+
         return $this->render('campagne/workflow_manage.html.twig', [
             'campagne' => $campagne,
             'structure' => $campagne->getChecklistStructure(),
             'champs' => $champs,
             'mapping' => $campagne->getChecklistMapping() ?? [],
+            'documents' => $documents,
+            'documentMap' => $documentMap,
         ]);
     }
 

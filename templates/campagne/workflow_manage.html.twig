@@ -107,6 +107,21 @@
                             </div>
                         </div>
 
+                        {% if documents|length > 0 %}
+                        <div>
+                            <label class="block text-xs font-semibold text-muted uppercase tracking-wider mb-1">
+                                Document lie
+                            </label>
+                            <select name="document_id"
+                                    class="w-full px-3 py-2 bg-white border-2 border-ink/20 focus:border-primary focus:outline-none text-sm">
+                                <option value="">— Aucun —</option>
+                                {% for doc in documents %}
+                                <option value="{{ doc.id }}">{{ doc.nomOriginal }} ({{ doc.extension|upper }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        {% endif %}
+
                         <div class="flex items-center justify-between">
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="checkbox" name="obligatoire" value="1" checked
@@ -158,6 +173,12 @@
                                     {% if etape.description %}
                                     <p class="text-xs text-muted mt-0.5">{{ etape.description }}</p>
                                     {% endif %}
+                                    {% if etape.documentId is defined and etape.documentId and documentMap[etape.documentId] is defined %}
+                                    <span class="inline-flex items-center gap-1 text-xs text-info mt-1">
+                                        <i data-feather="file-text" class="w-3 h-3"></i>
+                                        {{ documentMap[etape.documentId] }}
+                                    </span>
+                                    {% endif %}
                                     {% if isDesactive and etape.disabledAt is defined and etape.disabledAt %}
                                     <p class="text-xs text-warning mt-1">
                                         <i data-feather="alert-circle" class="w-3 h-3 inline"></i>
@@ -190,6 +211,40 @@
                                 {% endif %}
                             </form>
                         </div>
+
+                        {# Document lie #}
+                        {% if not isDesactive and documents|length > 0 %}
+                        <div class="mt-3 ml-7 pl-4 border-l-2 border-ink/10">
+                            <form method="post" class="flex items-center gap-3">
+                                <input type="hidden" name="action" value="document_etape">
+                                <input type="hidden" name="etape_id" value="{{ etape.id }}">
+                                <input type="hidden" name="phase_id" value="{{ phase.id }}">
+
+                                <label class="text-xs text-muted flex items-center gap-2">
+                                    <i data-feather="file-text" class="w-3 h-3"></i>
+                                    Document lie :
+                                </label>
+
+                                <select name="document_id"
+                                        onchange="this.form.submit()"
+                                        class="text-xs px-2 py-1 border border-ink/20 bg-white focus:border-primary focus:outline-none {% if etape.documentId is defined and etape.documentId %}border-info bg-info/5{% endif %}">
+                                    <option value="">— Aucun —</option>
+                                    {% for doc in documents %}
+                                    <option value="{{ doc.id }}" {% if etape.documentId is defined and etape.documentId == doc.id %}selected{% endif %}>
+                                        {{ doc.nomOriginal }} ({{ doc.extension|upper }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+
+                                {% if etape.documentId is defined and etape.documentId %}
+                                <span class="text-xs text-info font-medium">
+                                    <i data-feather="check" class="w-3 h-3 inline"></i>
+                                    Document lie
+                                </span>
+                                {% endif %}
+                            </form>
+                        </div>
+                        {% endif %}
 
                         {# Mapping champ de saisie #}
                         {% if not isDesactive and champs|length > 0 %}
