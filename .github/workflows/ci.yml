@@ -132,7 +132,9 @@ jobs:
       - name: Warmup cache for PHPStan
         run: |
           echo "APP_ENV=dev" > .env.local
+          echo "APP_DEBUG=1" >> .env.local
           php bin/console cache:warmup --env=dev
+          ls -la var/cache/dev/ | head -20
 
       - name: PHP CS Fixer (dry-run)
         run: composer cs-check
