@@ -8,7 +8,7 @@ Documentation de l'architecture technique de l'application.
 
 | Composant | Version | Usage |
 |-----------|---------|-------|
-| PHP | >= 8.2 | Runtime |
+| PHP | 8.3 | Runtime |
 | Symfony | 7.4.* | Framework principal |
 | EasyAdmin | 4.27+ | Interface administration |
 | Doctrine ORM | 3.6+ | ORM / Persistence |
