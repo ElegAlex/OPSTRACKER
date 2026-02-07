@@ -744,11 +744,11 @@ Chaque année, les organisations IT gèrent des **opérations de masse** :
 | Audit sécurité/conformité | 100% parc | 1-2 mois | 2-4 techs |
 | Migration téléphonie IP | 200-1000 postes | 2-4 mois | 2-6 techs |
 
-### 6.2 Exemple Concret : Migration TAM IDF
+### 6.2 Exemple Concret : Migration Pilote Alpha
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  RETEX : Migration TAM Île-de-France                            │
+│  RETEX : Migration Pilote Alpha                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  Contexte :                                                     │

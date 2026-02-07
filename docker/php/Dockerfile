@@ -3,7 +3,7 @@
 FROM php:8.3-fpm-alpine AS base
 
 # Métadonnées
-LABEL maintainer="CPAM 92 - DSI"
+LABEL maintainer="OpsTracker Team"
 LABEL description="OpsTracker - Gestion d'opérations IT"
 LABEL version="2.2"
 

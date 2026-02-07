@@ -65,7 +65,7 @@ gantt
 |---|---|---|---|
 |Dépôt Git créé (GitLab interne ou GitHub)|Dev|J+1|⬜|
 |Accès SSH serveur Organisation|Marc|J+1|⬜|
-|Bundle AM Symfony récupéré (si disponible)|Dev|J+3|⬜|
+|Bundle interne Symfony récupéré (si disponible)|Dev|J+3|⬜|
 
 ### 🔬 Spike Technique Critique
 
@@ -147,7 +147,7 @@ GROUP BY custom_data->>'bureau';
 
 |Risque|Prob.|Mitigation|
 |---|---|---|
-|Bundle AM Symfony non disponible|Moyenne|Architecture standalone compatible (ADR-001)|
+|Bundle interne Symfony non disponible|Moyenne|Architecture standalone compatible (ADR-001)|
 |Problèmes permissions Docker|Faible|Tester volume mounts dès J+1|
 
 ---
@@ -300,7 +300,7 @@ Pour qu'un ticket passe en "Terminé" :
 |---|---|---|---|
 |**Serveur Organisation non provisionné**|Bloque Sprint 0|S0|Marc provisionne J+1, plan B = VM locale dev|
 |**Spike JSONB échoue**|Bloque architecture|S0|Pagination aggressive dès 10k ops|
-|**Bundle AM indisponible**|Impact Auth|S1|Architecture standalone (déjà prévu)|
+|**Bundle interne indisponible**|Impact Auth|S1|Architecture standalone (déjà prévu)|
 |**Symfony Workflow complexité**|Bloque S2|S2|Pattern fallback état machine simple|
 |**Snapshot Pattern (deep-copy)**|Bloque S3|S3|Prévoir 2j buffer, tests TDD|
 |**Turbo + NVDA incompatible**|Bloque RGAA|S4|Fallback polling pur (sans Turbo)|

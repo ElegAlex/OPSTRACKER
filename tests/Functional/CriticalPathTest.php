@@ -49,7 +49,7 @@ class CriticalPathTest extends WebTestCase
     {
         // Recuperer un utilisateur de test
         $user = $this->em->getRepository(Utilisateur::class)
-            ->findOneBy(['email' => 'sophie.martin@cpam92.fr']);
+            ->findOneBy(['email' => 'sophie.martin@demo.opstracker.local']);
 
         if (!$user) {
             $this->markTestSkipped('Fixtures non chargees - Utilisateur Sophie non trouve');
@@ -58,7 +58,7 @@ class CriticalPathTest extends WebTestCase
         $crawler = $this->client->request('GET', '/login');
 
         $form = $crawler->selectButton('Se connecter')->form([
-            '_username' => 'sophie.martin@cpam92.fr',
+            '_username' => 'sophie.martin@demo.opstracker.local',
             '_password' => 'Sophie123!',
         ]);
 
@@ -82,7 +82,7 @@ class CriticalPathTest extends WebTestCase
     public function testAuthenticatedUserCanAccessCampagnes(): void
     {
         $user = $this->em->getRepository(Utilisateur::class)
-            ->findOneBy(['email' => 'sophie.martin@cpam92.fr']);
+            ->findOneBy(['email' => 'sophie.martin@demo.opstracker.local']);
 
         if (!$user) {
             $this->markTestSkipped('Fixtures non chargees');
@@ -98,7 +98,7 @@ class CriticalPathTest extends WebTestCase
     public function testAuthenticatedUserCanAccessCampagneShow(): void
     {
         $user = $this->em->getRepository(Utilisateur::class)
-            ->findOneBy(['email' => 'sophie.martin@cpam92.fr']);
+            ->findOneBy(['email' => 'sophie.martin@demo.opstracker.local']);
 
         if (!$user) {
             $this->markTestSkipped('Fixtures non chargees');
@@ -122,7 +122,7 @@ class CriticalPathTest extends WebTestCase
     public function testTechnicienIsAuthenticated(): void
     {
         $technicien = $this->em->getRepository(Utilisateur::class)
-            ->findOneBy(['email' => 'karim.benali@cpam92.fr']);
+            ->findOneBy(['email' => 'karim.benali@demo.opstracker.local']);
 
         if (!$technicien) {
             $this->markTestSkipped('Fixtures non chargees - Technicien Karim non trouve');
@@ -151,7 +151,7 @@ class CriticalPathTest extends WebTestCase
     public function testAdminCanAccessEasyAdmin(): void
     {
         $admin = $this->em->getRepository(Utilisateur::class)
-            ->findOneBy(['email' => 'admin@cpam92.fr']);
+            ->findOneBy(['email' => 'admin@demo.opstracker.local']);
 
         if (!$admin) {
             $this->markTestSkipped('Fixtures non chargees - Admin non trouve');
@@ -169,7 +169,7 @@ class CriticalPathTest extends WebTestCase
     public function testLogoutWorks(): void
     {
         $user = $this->em->getRepository(Utilisateur::class)
-            ->findOneBy(['email' => 'sophie.martin@cpam92.fr']);
+            ->findOneBy(['email' => 'sophie.martin@demo.opstracker.local']);
 
         if (!$user) {
             $this->markTestSkipped('Fixtures non chargees');
@@ -184,7 +184,7 @@ class CriticalPathTest extends WebTestCase
     public function testUnauthorizedAccessToAdminIsBlocked(): void
     {
         $technicien = $this->em->getRepository(Utilisateur::class)
-            ->findOneBy(['email' => 'karim.benali@cpam92.fr']);
+            ->findOneBy(['email' => 'karim.benali@demo.opstracker.local']);
 
         if (!$technicien) {
             $this->markTestSkipped('Fixtures non chargees');
@@ -200,7 +200,7 @@ class CriticalPathTest extends WebTestCase
     public function testGlobalDashboardIsAccessible(): void
     {
         $user = $this->em->getRepository(Utilisateur::class)
-            ->findOneBy(['email' => 'sophie.martin@cpam92.fr']);
+            ->findOneBy(['email' => 'sophie.martin@demo.opstracker.local']);
 
         if (!$user) {
             $this->markTestSkipped('Fixtures non chargees');
@@ -219,7 +219,7 @@ class CriticalPathTest extends WebTestCase
     public function testNewCampagneFormIsAccessible(): void
     {
         $user = $this->em->getRepository(Utilisateur::class)
-            ->findOneBy(['email' => 'sophie.martin@cpam92.fr']);
+            ->findOneBy(['email' => 'sophie.martin@demo.opstracker.local']);
 
         if (!$user) {
             $this->markTestSkipped('Fixtures non chargees');
@@ -234,7 +234,7 @@ class CriticalPathTest extends WebTestCase
     public function testSegmentsListIsAccessible(): void
     {
         $user = $this->em->getRepository(Utilisateur::class)
-            ->findOneBy(['email' => 'sophie.martin@cpam92.fr']);
+            ->findOneBy(['email' => 'sophie.martin@demo.opstracker.local']);
 
         if (!$user) {
             $this->markTestSkipped('Fixtures non chargees');

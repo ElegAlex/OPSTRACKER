@@ -68,7 +68,7 @@ class AppFixtures extends Fixture
 
         // Admin
         $admin = new Utilisateur();
-        $admin->setEmail('admin@cpam92.fr');
+        $admin->setEmail('admin@demo.opstracker.local');
         $admin->setNom('DURAND');
         $admin->setPrenom('Philippe');
         $admin->setRoles(['ROLE_ADMIN']);
@@ -79,7 +79,7 @@ class AppFixtures extends Fixture
 
         // Sophie - Gestionnaire IT
         $sophie = new Utilisateur();
-        $sophie->setEmail('sophie.martin@cpam92.fr');
+        $sophie->setEmail('sophie.martin@demo.opstracker.local');
         $sophie->setNom('MARTIN');
         $sophie->setPrenom('Sophie');
         $sophie->setRoles(['ROLE_GESTIONNAIRE']);
@@ -90,7 +90,7 @@ class AppFixtures extends Fixture
 
         // Karim - Technicien IT principal
         $karim = new Utilisateur();
-        $karim->setEmail('karim.benali@cpam92.fr');
+        $karim->setEmail('karim.benali@demo.opstracker.local');
         $karim->setNom('BENALI');
         $karim->setPrenom('Karim');
         $karim->setRoles(['ROLE_TECHNICIEN']);
@@ -101,9 +101,9 @@ class AppFixtures extends Fixture
 
         // Autres techniciens
         $techNames = [
-            ['DUPONT', 'Marie', 'marie.dupont@cpam92.fr'],
-            ['LECLERC', 'Thomas', 'thomas.leclerc@cpam92.fr'],
-            ['MOREAU', 'Julie', 'julie.moreau@cpam92.fr'],
+            ['DUPONT', 'Marie', 'marie.dupont@demo.opstracker.local'],
+            ['LECLERC', 'Thomas', 'thomas.leclerc@demo.opstracker.local'],
+            ['MOREAU', 'Julie', 'julie.moreau@demo.opstracker.local'],
         ];
 
         foreach ($techNames as $i => $data) {
@@ -120,7 +120,7 @@ class AppFixtures extends Fixture
 
         // Nadia - Coordinatrice (RG-114)
         $nadia = new Utilisateur();
-        $nadia->setEmail('nadia.lambert@cpam92.fr');
+        $nadia->setEmail('nadia.lambert@demo.opstracker.local');
         $nadia->setNom('LAMBERT');
         $nadia->setPrenom('Nadia');
         $nadia->setRoles(['ROLE_COORDINATEUR']);
@@ -448,9 +448,9 @@ class AppFixtures extends Fixture
         );
 
         $segments2 = [
-            ['Site Nanterre', 'primary', 20],
-            ['Site Colombes', 'success', 15],
-            ['Site Courbevoie', 'complete', 15],
+            ['Site Central', 'primary', 20],
+            ['Site Nord', 'success', 15],
+            ['Site Est', 'complete', 15],
         ];
 
         $this->createSegmentsAndOperations(

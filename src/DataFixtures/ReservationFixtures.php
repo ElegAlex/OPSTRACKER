@@ -83,8 +83,8 @@ class ReservationFixtures extends Fixture implements FixtureGroupInterface
 
         // Services disponibles
         $services = [
-            'Prestations Maladie',
-            'Prestations AT/MP',
+            'Service A',
+            'Service B',
             'Accueil',
             'Gestion des Droits',
             'Comptabilite',
@@ -92,16 +92,16 @@ class ReservationFixtures extends Fixture implements FixtureGroupInterface
 
         // Sites disponibles
         $sites = [
-            'Nanterre - Siege',
-            'Colombes',
-            'Courbevoie',
+            'Site Central',
+            'Site Nord',
+            'Site Est',
         ];
 
         // Creer 5 managers (un par service)
         foreach ($services as $index => $service) {
             $mgr = new Agent();
             $mgr->setMatricule(sprintf('MGR%03d', $index + 1));
-            $mgr->setEmail(sprintf('manager.%s@cpam92.fr', $this->slugify($service)));
+            $mgr->setEmail(sprintf('manager.%s@demo.opstracker.local', $this->slugify($service)));
             $mgr->setNom($this->faker->lastName());
             $mgr->setPrenom($this->faker->firstName());
             $mgr->setService($service);
@@ -123,7 +123,7 @@ class ReservationFixtures extends Fixture implements FixtureGroupInterface
             for ($i = 0; $i < 10; $i++) {
                 $agent = new Agent();
                 $agent->setMatricule(sprintf('AGT%04d', $agentNum));
-                $agent->setEmail(sprintf('agent.%04d@cpam92.fr', $agentNum));
+                $agent->setEmail(sprintf('agent.%04d@demo.opstracker.local', $agentNum));
                 $agent->setNom($this->faker->lastName());
                 $agent->setPrenom($this->faker->firstName());
                 $agent->setService($service);

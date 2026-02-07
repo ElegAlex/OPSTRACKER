@@ -144,7 +144,7 @@ class ExportCsvServiceTest extends TestCase
         $technicien = new Utilisateur();
         $technicien->setPrenom('Karim');
         $technicien->setNom('Martin');
-        $technicien->setEmail('karim@cpam.fr');
+        $technicien->setEmail('karim@demo.opstracker.local');
 
         $operation = $this->createMock(Operation::class);
         // RG-015 : Les colonnes par defaut utilisent getDisplayIdentifier/getDisplayName

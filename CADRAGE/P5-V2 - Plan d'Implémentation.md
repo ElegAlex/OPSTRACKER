@@ -717,14 +717,14 @@ Feature: Email invitation
 
 ```yaml
 # .env
-MAILER_DSN=smtp://smtp.cpam92.local:25
+MAILER_DSN=smtp://smtp.local:25
 
 # config/packages/mailer.yaml
 framework:
     mailer:
         dsn: '%env(MAILER_DSN)%'
         envelope:
-            sender: 'opstracker@cpam92.local'
+            sender: 'noreply@demo.opstracker.local'
 ```
 
 ### 6.2 Commande Cron (Rappels)
@@ -766,9 +766,9 @@ class IcsGenerator
         return <<<ICS
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//OpsTracker//Organisation92//FR
+PRODID:-//OpsTracker//Organisation//FR
 BEGIN:VEVENT
-UID:{$reservation->getId()}@opstracker.cpam92.local
+UID:{$reservation->getId()}@opstracker.local
 DTSTART:$dtStart
 DTEND:$dtEnd
 SUMMARY:[{$campagne->getNom()}] Intervention IT

@@ -21,12 +21,12 @@
 
 **Pitch** : Développer une application générique et modulaire de pilotage d'opérations IT (migrations, déploiements, renouvellements matériels) à destination des organisations. L'application doit permettre de planifier, suivre et piloter des opérations de masse sur des cibles variées (utilisateurs, postes, serveurs, devices) avec des champs, statuts, checklists et dashboards entièrement configurables. **Elle inclut également une interface de réservation de créneaux pour les agents et managers métier impactés par les opérations.**
 
-**Déclencheur** : Une application spécifique a été développée pour la migration DRSM→Organisation. Cette app, bien que fonctionnelle et appréciée, n'est pas réutilisable en l'état. Plusieurs Organisation (37, 75, 77, 93) ont exprimé des besoins similaires de pilotage d'opérations IT. **Une réunion de recueil de besoins (janvier 2025) a permis d'identifier des besoins complémentaires majeurs : interface de réservation type "Doctolib", gestion de la capacité IT, notifications avec intégration agenda.**
+**Déclencheur** : Une application spécifique a été développée pour la Migration Pilote Alpha. Cette app, bien que fonctionnelle et appréciée, n'est pas réutilisable en l'état. Plusieurs organisations clientes ont exprimé des besoins similaires de pilotage d'opérations IT. **Une réunion de recueil de besoins (janvier 2025) a permis d'identifier des besoins complémentaires majeurs : interface de réservation type "Doctolib", gestion de la capacité IT, notifications avec intégration agenda.**
 
 **Existant valorisable** :
 
-- L'application DRSM→Organisation constitue un POC fonctionnel validant les concepts clés (segmentation, planification, checklists, dashboard, base documentaire).
-- 🆕 **Application RDV Org. B** : La Org. B dispose d'une application de prise de rendez-vous fonctionnant avec la carte agent. Possibilité d'export/intégration à évaluer.
+- L'application pilote constitue un POC fonctionnel validant les concepts clés (segmentation, planification, checklists, dashboard, base documentaire).
+- 🆕 **Application RDV Organisation B** : L'Organisation B dispose d'une application de prise de rendez-vous fonctionnant avec la carte agent. Possibilité d'export/intégration à évaluer.
 
 ---
 
@@ -34,7 +34,7 @@
 
 - **Sponsor** : DSI Organisation (porteur du projet)
 - **Décideur** : DSI Organisation
-- **Contributeurs** : organisations demandeuses (37, 75, 77, 78, 93), techniciens informatiques (utilisateurs finaux), **managers métier et agents impactés (bénéficiaires)** 🆕
+- **Contributeurs** : organisations clientes, techniciens informatiques (utilisateurs finaux), **managers métier et agents impactés (bénéficiaires)** 🆕
 
 ---
 
@@ -43,13 +43,13 @@
 |Partie prenante|Rôle|Intérêt|Influence|
 |---|---|---|---|
 |DSI Organisation|Sponsor / Développeur / Éditeur|Haut|Haut|
-|Org. A, 75, 77, 78, 93|Utilisateurs demandeurs|Haut|Moyen|
+|Organisations clientes|Utilisateurs demandeurs|Haut|Moyen|
 |Techniciens IT (Ops)|Utilisateurs finaux (exécutent les interventions)|Haut|Bas|
 |🆕 **Agents impactés**|Bénéficiaires des opérations (end-users métier)|Moyen|Bas|
 |🆕 **Managers métier**|Positionnent leurs agents, préservent continuité service|Moyen|Moyen|
 |🆕 **Coordinateurs/Délégués**|Positionnent des agents par délégation (sans lien hiérarchique)|Faible|Bas|
 |Agents de direction|Consultation dashboard|Moyen|Bas|
-|DSI CNAM / Filigramme|Potentiel (mutualisation via Portail Apps Locales)|Moyen|Moyen|
+|DSI Organisation nationale / Portail de mutualisation|Potentiel (mutualisation via Portail de déploiement)|Moyen|Moyen|
 |🆕 **SIRH / Autres directions**|Potentiels utilisateurs (campagnes non-IT : photos ID Prime, etc.)|Faible|Bas|
 
 ---
@@ -159,14 +159,14 @@
 |Point|Décision validée|
 |---|---|
 |Intégration GLPI|❌ Hors scope V1 — Import CSV suffit|
-|Authentification|V1 : Comptes locaux + AD / V2 : + Carte agent + SSO CNAM|
+|Authentification|V1 : Comptes locaux + AD / V2 : + Carte agent + SSO Organisation|
 |Hébergement|Serveur local Organisation (self-hosted)|
 |Homologation sécurité|Faible (self-hosted, pas d'exposition externe, stack à jour)|
-|Bundle Symfony AM|Normalement disponible (à confirmer lors du setup)|
+|Bundle interne|Normalement disponible (à confirmer lors du setup)|
 |Priorisation V1|100% des features décrites + modules réservation/créneaux/notifications|
-|🆕 **Modèle de déploiement**|**Portail des Applications Locales** (pas Filigramme labellisé). Organisation = éditeur, création d'instances pour autres organisations demandeuses|
+|🆕 **Modèle de déploiement**|**Portail de déploiement** (pas Portail de mutualisation labellisé). Organisation = éditeur, création d'instances pour autres organisations demandeuses|
 |🆕 **Mode inscription par défaut**|À valider avec sponsor (Agent / Manager)|
-|🆕 **Auth carte agent V1**|AD simple en V1, carte agent évaluée pour V2 (faisabilité technique à confirmer avec Org. B)|
+|🆕 **Auth carte agent V1**|AD simple en V1, carte agent évaluée pour V2 (faisabilité technique à confirmer avec Organisation B)|
 |🆕 **Extension non-IT**|L'outil peut servir à d'autres directions (RH, SIRH) pour des campagnes non-IT (photos ID Prime, etc.) — cloisonnement par propriétaire|
 
 ---
@@ -177,8 +177,8 @@
 |---|---|---|
 |Budget|Non défini (hors sujet selon sponsor)|Faible — Mode vibe coding avec Claude Code/Codex, pas de prestation externe|
 |Délai|Non défini (hors sujet selon sponsor)|Faible — Pas de deadline imposée. MVP visé : 12-14 semaines|
-|Techno|**Symfony obligatoire** (framework Assurance Maladie)|Fort — Architecture et choix de bundles contraints par l'écosystème Symfony|
-|Techno|Bundle AM à récupérer (normalement disponible)|Moyen — À confirmer lors du setup technique|
+|Techno|**Symfony obligatoire** (framework interne)|Fort — Architecture et choix de bundles contraints par l'écosystème Symfony|
+|Techno|Bundle interne à récupérer (normalement disponible)|Moyen — À confirmer lors du setup technique|
 |Infra|**Hébergement self-hosted Organisation**|Faible — Contrôle total, pas de contraintes cloud/HDS|
 |🆕 Infra|**Serveur SMTP** pour notifications email|Moyen — Nécessite accès SMTP Organisation ou relais mail|
 |🆕 Format|**Fichiers ICS** compatibles Outlook|Faible — Standard iCalendar, bibliothèques disponibles|
@@ -193,9 +193,9 @@
 
 ### État actuel
 
-- **Application DRSM→Organisation (TAM)** : Application spécifique fonctionnelle pour la migration DRSM→Organisation. A validé les concepts clés mais n'est pas générique/réutilisable.
+- **Application Pilote Alpha** : Application spécifique fonctionnelle pour la Migration Pilote Alpha. A validé les concepts clés mais n'est pas générique/réutilisable.
     
-- 🆕 **Application RDV Org. B** : La Org. B dispose d'une application de prise de rendez-vous fonctionnant avec la carte agent. Brique technique potentiellement réutilisable ou source d'inspiration pour le module réservation.
+- 🆕 **Application RDV Organisation B** : L'Organisation B dispose d'une application de prise de rendez-vous fonctionnant avec la carte agent. Brique technique potentiellement réutilisable ou source d'inspiration pour le module réservation.
     
 - 🆕 **Pratiques actuelles de recensement** : Les Organisation utilisent des fichiers Excel partagés pour recenser les disponibilités des agents. Processus fastidieux, source d'erreurs et de conflits de versions.
     
@@ -217,13 +217,13 @@
 |---|---|---|---|---|
 |1|**Complexité de la configurabilité** : Rendre TOUT paramétrable (champs, statuts, segments, checklists) augmente significativement la complexité technique|Haute|Fort|Architecture modulaire dès le départ, patterns JSONB/EAV pour champs dynamiques, Symfony Workflow pour statuts|
 |2|**Dérive du périmètre** : Liste de features très ambitieuse pour un développement solo|Moyenne|Fort|Priorisation MoSCoW, livraison incrémentale, validation par les organisations pilotes|
-|3|**Dépendance au bundle AM** : Si le bundle n'est pas récupérable ou incompatible|Moyenne|Moyen|Prévoir architecture standalone compatible avec intégration ultérieure|
+|3|**Dépendance au Bundle interne** : Si le bundle n'est pas récupérable ou incompatible|Moyenne|Moyen|Prévoir architecture standalone compatible avec intégration ultérieure|
 |4|**Accessibilité RGAA** : Intégration tardive = refonte coûteuse|Haute|Fort|Intégrer les critères RGAA dès la conception, utiliser composants accessibles|
 |5|**Adoption multi-organisations** : Hétérogénéité des pratiques entre Organisation|Moyenne|Moyen|Configuration de base partagée + personnalisations encadrées, gouvernance claire|
 |6|**Bus factor = 1** : Développeur unique|Moyenne|Fort|Documentation exhaustive, code propre, tests automatisés|
 |7|**Performance sur volumes** : Opérations de masse (100 000 lignes), champs dynamiques JSONB|Moyenne|Moyen|Indexation GIN PostgreSQL, imports asynchrones (Symfony Messenger)|
 |🆕 8|**Divergence organisationnelle** : Chaque organisation veut son mode de fonctionnement (agents autonomes vs managers qui positionnent)|Haute|Moyen|Configurabilité maximale par campagne (4 modes d'inscription : Agent / Manager / Liste / Mixte)|
-|🆕 9|**Récupération nationale** : CNAM pourrait bloquer ou reprendre l'initiative locale|Moyenne|Fort|Avancer vite, créer de la valeur, positionner sur Portail Applications Locales (pas Filigramme labellisé), rester sous le radar|
+|🆕 9|**Récupération nationale** : Organisation nationale pourrait bloquer ou reprendre l'initiative locale|Moyenne|Fort|Avancer vite, créer de la valeur, positionner sur Portail de déploiement (pas Portail de mutualisation labellisé), rester sous le radar|
 |🆕 10|**Adoption end-users** : Interface trop complexe pour les agents métier (usage ponctuel, zéro formation)|Faible|Fort|UX "Doctolib" (3 clics max), interface ultra-simplifiée, authentification transparente (AD puis carte agent V2)|
 |🆕 11|**Capacité serveur SMTP** : Notifications en masse (invitations, rappels)|Faible|Moyen|Envoi asynchrone (Symfony Messenger), rate limiting, file d'attente|
 
@@ -239,7 +239,7 @@
 - [x] Hébergement et sécurité définis
 - [x] 🆕 Nouveaux personas métier identifiés (Agent, Manager, Coordinateur)
 - [x] 🆕 Modules complémentaires spécifiés (Réservation, Créneaux, Notifications)
-- [x] 🆕 Modèle de déploiement clarifié (Portail Apps Locales)
+- [x] 🆕 Modèle de déploiement clarifié (Portail de déploiement)
 - [x] **GO validé pour la phase Discovery**
 
 ---
@@ -249,12 +249,12 @@
 |#|Question|Réponse validée|
 |---|---|---|
 |1|Intégration GLPI|Import CSV suffit en V1|
-|2|Authentification|V1 : Comptes locaux + AD / V2 : + Carte agent + SSO CNAM|
+|2|Authentification|V1 : Comptes locaux + AD / V2 : + Carte agent + SSO Organisation|
 |3|Hébergement cible|Serveur local Organisation|
-|4|Bundle Symfony AM|Normalement disponible|
+|4|Bundle interne|Normalement disponible|
 |5|Homologation|Légère (self-hosted, pas d'exposition externe, stack à jour)|
 |6|Priorisation V1|100% des features de l'input initial + modules P1.3bis|
-|🆕 7|Modèle déploiement|Portail Applications Locales (Organisation = éditeur)|
+|🆕 7|Modèle déploiement|Portail de déploiement (Organisation = éditeur)|
 |🆕 8|Extension non-IT|Autorisée (campagnes RH, SIRH) avec cloisonnement|
 
 ### Points en attente de validation sponsor
@@ -286,13 +286,13 @@
 |**Modules**|Interface Réservation, Gestion Créneaux & Capacité, Notifications & Agenda|
 |**Contraintes**|Serveur SMTP, Fichiers ICS, Divergences organisationnelles|
 |**Risques**|Divergence orga, Récupération nationale, Adoption end-users, Capacité SMTP|
-|**Clarifications**|Modèle déploiement (Portail Apps Locales), Auth carte agent (V2), Extension non-IT|
+|**Clarifications**|Modèle déploiement (Portail de déploiement), Auth carte agent (V2), Extension non-IT|
 
 ---
 
 **Niveau de confiance : 95%**
 
-_Les 5% d'incertitude portent sur : disponibilité effective du bundle Symfony AM, faisabilité technique auth carte agent (à confirmer avec Org. B), points sponsor en attente de validation._
+_Les 5% d'incertitude portent sur : disponibilité effective du Bundle interne, faisabilité technique auth carte agent (à confirmer avec Organisation B), points sponsor en attente de validation._
 
 ---
 

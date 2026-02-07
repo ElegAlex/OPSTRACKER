@@ -122,7 +122,7 @@ class LoadTestFixtures
     {
         // Admin
         $admin = new Utilisateur();
-        $admin->setEmail('admin.loadtest@cpam.fr');
+        $admin->setEmail('admin.loadtest@demo.opstracker.local');
         $admin->setPrenom('Admin');
         $admin->setNom('LoadTest');
         $admin->setRoles(['ROLE_ADMIN']);
@@ -134,7 +134,7 @@ class LoadTestFixtures
         // Gestionnaires (Sophie)
         for ($i = 1; $i <= 5; $i++) {
             $user = new Utilisateur();
-            $user->setEmail("gestionnaire{$i}.loadtest@cpam.fr");
+            $user->setEmail("gestionnaire{$i}.loadtest@demo.opstracker.local");
             $user->setPrenom("Sophie{$i}");
             $user->setNom('LoadTest');
             $user->setRoles(['ROLE_GESTIONNAIRE']);
@@ -147,7 +147,7 @@ class LoadTestFixtures
         // Techniciens (Karim)
         for ($i = 1; $i <= self::USERS_COUNT - 6; $i++) {
             $user = new Utilisateur();
-            $user->setEmail("technicien{$i}.loadtest@cpam.fr");
+            $user->setEmail("technicien{$i}.loadtest@demo.opstracker.local");
             $user->setPrenom("Karim{$i}");
             $user->setNom('LoadTest');
             $user->setRoles(['ROLE_TECHNICIEN']);
@@ -298,7 +298,7 @@ class LoadTestFixtures
         $conn->executeStatement("DELETE FROM operation WHERE matricule LIKE 'LT-%'");
         $conn->executeStatement("DELETE FROM segment WHERE nom LIKE '%LoadTest%'");
         $conn->executeStatement("DELETE FROM campagne WHERE nom LIKE '%LoadTest%'");
-        $conn->executeStatement("DELETE FROM utilisateur WHERE email LIKE '%loadtest@cpam.fr'");
+        $conn->executeStatement("DELETE FROM utilisateur WHERE email LIKE '%loadtest@demo.opstracker.local'");
         $conn->executeStatement("DELETE FROM type_operation WHERE nom LIKE '%LoadTest%'");
         $conn->executeStatement("DELETE FROM checklist_template WHERE nom LIKE '%LoadTest%'");
 

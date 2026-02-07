@@ -1,6 +1,6 @@
 {
-    "name": "cpam92/opstracker",
-    "description": "Application de gestion d'operations IT pour les CPAM",
+    "name": "opstracker/opstracker",
+    "description": "Application de gestion d'operations IT pour les organisations",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",

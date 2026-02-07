@@ -8,7 +8,7 @@
 
 ## 🎯 Contexte Projet
 
-**OpsTracker** est une application Symfony de gestion d'opérations IT terrain pour les organisations (Assurance Maladie). Elle permet de piloter des campagnes de migration/déploiement avec suivi en temps réel.
+**OpsTracker** est une application Symfony de gestion d'opérations IT terrain pour les organisations. Elle permet de piloter des campagnes de migration/déploiement avec suivi en temps réel.
 
 **Utilisateurs cibles** :
 - **Sophie** (Gestionnaire IT) : Configure les campagnes, suit les dashboards

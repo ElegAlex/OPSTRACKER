@@ -76,9 +76,9 @@ Comptes de demo disponibles :
 
 | Email | Mot de passe | Role |
 |-------|--------------|------|
-| admin@cpam92.fr | Admin123! | Administrateur |
-| sophie.martin@cpam92.fr | Sophie123! | Gestionnaire |
-| karim.benali@cpam92.fr | Karim123! | Technicien |
+| admin@demo.opstracker.local | Admin123! | Administrateur |
+| sophie.martin@demo.opstracker.local | Sophie123! | Gestionnaire |
+| karim.benali@demo.opstracker.local | Karim123! | Technicien |
 
 ## Images Docker
 

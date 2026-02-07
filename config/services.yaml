@@ -8,7 +8,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     upload_directory: '%kernel.project_dir%/var/uploads'
-    mailer_sender: 'opstracker-noreply@cpam92.local'
+    mailer_sender: 'noreply@demo.opstracker.local'
     sms_enabled: '%env(bool:SMS_ENABLED)%'
     sms_provider: '%env(SMS_PROVIDER)%'
     sms_default_sender: 'OpsTracker'

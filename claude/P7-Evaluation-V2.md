@@ -32,8 +32,8 @@ Les fixtures V2 (`ReservationFixtures.php`) etablissent le jeu de donnees de ref
 | **Agents** | 50 | 10 par manager |
 | **Creneaux** | 60 | 12/jour x 5 jours |
 | **Reservations** | 30 | Distribution realiste |
-| **Services** | 5 | Maladie, AT/MP, Accueil, Droits, Comptabilite |
-| **Sites** | 3 | Nanterre, Colombes, Courbevoie |
+| **Services** | 5 | Service A, Service B, Accueil, Droits, Comptabilite |
+| **Sites** | 3 | Site Central, Site Nord, Site Est |
 
 ### Distribution Reservations (Design)
 

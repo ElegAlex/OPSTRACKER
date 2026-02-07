@@ -99,11 +99,11 @@ class AgentCrudController extends AbstractCrudController
 
         yield TextField::new('service', 'Service')
             ->setColumns(6)
-            ->setHelp('Ex: Prestations Maladie, Accueil, etc.');
+            ->setHelp('Ex: Service A, Accueil, etc.');
 
         yield TextField::new('site', 'Site')
             ->setColumns(6)
-            ->setHelp('Ex: Nanterre - Siege, Colombes, etc.');
+            ->setHelp('Ex: Site Central, Site Nord, etc.');
 
         yield AssociationField::new('manager', 'Manager')
             ->setHelp('RG-124 : Le manager voit uniquement les agents de son service')

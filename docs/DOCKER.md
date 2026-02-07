@@ -38,7 +38,7 @@ make install
 
 ### 4. Acceder a l'application
 
-- **Application** : http://localhost (ou https://votre-domaine.cpam.fr)
+- **Application** : http://localhost (ou https://opstracker.local)
 - **Compte admin par defaut** : Creer via les fixtures ou manuellement
 
 ## Commandes utiles
@@ -60,7 +60,7 @@ make install
 
 ```
 +-----------------------------------------------------------+
-|                    Serveur CPAM                           |
+|                    Serveur OpsTracker                     |
 +-----------------------------------------------------------+
 |  +----------+  +----------+  +----------+  +-----------+  |
 |  |  Nginx   |--|  PHP-FPM |--|PostgreSQL|--|   Redis   |  |

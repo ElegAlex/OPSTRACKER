@@ -23,7 +23,7 @@ OpsTracker est une application de gestion d'operations IT terrain pour les organ
 
 ## Connexion
 
-1. Acceder a l'application : `https://opstracker.test.fr`
+1. Acceder a l'application : `https://opstracker.local`
 2. Saisir votre email et mot de passe
 3. Cliquer sur "Se connecter"
 
@@ -78,8 +78,8 @@ Menu > **Dashboard**
 
 ```csv
 matricule;nom;segment;email
-PC-001;Poste Dupont;Batiment A;dupont@test.fr
-PC-002;Poste Martin;Batiment B;martin@test.fr
+PC-001;Poste Dupont;Batiment A;dupont@demo.opstracker.local
+PC-002;Poste Martin;Batiment B;martin@demo.opstracker.local
 ```
 
 | Colonne | Obligatoire | Description |
@@ -391,7 +391,7 @@ Actuellement, une connexion internet est requise pour utiliser l'application.
 
 ## Support
 
-- Email : support-opstracker@cpam.fr
+- Email : support@demo.opstracker.local
 - Documentation : `/docs/` dans l'application
 
 ---

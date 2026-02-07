@@ -37,7 +37,7 @@ class NotificationService
         private Environment $twig,
         private UrlGeneratorInterface $urlGenerator,
         private ?LoggerInterface $logger = null,
-        private string $senderEmail = 'opstracker-noreply@cpam92.local',
+        private string $senderEmail = 'noreply@demo.opstracker.local',
     ) {
     }
 
