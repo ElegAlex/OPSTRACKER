@@ -40,6 +40,21 @@ coordonnees disponibles sur leur profil GitHub.
 4. Nous publions le correctif et un avis de securite
 5. Nous vous creditons dans l'avis (sauf si vous preferez l'anonymat)
 
+## ⚠️ Post-migration open-source
+
+Les versions anterieures a v2.3.0 contenaient un `APP_SECRET` de
+developpement dans le `.env` tracke par git. Si vous avez deploye une version
+anterieure, vous devez regenerer votre secret :
+
+```bash
+php -r "echo bin2hex(random_bytes(16));"
+```
+
+Puis mettre la nouvelle valeur dans votre `.env.local` et relancer
+l'application.
+
+Meme chose pour `DB_PASSWORD` si vous utilisiez la valeur par defaut.
+
 ## Bonnes pratiques de deploiement
 
 - Toujours modifier `APP_SECRET` et `DB_PASSWORD` avant la mise en production
