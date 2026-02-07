@@ -20,7 +20,7 @@ cd opstracker
 
 ```bash
 # Copier le fichier de configuration
-cp .env.docker .env.local
+cp .env .env.local
 
 # Editer et changer les valeurs sensibles
 nano .env.local

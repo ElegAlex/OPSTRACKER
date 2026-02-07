@@ -2,7 +2,8 @@
     "name": "opstracker/opstracker",
     "description": "Application de gestion d'operations IT pour les organisations",
     "type": "project",
-    "license": "proprietary",
+    "license": "EUPL-1.2",
+    "homepage": "https://github.com/ElegAlex/OPSTRACKER",
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {

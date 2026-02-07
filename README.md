@@ -49,8 +49,8 @@ git clone https://github.com/ElegAlex/OPSTRACKER.git
 cd OPSTRACKER
 
 # 2. Configurer l'environnement
-cp .env.docker .env
-# Editer .env : modifier APP_SECRET et DB_PASSWORD
+cp .env .env.local
+# Editer .env.local : modifier APP_SECRET et DB_PASSWORD
 
 # 3. Construire et demarrer
 docker compose build
@@ -178,7 +178,8 @@ opstracker/
 
 ## Licence
 
-MIT License
+Ce projet est distribue sous licence [EUPL 1.2](https://eupl.eu/1.2/fr/).
+Voir le fichier [LICENSE](LICENSE) pour le texte complet.
 
 ---
 

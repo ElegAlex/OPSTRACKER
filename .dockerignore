@@ -64,4 +64,3 @@ Thumbs.db
 # Fichiers de developpement
 Makefile
 docker-compose.override.yml.dist
-.env.docker

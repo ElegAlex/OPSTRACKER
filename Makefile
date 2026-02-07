@@ -23,7 +23,7 @@ help: ## Afficher cette aide
 
 install: ## Installation complete (premiere fois)
 	@echo "$(GREEN)Installation OpsTracker...$(NC)"
-	@test -f .env.local || cp .env.docker .env.local
+	@test -f .env.local || cp .env .env.local
 	@test -f docker-compose.override.yml || cp docker-compose.override.yml.dist docker-compose.override.yml
 	$(DOCKER_COMPOSE) build --no-cache
 	$(DOCKER_COMPOSE) up -d
