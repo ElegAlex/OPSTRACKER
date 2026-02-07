@@ -813,7 +813,7 @@ class CampagneController extends AbstractController
                         $docIdInt = $docId !== null && $docId !== '' ? (int) $docId : null;
                         $structure = $campagne->getChecklistStructure();
                         $found = false;
-                        foreach ($structure['phases'] as &$phase) {
+                        foreach (($structure['phases'] ?? []) as &$phase) {
                             foreach ($phase['etapes'] as &$etape) {
                                 if ($etape['id'] === $etapeId) {
                                     $etape['documentId'] = $docIdInt;
@@ -853,7 +853,7 @@ class CampagneController extends AbstractController
         $documents = $campagne->getDocuments()->toArray();
         $documentMap = [];
         foreach ($documents as $doc) {
-            $documentMap[$doc->getId()] = $doc->getNomOriginal().' ('.\strtoupper($doc->getExtension()).')';
+            $documentMap[$doc->getId()] = $doc->getNomOriginal().' ('.\strtoupper((string) $doc->getExtension()).')';
         }
 
         return $this->render('campagne/workflow_manage.html.twig', [
